@@ -36,9 +36,15 @@ public class BiographyController {
     }
 
     @GetMapping(value = "")
-    public ResponseEntity<Page<Biography>> getCategories(
-            @PageableDefault(page = 0, size = 10, sort = "title", direction = Sort.Direction.DESC) Pageable pageRequest
+    public ResponseEntity<Page<Biography>> getBiographies(
+            @PageableDefault(page = 0, size = 10, sort = "firstName", direction = Sort.Direction.DESC) Pageable pageRequest
     ) throws SQLException {
-        return ResponseEntity.ok(biographyService.getBiographies(pageRequest));
+        Page<Biography> page = biographyService.getBiographies(pageRequest);
+
+        if (page.getContent().size() == 0) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(page);
     }
 }

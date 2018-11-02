@@ -70,6 +70,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserService {
         userDao.save(user);
         biographyDao.save(
                 new Biography(
+                        null,
                         signUpRequest.getFirstName(),
                         signUpRequest.getLastName(),
                         signUpRequest.getMiddleName(),

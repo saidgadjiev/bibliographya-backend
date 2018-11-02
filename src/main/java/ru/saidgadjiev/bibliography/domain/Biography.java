@@ -5,6 +5,8 @@ package ru.saidgadjiev.bibliography.domain;
  */
 public class Biography {
 
+    private Integer id;
+
     private String firstName;
 
     private String lastName;
@@ -17,12 +19,21 @@ public class Biography {
 
     private String userName;
 
-    public Biography(String firstName, String lastName, String middleName, String creatorName, String userName) {
+    public Biography(Integer id, String firstName, String lastName, String middleName, String creatorName, String userName) {
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.middleName = middleName;
         this.creatorName = creatorName;
         this.userName = userName;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getFirstName() {
