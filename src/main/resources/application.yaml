@@ -1,0 +1,9 @@
+server:
+  port: 8000
+spring:
+    datasource:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://localhost:5432/bibliography
+      userName: postgres
+      password: postgres
+

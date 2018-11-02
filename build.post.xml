@@ -1,5 +1,19 @@
 <project name="post-build" basedir="." default="post-build">
     <target name="post-build">
+        <Dc name="00001" description="Создаем сущность пользователь">
+            <SqlFile file="env/scripts/user.sql"/>
+        </Dc>
 
+        <Dc name="00002" description="Создаем сущность роль">
+            <SqlFile file="env/scripts/role.sql"/>
+        </Dc>
+
+        <Dc name="00003" description="Создаем сущность роль_пользователь">
+            <SqlFile file="env/scripts/user_role.sql"/>
+        </Dc>
+
+        <Dc name="00004" description="Создаем сущность биография">
+            <SqlFile file="env/scripts/biography.sql"/>
+        </Dc>
     </target>
 </project>
