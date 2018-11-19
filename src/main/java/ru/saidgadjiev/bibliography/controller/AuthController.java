@@ -26,6 +26,7 @@ import ru.saidgadjiev.bibliography.utils.ResponseUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -119,5 +120,14 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(userDetails);
+    }
+
+    @RequestMapping(value = "/username/exist/{username}", method = RequestMethod.HEAD)
+    public ResponseEntity existUserName(@PathVariable(value = "username") String username) throws SQLException {
+        if (userService.isExistUserName(username)) {
+            return ResponseEntity.status(HttpStatus.FOUND).build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 }

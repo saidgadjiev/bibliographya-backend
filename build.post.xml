@@ -15,5 +15,9 @@
         <Dc name="00004" description="Создаем сущность биография">
             <SqlFile file="env/scripts/biography.sql"/>
         </Dc>
+
+        <Dc name="00005" description="Создаем сущность лайков биографий">
+            <SqlFile file="env/scripts/biography_like.sql"/>
+        </Dc>
     </target>
 </project>

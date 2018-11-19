@@ -20,7 +20,7 @@ public class CrossInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         response.setHeader(CREDENTIALS_NAME, "true");
         response.setHeader(ORIGIN_NAME, "http://localhost:8080");
-        response.setHeader(METHODS_NAME, "GET, OPTIONS, POST, PUT, DELETE");
+        response.setHeader(METHODS_NAME, "PATCH, GET, OPTIONS, POST, PUT, DELETE, HEAD");
         response.setHeader(HEADERS_NAME, "Origin, X-Requested-With, Content-Type, Accept");
         response.setHeader(MAX_AGE_NAME, "3600");
 

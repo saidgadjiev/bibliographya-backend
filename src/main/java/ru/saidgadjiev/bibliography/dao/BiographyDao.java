@@ -1,10 +1,7 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.domain.Biography;
 
@@ -75,17 +72,43 @@ public class BiographyDao {
     }
 
     private Biography map(ResultSet rs) throws SQLException {
-        Biography biography = new Biography(
-                rs.getInt("id"),
+        Biography biography = new Biography.Builder(
                 rs.getString("first_name"),
                 rs.getString("last_name"),
-                rs.getString("middle_name"),
-                rs.getString("creator_name"),
-                rs.getString("user_name")
-        );
+                rs.getString("middle_name")
+        )
+                .setId(rs.getInt("id"))
+                .setCreatorName(rs.getString("creator_name"))
+                .setUserName(rs.getString("user_name"))
+                .build();
 
         biography.setBiography(rs.getString("biography"));
 
         return biography;
+    }
+
+    public Biography getById(String id) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT * FROM biography WHERE id='" + id + "'",
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    public int update(Biography biography) {
+        return jdbcTemplate.update(
+                "UPDATE biography SET first_name=?, last_name=?, middle_name=?, biography=? WHERE id=" + biography.getId(),
+                ps -> {
+                    ps.setString(1, biography.getFirstName());
+                    ps.setString(2, biography.getLastName());
+                    ps.setString(3, biography.getMiddleName());
+                    ps.setString(4, biography.getBiography());
+                }
+        );
     }
 }

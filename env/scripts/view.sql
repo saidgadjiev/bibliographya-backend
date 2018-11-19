@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS view(
+  id SERIAL PRIMARY KEY,
+  biographyId INTEGER,
+  user_addr VARCHAR(128)
+);

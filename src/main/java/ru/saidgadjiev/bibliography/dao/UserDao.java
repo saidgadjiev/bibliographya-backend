@@ -1,13 +1,16 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.domain.User;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -73,6 +76,22 @@ public class UserDao {
                     }
 
                     return null;
+                }
+        );
+    }
+
+    public boolean isExistUsername(String username) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM \"user\" WHERE name='" + username + "'",
+                new ResultSetExtractor<Boolean>() {
+                    @Override
+                    public Boolean extractData(ResultSet rs) throws SQLException, DataAccessException {
+                        if (rs.next()) {
+                            return rs.getLong("cnt") > 0;
+                        }
+
+                        return false;
+                    }
                 }
         );
     }

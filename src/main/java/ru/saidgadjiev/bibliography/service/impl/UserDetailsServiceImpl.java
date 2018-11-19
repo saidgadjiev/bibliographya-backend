@@ -13,6 +13,7 @@ import ru.saidgadjiev.bibliography.dao.BiographyDao;
 import ru.saidgadjiev.bibliography.dao.UserDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.Role;
+import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
 import ru.saidgadjiev.bibliography.service.api.UserService;
 
@@ -27,14 +28,14 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserService {
 
     private final UserDao userDao;
 
-    private final BiographyDao biographyDao;
+    private final BiographyService biographyService;
 
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserDetailsServiceImpl(UserDao userDao, BiographyDao biographyDao, PasswordEncoder passwordEncoder) {
+    public UserDetailsServiceImpl(UserDao userDao, BiographyService biographyService, PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
-        this.biographyDao = biographyDao;
+        this.biographyService = biographyService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -68,15 +69,18 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserService {
         );
 
         userDao.save(user);
-        biographyDao.save(
-                new Biography(
-                        null,
-                        signUpRequest.getFirstName(),
-                        signUpRequest.getLastName(),
-                        signUpRequest.getMiddleName(),
-                        signUpRequest.getUsername(),
-                        signUpRequest.getUsername()
-                )
-        );
+        BiographyRequest biographyRequest = new BiographyRequest();
+
+        biographyRequest.setFirstName(signUpRequest.getFirstName());
+        biographyRequest.setLastName(signUpRequest.getLastName());
+        biographyRequest.setMiddleName(signUpRequest.getMiddleName());
+        biographyRequest.setUserName(signUpRequest.getUsername());
+
+        biographyService.create(biographyRequest);
+    }
+
+    @Override
+    public boolean isExistUserName(String username) {
+        return userDao.isExistUsername(username);
     }
 }

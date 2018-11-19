@@ -1,5 +1,10 @@
 package ru.saidgadjiev.bibliography.domain;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.validation.constraints.Size;
+import java.util.Objects;
+
 /**
  * Created by said on 22.10.2018.
  */
@@ -18,15 +23,6 @@ public class Biography {
     private String creatorName;
 
     private String userName;
-
-    public Biography(Integer id, String firstName, String lastName, String middleName, String creatorName, String userName) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.middleName = middleName;
-        this.creatorName = creatorName;
-        this.userName = userName;
-    }
 
     public Integer getId() {
         return id;
@@ -82,5 +78,90 @@ public class Biography {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public static class Builder {
+
+        private Integer id;
+
+        private String firstName;
+
+        private String lastName;
+
+        private String middleName;
+
+        private String biography;
+
+        private String creatorName;
+
+        private String userName;
+
+        public Builder() {}
+
+        public Builder(String firstName, String lastName, String middleName) {
+            Objects.requireNonNull(firstName);
+            Objects.requireNonNull(lastName);
+            Objects.requireNonNull(middleName);
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.middleName = middleName;
+        }
+
+        public Builder setFirstName(String firstName) {
+            this.firstName = firstName;
+
+            return this;
+        }
+
+        public Builder setLastName(String lastName) {
+            this.lastName = lastName;
+
+            return this;
+        }
+
+        public Builder setMiddleName(String middleName) {
+            this.middleName = middleName;
+
+            return this;
+        }
+
+        public Builder setId(Integer id) {
+            this.id = id;
+
+            return this;
+        }
+
+        public Builder setBiography(String biography) {
+            this.biography = biography;
+
+            return this;
+        }
+
+        public Builder setCreatorName(String creatorName) {
+            this.creatorName = creatorName;
+
+            return this;
+        }
+
+        public Builder setUserName(String userName) {
+            this.userName = userName;
+
+            return this;
+        }
+
+        public Biography build() {
+            Biography biography = new Biography();
+
+            biography.setId(id);
+            biography.setBiography(this.biography);
+            biography.setCreatorName(creatorName);
+            biography.setUserName(userName);
+            biography.setFirstName(firstName);
+            biography.setLastName(lastName);
+            biography.setMiddleName(middleName);
+            biography.setBiography(this.biography);
+
+            return biography;
+        }
     }
 }

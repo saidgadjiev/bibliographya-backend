@@ -8,4 +8,6 @@ import ru.saidgadjiev.bibliography.model.SignUpRequest;
 public interface UserService {
 
     void save(SignUpRequest signUpRequest);
+
+    boolean isExistUserName(String username);
 }
