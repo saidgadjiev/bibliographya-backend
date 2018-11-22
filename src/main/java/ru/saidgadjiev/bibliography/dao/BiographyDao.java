@@ -4,7 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.domain.Biography;
+import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliography.model.UpdateBiographyRequest;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -80,6 +84,7 @@ public class BiographyDao {
                 .setId(rs.getInt("id"))
                 .setCreatorName(rs.getString("creator_name"))
                 .setUserName(rs.getString("user_name"))
+                .setUpdatedAt(rs.getTimestamp("updated_at"))
                 .build();
 
         biography.setBiography(rs.getString("biography"));
@@ -87,9 +92,9 @@ public class BiographyDao {
         return biography;
     }
 
-    public Biography getById(String id) throws SQLException {
+    public Biography getById(int id) {
         return jdbcTemplate.query(
-                "SELECT * FROM biography WHERE id='" + id + "'",
+                "SELECT * FROM biography WHERE id=" + id + "",
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
@@ -100,15 +105,29 @@ public class BiographyDao {
         );
     }
 
-    public int update(Biography biography) {
-        return jdbcTemplate.update(
-                "UPDATE biography SET first_name=?, last_name=?, middle_name=?, biography=? WHERE id=" + biography.getId(),
-                ps -> {
-                    ps.setString(1, biography.getFirstName());
-                    ps.setString(2, biography.getLastName());
-                    ps.setString(3, biography.getMiddleName());
-                    ps.setString(4, biography.getBiography());
+    public BiographyUpdateStatus update(Biography biography) throws SQLException {
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "UPDATE biography " +
+                    "SET first_name=?, last_name=?, middle_name=?, biography=? " +
+                    "WHERE id=? AND updated_at=? RETURNING updated_at")) {
+                ps.setString(1, biography.getFirstName());
+                ps.setString(2, biography.getLastName());
+                ps.setString(3, biography.getMiddleName());
+                ps.setString(4, biography.getBiography());
+                ps.setInt(5, biography.getId());
+                ps.setTimestamp(6, biography.getUpdatedAt());
+
+                ps.execute();
+
+                try (ResultSet resultSet = ps.getResultSet()) {
+                    if (resultSet.next()) {
+                        return new BiographyUpdateStatus(true, resultSet.getTimestamp("updated_at"));
+                    } else {
+                        return new BiographyUpdateStatus(false, null);
+                    }
                 }
-        );
+            }
+        }
     }
 }

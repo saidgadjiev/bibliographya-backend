@@ -4,15 +4,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.model.BiographyResponse;
-import ru.saidgadjiev.bibliography.model.UpdateBiographyRequest;
+import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliography.model.*;
 import ru.saidgadjiev.bibliography.service.impl.BiographyCommentService;
 import ru.saidgadjiev.bibliography.service.impl.BiographyLikeService;
 import ru.saidgadjiev.bibliography.service.impl.BiographyService;
@@ -58,13 +56,13 @@ public class BiographyController {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") String id) throws SQLException {
+    public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) throws SQLException {
         return ResponseEntity.ok(convertToDto(biographyService.getBiographyById(id)));
     }
 
     @GetMapping(value = "")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
-            @PageableDefault(page = 0, size = 10, sort = "firstName", direction = Sort.Direction.DESC) Pageable pageRequest
+            OffsetLimitPageRequest pageRequest
     ) throws SQLException {
         Page<Biography> page = biographyService.getBiographies(pageRequest);
 
@@ -72,26 +70,37 @@ public class BiographyController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), pageRequest, page.getTotalElements()));
+        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
-    @PatchMapping(value = "/update/{id}")
-    public ResponseEntity<UpdateBiographyRequest> update(
+    @PutMapping(value = "/update/{id}")
+    public ResponseEntity<?> update(
             @PathVariable("id") Integer id,
             @Valid @RequestBody UpdateBiographyRequest updateBiographyRequest,
             BindingResult bindingResult
-    ) {
+    ) throws SQLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        int updateResult = biographyService.update(id, updateBiographyRequest);
+        BiographyUpdateStatus updateResult = biographyService.update(id, updateBiographyRequest);
 
-        if (updateResult == 0) {
+        if (updateResult.isUpdated()) {
+            UpdateBiographyResponse response = new UpdateBiographyResponse();
+
+            response.setLastModified(new LastModified(
+                    updateResult.getUpdatedAt().getTime(), updateResult.getUpdatedAt().getNanos())
+            );
+
+            return ResponseEntity.ok(response);
+        }
+        Biography biography = biographyService.getBiographyById(id);
+
+        if (biography == null) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(updateBiographyRequest);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography));
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {
@@ -101,7 +110,7 @@ public class BiographyController {
         Map<Integer, Boolean> biographiesIsLiked = biographyLikeService.getBiographiesIsLiked(ids);
         Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
 
-        for (Biography biography: biographies) {
+        for (Biography biography : biographies) {
             BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
 
             biographyResponse.setLikesCount(biographiesLikesCount.get(biography.getId()));

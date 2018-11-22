@@ -8,11 +8,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.dao.BiographyDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
+import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
+import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliography.model.UpdateBiographyRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -50,18 +53,18 @@ public class BiographyService {
         return biographyDao.getByUsername(username);
     }
 
-    public Biography getBiographyById(String id) throws SQLException {
+    public Biography getBiographyById(int id) {
         return biographyDao.getById(id);
     }
 
-    public Page<Biography> getBiographies(Pageable pageRequest) {
+    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest) {
         List<Biography> biographies = biographyDao.getBiographiesList(pageRequest.getPageSize(), pageRequest.getOffset());
         long total = biographyDao.countOff();
 
         return new PageImpl<>(biographies, pageRequest, total);
     }
 
-    public int update(Integer id, UpdateBiographyRequest updateBiographyRequest) {
+    public BiographyUpdateStatus update(Integer id, UpdateBiographyRequest updateBiographyRequest) throws SQLException {
         Biography.Builder builder = new Biography.Builder(
                 updateBiographyRequest.getFirstName(),
                 updateBiographyRequest.getLastName(),
@@ -70,6 +73,12 @@ public class BiographyService {
 
         builder.setId(id);
         builder.setBiography(updateBiographyRequest.getBiography());
+
+        Timestamp timestamp = new Timestamp(updateBiographyRequest.getLastModified().getTime());
+
+        timestamp.setNanos(updateBiographyRequest.getLastModified().getNanos());
+
+        builder.setUpdatedAt(timestamp);
 
         return biographyDao.update(builder.build());
     }

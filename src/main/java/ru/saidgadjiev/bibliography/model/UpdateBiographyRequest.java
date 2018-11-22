@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliography.model;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 
 /**
  * Created by said on 04.11.2018.
@@ -22,6 +23,9 @@ public class UpdateBiographyRequest {
     private String middleName;
 
     private String biography;
+
+    @NotNull
+    private LastModified lastModified;
 
     public String getFirstName() {
         return firstName;
@@ -53,5 +57,13 @@ public class UpdateBiographyRequest {
 
     public void setBiography(String biography) {
         this.biography = biography;
+    }
+
+    public void setLastModified(LastModified lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public LastModified getLastModified() {
+        return lastModified;
     }
 }

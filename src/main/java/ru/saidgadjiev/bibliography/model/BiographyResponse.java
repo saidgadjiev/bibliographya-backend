@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliography.model;
 
+import java.sql.Timestamp;
+
 /**
  * Created by said on 22.10.2018.
  */
@@ -24,6 +26,10 @@ public class BiographyResponse {
     private long commentsCount;
 
     private boolean liked;
+
+    private Timestamp updatedAt;
+
+    private LastModified lastModified;
 
     public Integer getId() {
         return id;
@@ -103,5 +109,18 @@ public class BiographyResponse {
 
     public void setCommentsCount(long commentsCount) {
         this.commentsCount = commentsCount;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+        this.lastModified = new LastModified(updatedAt.getTime(), updatedAt.getNanos());
+    }
+
+    public LastModified getLastModified() {
+        return lastModified;
     }
 }

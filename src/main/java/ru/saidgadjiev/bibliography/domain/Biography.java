@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliography.domain;
 import org.jetbrains.annotations.NotNull;
 
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
@@ -23,6 +24,8 @@ public class Biography {
     private String creatorName;
 
     private String userName;
+
+    private Timestamp updatedAt;
 
     public Integer getId() {
         return id;
@@ -80,6 +83,14 @@ public class Biography {
         this.userName = userName;
     }
 
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public static class Builder {
 
         private Integer id;
@@ -95,6 +106,8 @@ public class Biography {
         private String creatorName;
 
         private String userName;
+
+        private Timestamp updatedAt;
 
         public Builder() {}
 
@@ -149,6 +162,12 @@ public class Biography {
             return this;
         }
 
+        public Builder setUpdatedAt(Timestamp updatedAt) {
+            this.updatedAt = updatedAt;
+
+            return this;
+        }
+
         public Biography build() {
             Biography biography = new Biography();
 
@@ -160,6 +179,7 @@ public class Biography {
             biography.setLastName(lastName);
             biography.setMiddleName(middleName);
             biography.setBiography(this.biography);
+            biography.setUpdatedAt(this.updatedAt);
 
             return biography;
         }

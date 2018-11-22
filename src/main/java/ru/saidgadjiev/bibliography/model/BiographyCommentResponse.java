@@ -1,9 +1,6 @@
 package ru.saidgadjiev.bibliography.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Created by said on 18.11.2018.
@@ -20,8 +17,6 @@ public class BiographyCommentResponse {
 
     private String userName;
 
-    private boolean reply = false;
-
     private String replyToFirstName;
 
     private String replyToUserName;
@@ -29,6 +24,10 @@ public class BiographyCommentResponse {
     private Integer parentId;
 
     private Timestamp createdAt;
+
+    private int biographyId;
+
+    private int replyToBiographyId;
 
     public String getContent() {
         return content;
@@ -86,14 +85,6 @@ public class BiographyCommentResponse {
         this.createdAt = createdAt;
     }
 
-    public boolean isReply() {
-        return reply;
-    }
-
-    public void setReply(boolean reply) {
-        this.reply = reply;
-    }
-
     public Integer getParentId() {
         return parentId;
     }
@@ -108,5 +99,21 @@ public class BiographyCommentResponse {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getBiographyId() {
+        return biographyId;
+    }
+
+    public void setBiographyId(int biographyId) {
+        this.biographyId = biographyId;
+    }
+
+    public int getReplyToBiographyId() {
+        return replyToBiographyId;
+    }
+
+    public void setReplyToBiographyId(int replyToBiographyId) {
+        this.replyToBiographyId = replyToBiographyId;
     }
 }

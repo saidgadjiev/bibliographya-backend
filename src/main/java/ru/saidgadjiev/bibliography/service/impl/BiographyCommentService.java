@@ -1,13 +1,11 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.dao.BiographyCommentDao;
+import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.model.BiographyCommentRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
@@ -33,32 +31,48 @@ public class BiographyCommentService {
         this.biographyCommentDao = biographyCommentDao;
     }
 
-    public void addComment(int biographyId, BiographyCommentRequest commentRequest) {
+    public BiographyComment addComment(int biographyId, BiographyCommentRequest commentRequest) {
         UserDetails userDetails = securityService.findLoggedInUser();
         BiographyComment biographyComment = new BiographyComment();
 
-        biographyComment.setBiographyId(biographyId);
         biographyComment.setContent(commentRequest.getContent());
+        biographyComment.setBiographyId(biographyId);
         biographyComment.setUserName(userDetails.getUsername());
         biographyComment.setParentId(commentRequest.getParentId());
 
-        biographyCommentDao.create(biographyComment);
+        Biography biography = new Biography.Builder()
+                .setFirstName(commentRequest.getFirstName())
+                .setLastName(commentRequest.getLastName())
+                .build();
+
+        biographyComment.setBiography(biography);
+
+        if (commentRequest.getParentId() != null) {
+            BiographyComment parent = new BiographyComment();
+
+            parent.setId(commentRequest.getParentId());
+
+            Biography replyTo = new Biography.Builder()
+                    .setFirstName(commentRequest.getReplyToFirstName())
+                    .setUserName(commentRequest.getReplyToUserName())
+                    .build();
+
+            parent.setBiography(replyTo);
+
+            biographyComment.setParent(parent);
+        }
+
+        return biographyCommentDao.create(biographyComment);
     }
 
-    public void deleteComment(int biographyId) {
-        UserDetails userDetails = securityService.findLoggedInUser();
-
-        BiographyComment biographyComment = new BiographyComment();
-
-        biographyComment.setBiographyId(biographyId);
-        biographyComment.setUserName(userDetails.getUsername());
-
-        biographyCommentDao.delete(biographyComment);
+    public void deleteComment(int commentId) {
+        biographyCommentDao.delete(commentId);
     }
 
     public Page<BiographyComment> getComments(int biographyId, Pageable pageRequest) {
         List<BiographyComment> biographyComments = biographyCommentDao.getComments(
                 biographyId,
+                pageRequest.getSort() == null ? Sort.by(Sort.Direction.ASC, "created_at") : pageRequest.getSort(),
                 pageRequest.getPageSize(),
                 pageRequest.getOffset()
         );
@@ -73,5 +87,9 @@ public class BiographyCommentService {
 
     public Map<Integer, Long> getBiographiesCommentsCount(Collection<Integer> biographiesIds) {
         return biographyCommentDao.countOffByBiographiesIds(biographiesIds);
+    }
+
+    public int updateComment(Integer commentId, String content) {
+        return biographyCommentDao.updateContent(commentId, content);
     }
 }
