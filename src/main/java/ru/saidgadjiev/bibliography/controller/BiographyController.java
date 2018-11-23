@@ -76,14 +76,14 @@ public class BiographyController {
     @PutMapping(value = "/update/{id}")
     public ResponseEntity<?> update(
             @PathVariable("id") Integer id,
-            @Valid @RequestBody UpdateBiographyRequest updateBiographyRequest,
+            @Valid @RequestBody BiographyRequest biographyRequest,
             BindingResult bindingResult
     ) throws SQLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        BiographyUpdateStatus updateResult = biographyService.update(id, updateBiographyRequest);
+        BiographyUpdateStatus updateResult = biographyService.update(id, biographyRequest);
 
         if (updateResult.isUpdated()) {
             UpdateBiographyResponse response = new UpdateBiographyResponse();
@@ -97,10 +97,24 @@ public class BiographyController {
         Biography biography = biographyService.getBiographyById(id);
 
         if (biography == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography));
+    }
+
+    @PostMapping(value = "/create")
+    public ResponseEntity<?> create(
+            @Valid @RequestBody BiographyRequest biographyRequest,
+            BindingResult bindingResult
+    ) throws SQLException {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        biographyService.create(biographyRequest);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {

@@ -64,7 +64,7 @@ public class BiographyService {
         return new PageImpl<>(biographies, pageRequest, total);
     }
 
-    public BiographyUpdateStatus update(Integer id, UpdateBiographyRequest updateBiographyRequest) throws SQLException {
+    public BiographyUpdateStatus update(Integer id, BiographyRequest updateBiographyRequest) throws SQLException {
         Biography.Builder builder = new Biography.Builder(
                 updateBiographyRequest.getFirstName(),
                 updateBiographyRequest.getLastName(),

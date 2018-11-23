@@ -1,19 +1,30 @@
 package ru.saidgadjiev.bibliography.model;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 /**
  * Created by said on 18.11.2018.
  */
 public class BiographyRequest {
 
+    @NotNull
+    @Size(min = 1)
     private String firstName;
 
+    @NotNull
+    @Size(min = 1)
     private String lastName;
 
+    @NotNull
+    @Size(min = 1)
     private String middleName;
 
     private String biography;
 
     private String userName;
+
+    private LastModified lastModified;
 
     public String getFirstName() {
         return firstName;
@@ -53,5 +64,13 @@ public class BiographyRequest {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public LastModified getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(LastModified lastModified) {
+        this.lastModified = lastModified;
     }
 }
