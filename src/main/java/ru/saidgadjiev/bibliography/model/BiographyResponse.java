@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliography.model;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 
 /**
  * Created by said on 22.10.2018.
@@ -30,6 +31,14 @@ public class BiographyResponse {
     private Timestamp updatedAt;
 
     private LastModified lastModified;
+
+    private int moderationStatus;
+
+    private Timestamp moderatorAt;
+
+    private String moderatorName;
+
+    private Collection<String> categories;
 
     public Integer getId() {
         return id;
@@ -122,5 +131,37 @@ public class BiographyResponse {
 
     public LastModified getLastModified() {
         return lastModified;
+    }
+
+    public int getModerationStatus() {
+        return moderationStatus;
+    }
+
+    public void setModerationStatus(int moderationStatus) {
+        this.moderationStatus = moderationStatus;
+    }
+
+    public Timestamp getModeratorAt() {
+        return moderatorAt;
+    }
+
+    public void setModeratorAt(Timestamp moderatorAt) {
+        this.moderatorAt = moderatorAt;
+    }
+
+    public String getModeratorName() {
+        return moderatorName;
+    }
+
+    public void setModeratorName(String moderatorName) {
+        this.moderatorName = moderatorName;
+    }
+
+    public Collection<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Collection<String> categories) {
+        this.categories = categories;
     }
 }

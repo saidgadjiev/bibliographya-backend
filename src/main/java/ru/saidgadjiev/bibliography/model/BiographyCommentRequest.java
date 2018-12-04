@@ -5,17 +5,23 @@ package ru.saidgadjiev.bibliography.model;
  */
 public class BiographyCommentRequest {
 
-    private String content;
+    private Integer id;
 
-    private Integer parentId;
+    private String content;
 
     private String firstName;
 
     private String lastName;
 
-    private String replyToFirstName;
+    private BiographyCommentRequest parent;
 
-    private String replyToUserName;
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getContent() {
         return content;
@@ -23,14 +29,6 @@ public class BiographyCommentRequest {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public Integer getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
     }
 
     public String getFirstName() {
@@ -49,19 +47,11 @@ public class BiographyCommentRequest {
         this.lastName = lastName;
     }
 
-    public String getReplyToFirstName() {
-        return replyToFirstName;
+    public BiographyCommentRequest getParent() {
+        return parent;
     }
 
-    public void setReplyToFirstName(String replyToFirstName) {
-        this.replyToFirstName = replyToFirstName;
-    }
-
-    public String getReplyToUserName() {
-        return replyToUserName;
-    }
-
-    public void setReplyToUserName(String replyToUserName) {
-        this.replyToUserName = replyToUserName;
+    public void setParent(BiographyCommentRequest parent) {
+        this.parent = parent;
     }
 }

@@ -50,21 +50,29 @@ public class BiographyController {
         this.modelMapper = modelMapper;
     }
 
-    @GetMapping("/username/{username}")
-    public ResponseEntity<BiographyResponse> getBiographyByUsername(@PathVariable("username") String username) {
-        return ResponseEntity.ok(convertToDto(biographyService.getBiographyByUsername(username)));
+    @GetMapping("")
+    public ResponseEntity<BiographyResponse> getBiography(
+            @PathVariable(value = "username", required = false) String userNameFilter
+    ) throws SQLException {
+        return ResponseEntity.ok(convertToDto(biographyService.getBiography(userNameFilter)));
     }
 
-    @GetMapping("/id/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) throws SQLException {
         return ResponseEntity.ok(convertToDto(biographyService.getBiographyById(id)));
     }
 
-    @GetMapping(value = "")
+    //Filter eq: creatorName=eq:1
+    @GetMapping(value = "/biographies/{categoryName}")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
-            OffsetLimitPageRequest pageRequest
+            OffsetLimitPageRequest pageRequest,
+            @PathVariable("categoryName") String categoryName,
+            @RequestParam(value = "creatorName", required = false) String creatorNameFilter,
+            @RequestParam(value = "moderationStatus", required = false) String moderationStatusFilter
     ) throws SQLException {
-        Page<Biography> page = biographyService.getBiographies(pageRequest);
+        Page<Biography> page = biographyService.getBiographies(
+                pageRequest, creatorNameFilter, moderationStatusFilter, categoryName
+        );
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -112,9 +120,15 @@ public class BiographyController {
             return ResponseEntity.badRequest().build();
         }
 
-        biographyService.create(biographyRequest);
+        Biography biography = biographyService.create(biographyRequest);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        BiographyResponse response = modelMapper.map(biography, BiographyResponse.class);
+
+        response.setLiked(false);
+        response.setLikesCount(0);
+        response.setCommentsCount(0);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {

@@ -6,4 +6,6 @@ spring:
       url: jdbc:postgresql://localhost:5432/bibliography
       userName: postgres
       password: postgres
-
+app:
+  upload:
+    dir: upload

@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliography.domain;
 
 import org.jetbrains.annotations.NotNull;
+import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
@@ -10,6 +11,8 @@ import java.util.Objects;
  * Created by said on 22.10.2018.
  */
 public class Biography {
+
+    public static final String MODERATION_STATUS = "moderation_status";
 
     private Integer id;
 
@@ -26,6 +29,12 @@ public class Biography {
     private String userName;
 
     private Timestamp updatedAt;
+
+    private ModerationStatus moderationStatus;
+
+    private Timestamp moderatorAt;
+
+    private String moderatorName;
 
     public Integer getId() {
         return id;
@@ -91,6 +100,30 @@ public class Biography {
         this.updatedAt = updatedAt;
     }
 
+    public ModerationStatus getModerationStatus() {
+        return moderationStatus;
+    }
+
+    public void setModerationStatus(ModerationStatus moderationStatus) {
+        this.moderationStatus = moderationStatus;
+    }
+
+    public Timestamp getModeratorAt() {
+        return moderatorAt;
+    }
+
+    public void setModeratorAt(Timestamp moderatorAt) {
+        this.moderatorAt = moderatorAt;
+    }
+
+    public String getModeratorName() {
+        return moderatorName;
+    }
+
+    public void setModeratorName(String moderatorName) {
+        this.moderatorName = moderatorName;
+    }
+
     public static class Builder {
 
         private Integer id;
@@ -108,6 +141,12 @@ public class Biography {
         private String userName;
 
         private Timestamp updatedAt;
+
+        private ModerationStatus moderationStatus;
+
+        private String moderatorName;
+
+        private Timestamp moderatedAt;
 
         public Builder() {}
 
@@ -168,6 +207,24 @@ public class Biography {
             return this;
         }
 
+        public Builder setModerationStatus(ModerationStatus moderationStatus) {
+            this.moderationStatus = moderationStatus;
+
+            return this;
+        }
+
+        public Builder setModeratorName(String moderatorName) {
+            this.moderatorName = moderatorName;
+
+            return this;
+        }
+
+        public Builder setModeratedAt(Timestamp moderatedAt) {
+            this.moderatedAt = moderatedAt;
+
+            return this;
+        }
+
         public Biography build() {
             Biography biography = new Biography();
 
@@ -180,6 +237,9 @@ public class Biography {
             biography.setMiddleName(middleName);
             biography.setBiography(this.biography);
             biography.setUpdatedAt(this.updatedAt);
+            biography.setModerationStatus(moderationStatus);
+            biography.setModeratorAt(moderatedAt);
+            biography.setModeratorName(moderatorName);
 
             return biography;
         }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.dao.BiographyCommentDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
+import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyCommentRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
@@ -32,29 +33,29 @@ public class BiographyCommentService {
     }
 
     public BiographyComment addComment(int biographyId, BiographyCommentRequest commentRequest) {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User userDetails = (User) securityService.findLoggedInUser();
         BiographyComment biographyComment = new BiographyComment();
 
         biographyComment.setContent(commentRequest.getContent());
         biographyComment.setBiographyId(biographyId);
         biographyComment.setUserName(userDetails.getUsername());
-        biographyComment.setParentId(commentRequest.getParentId());
 
         Biography biography = new Biography.Builder()
-                .setFirstName(commentRequest.getFirstName())
-                .setLastName(commentRequest.getLastName())
+                .setFirstName(userDetails.getBiography().getFirstName())
+                .setLastName(userDetails.getBiography().getLastName())
                 .build();
 
         biographyComment.setBiography(biography);
 
-        if (commentRequest.getParentId() != null) {
+        if (commentRequest.getParent() != null) {
+            biographyComment.setParentId(commentRequest.getParent().getId());
             BiographyComment parent = new BiographyComment();
 
-            parent.setId(commentRequest.getParentId());
+            parent.setId(commentRequest.getParent().getId());
 
             Biography replyTo = new Biography.Builder()
-                    .setFirstName(commentRequest.getReplyToFirstName())
-                    .setUserName(commentRequest.getReplyToUserName())
+                    .setFirstName(commentRequest.getParent().getFirstName())
+                    .setUserName(commentRequest.getParent().getLastName())
                     .build();
 
             parent.setBiography(replyTo);

@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliography.model;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import ru.saidgadjiev.bibliography.data.Filter;
 
 /**
  * Created by said on 20.11.2018.
@@ -13,6 +14,8 @@ public class OffsetLimitPageRequest implements Pageable {
     private long offset;
 
     private Sort sort;
+
+    private Filter filter;
 
     @Override
     public int getPageNumber() {
@@ -52,6 +55,14 @@ public class OffsetLimitPageRequest implements Pageable {
     @Override
     public boolean hasPrevious() {
         return false;
+    }
+
+    public Filter getFilter() {
+        return filter;
+    }
+
+    public void setFilter(Filter filter) {
+        this.filter = filter;
     }
 
     public static class Builder {

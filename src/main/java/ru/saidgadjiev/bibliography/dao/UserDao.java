@@ -6,16 +6,14 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
+import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.domain.User;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by said on 22.10.2018.
@@ -54,30 +52,53 @@ public class UserDao {
                 });
     }
 
-    public User getByUsername(String username) {
-        return jdbcTemplate.query(
+    public User getByUsername(String name) {
+        User result = jdbcTemplate.query(
                 "SELECT " +
                         "u.name       as u_name, " +
                         "u.password   as u_password, " +
-                        "ur.role_name as ur_role " +
-                        "FROM \"user\" u LEFT JOIN user_role ur ON u.name = ur.user_name " +
-                        "WHERE \"name\" = '" + username + "'",
+                        "b.first_name as first_name, " +
+                        "b.last_name as last_name, " +
+                        "b.id as biography_id " +
+                        "FROM \"user\" u INNER JOIN biography b ON u.name = b.user_name " +
+                        "WHERE u.\"name\" = '" + name + "'",
                 rs -> {
                     if (rs.next()) {
-                        String username1 = rs.getString("u_name");
-                        String password = rs.getString("u_password");
-                        Set<Role> roles = new HashSet<>();
+                        User user = new User();
 
-                        do {
-                            roles.add(new Role(rs.getString("ur_role")));
-                        } while (rs.next());
+                        Biography biography = new Biography();
 
-                        return new User(username1, password, roles);
+                        biography.setId(rs.getInt("biography_id"));
+                        biography.setFirstName(rs.getString("first_name"));
+                        biography.setLastName(rs.getString("last_name"));
+
+                        user.setName(rs.getString("u_name"));
+                        user.setPassword(rs.getString("u_password"));
+                        user.setBiography(biography);
+
+                        return user;
                     }
 
                     return null;
                 }
         );
+
+        if (result == null) {
+            return null;
+        }
+
+        Set<Role> roles = new LinkedHashSet<>();
+
+        jdbcTemplate.query(
+                "SELECT * FROM user_role WHERE user_name = '" + name + "'",
+                rs -> {
+                    roles.add(new Role(rs.getString("role_name")));
+                }
+        );
+
+        result.setRoles(roles);
+
+        return result;
     }
 
     public boolean isExistUsername(String username) {

@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliography.model;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 
 /**
  * Created by said on 18.11.2018.
@@ -25,6 +26,8 @@ public class BiographyRequest {
     private String userName;
 
     private LastModified lastModified;
+
+    private Collection<Integer> categories;
 
     public String getFirstName() {
         return firstName;
@@ -72,5 +75,13 @@ public class BiographyRequest {
 
     public void setLastModified(LastModified lastModified) {
         this.lastModified = lastModified;
+    }
+
+    public Collection<Integer> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Collection<Integer> categories) {
+        this.categories = categories;
     }
 }

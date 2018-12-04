@@ -7,5 +7,8 @@ CREATE TABLE IF NOT EXISTS biography (
   user_name VARCHAR(128) UNIQUE REFERENCES "user"(name),
   biography TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  moderation_status INTEGER NOT NULL DEFAULT 0,
+  moderated_at TIMESTAMP,
+  moderator_name VARCHAR(128)
 );

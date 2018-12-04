@@ -1,12 +1,10 @@
 package ru.saidgadjiev.bibliography.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
@@ -14,6 +12,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.SignInRequest;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
 import ru.saidgadjiev.bibliography.properties.JwtProperties;
@@ -21,14 +20,11 @@ import ru.saidgadjiev.bibliography.security.service.SecurityService;
 import ru.saidgadjiev.bibliography.service.api.TokenService;
 import ru.saidgadjiev.bibliography.service.api.UserService;
 import ru.saidgadjiev.bibliography.service.impl.TokenCookieService;
-import ru.saidgadjiev.bibliography.utils.ResponseUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -67,7 +63,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest signUpRequest, BindingResult bindingResult) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest signUpRequest, BindingResult bindingResult) throws SQLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
@@ -122,7 +118,7 @@ public class AuthController {
         return ResponseEntity.ok(userDetails);
     }
 
-    @RequestMapping(value = "/username/exist/{username}", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/exist/{username}", method = RequestMethod.HEAD)
     public ResponseEntity existUserName(@PathVariable(value = "username") String username) throws SQLException {
         if (userService.isExistUserName(username)) {
             return ResponseEntity.status(HttpStatus.FOUND).build();

@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.service.api;
+package ru.saidgadjiev.bibliography.service.impl;
 
 import io.jsonwebtoken.Jwts;
 import org.apache.log4j.Logger;
@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.properties.JwtProperties;
+import ru.saidgadjiev.bibliography.service.api.TokenService;
 
 import java.util.Map;
 
