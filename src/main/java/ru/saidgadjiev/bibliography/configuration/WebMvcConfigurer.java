@@ -50,7 +50,8 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
             public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
                 return new OffsetLimitPageRequest.Builder()
                         .setLimit(Integer.parseInt(webRequest.getParameter("limit")))
-                        .setOffset(Integer.parseInt(webRequest.getParameter("offset"))).build();
+                        .setOffset(Long.parseLong(webRequest.getParameter("offset")))
+                        .build();
             }
         });
     }

@@ -1,17 +1,13 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -27,17 +23,60 @@ public class BiographyCategoryBiographyDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Map<Integer, String> getBiographiesCategories(Collection<Integer> biographiesIds) {
+    public Map<Integer, Collection<String>> getBiographiesCategories(Collection<Integer> biographiesIds) {
         String inClause = biographiesIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 
         return jdbcTemplate.query(
                 "SELECT * FROM biography_category_biography WHERE biography_id IN (" + inClause + ")",
-                new ResultSetExtractor<Map<Integer, String>>() {
-                    @Override
-                    public Map<Integer, String> extractData(ResultSet rs) throws SQLException, DataAccessException {
-                        Map<Integer, String> result = new HashMap<>();
+                rs -> {
+                    Map<Integer, Collection<String>> result = new HashMap<>();
 
-                        return null;
+                    biographiesIds.forEach(integer -> result.put(integer, new ArrayList<>()));
+
+                    while (rs.next()) {
+                        result.get(rs.getInt("biography_id")).add(rs.getString("category_name"));
+                    }
+
+                    return result;
+                }
+        );
+    }
+
+    public void addCategories(Collection<String> categories, Integer biographyId) {
+        Iterator<String> iterator = categories.iterator();
+
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO " +
+                        "biography_category_biography(category_name, biography_id) " +
+                        "VALUES(?, " + biographyId + ") ON CONFLICT DO NOTHING",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, iterator.next());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return categories.size();
+                    }
+                }
+        );
+    }
+
+    public void deleteCategories(Collection<String> categories, Integer biographyId) {
+        Iterator<String> iterator = categories.iterator();
+
+        jdbcTemplate.batchUpdate(
+                "DELETE FROM biography_category_biography WHERE biography_id = " + biographyId + " AND category_name = ?",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, iterator.next());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return categories.size();
                     }
                 }
         );

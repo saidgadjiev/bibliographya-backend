@@ -5,6 +5,7 @@ import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -35,6 +36,14 @@ public class Biography {
     private Timestamp moderatorAt;
 
     private String moderatorName;
+
+    private Collection<String> categories;
+
+    private int likesCount;
+
+    private long commentsCount;
+
+    private boolean liked;
 
     public Integer getId() {
         return id;
@@ -122,6 +131,38 @@ public class Biography {
 
     public void setModeratorName(String moderatorName) {
         this.moderatorName = moderatorName;
+    }
+
+    public Collection<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Collection<String> categories) {
+        this.categories = categories;
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public long getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(long commentsCount) {
+        this.commentsCount = commentsCount;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.liked = liked;
     }
 
     public static class Builder {

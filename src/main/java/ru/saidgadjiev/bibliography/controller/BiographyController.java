@@ -31,22 +31,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/biography")
 public class BiographyController {
 
-    private final BiographyService biographyService;
-
-    private final BiographyLikeService biographyLikeService;
-
-    private final BiographyCommentService biographyCommentService;
+    private BiographyService biographyService;
 
     private final ModelMapper modelMapper;
 
     @Autowired
     public BiographyController(BiographyService biographyService,
-                               BiographyLikeService biographyLikeService,
-                               BiographyCommentService biographyCommentService,
                                ModelMapper modelMapper) {
         this.biographyService = biographyService;
-        this.biographyLikeService = biographyLikeService;
-        this.biographyCommentService = biographyCommentService;
         this.modelMapper = modelMapper;
     }
 
@@ -133,17 +125,10 @@ public class BiographyController {
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {
         List<BiographyResponse> dto = new ArrayList<>();
-        Collection<Integer> ids = biographies.stream().map(Biography::getId).collect(Collectors.toList());
-        Map<Integer, Integer> biographiesLikesCount = biographyLikeService.getBiographiesLikesCount(ids);
-        Map<Integer, Boolean> biographiesIsLiked = biographyLikeService.getBiographiesIsLiked(ids);
-        Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
 
         for (Biography biography : biographies) {
             BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
 
-            biographyResponse.setLikesCount(biographiesLikesCount.get(biography.getId()));
-            biographyResponse.setLiked(biographiesIsLiked.get(biography.getId()));
-            biographyResponse.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
             dto.add(biographyResponse);
         }
 
@@ -151,12 +136,6 @@ public class BiographyController {
     }
 
     private BiographyResponse convertToDto(Biography biography) {
-        BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
-
-        biographyResponse.setLikesCount(biographyLikeService.getBiographyLikesCount(biography.getId()));
-        biographyResponse.setCommentsCount(biographyCommentService.getBiographyCommentsCount(biography.getId()));
-        biographyResponse.setLiked(biographyLikeService.getBiographyIsLiked(biography.getId()));
-
-        return biographyResponse;
+        return modelMapper.map(biography, BiographyResponse.class);
     }
 }
