@@ -16,6 +16,8 @@ public class FilterCriteria {
 
     private Object filterValue;
 
+    private boolean needPreparedSet = true;
+
     public FilterOperation getFilterOperation() {
         return filterOperation;
     }
@@ -46,5 +48,13 @@ public class FilterCriteria {
 
     public void setFilterValue(Object filterValue) {
         this.filterValue = filterValue;
+    }
+
+    public boolean isNeedPreparedSet() {
+        return needPreparedSet;
+    }
+
+    public void setNeedPreparedSet(boolean needPreparedSet) {
+        this.needPreparedSet = needPreparedSet;
     }
 }

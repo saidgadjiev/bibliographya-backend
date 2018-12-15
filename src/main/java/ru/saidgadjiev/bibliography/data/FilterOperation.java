@@ -5,11 +5,20 @@ package ru.saidgadjiev.bibliography.data;
  */
 public enum FilterOperation {
 
-    EQ;
+    EQ ("eq"),
+    IS_NULL ("is_null");
+
+    private final String desc;
+
+    FilterOperation(String desc) {
+        this.desc = desc;
+    }
 
     public static FilterOperation from(String value) {
-        if (value.compareToIgnoreCase("eq") == 0) {
-            return EQ;
+        for (FilterOperation operation: values()) {
+            if (operation.desc.equals(value)) {
+                return operation;
+            }
         }
 
         throw new UnsupportedOperationException();

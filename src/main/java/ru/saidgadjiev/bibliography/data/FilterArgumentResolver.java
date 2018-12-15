@@ -34,6 +34,10 @@ public class FilterArgumentResolver {
                 criteria.setFilterValue(converter.apply(value));
 
                 return criteria;
+            case IS_NULL:
+                criteria.setNeedPreparedSet(false);
+
+                return criteria;
         }
 
         return null;

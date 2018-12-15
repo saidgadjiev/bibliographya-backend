@@ -1,9 +1,7 @@
 package ru.saidgadjiev.bibliography.domain;
 
-import org.jetbrains.annotations.NotNull;
 import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
-import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Objects;
@@ -14,6 +12,8 @@ import java.util.Objects;
 public class Biography {
 
     public static final String MODERATION_STATUS = "moderation_status";
+
+    public static final String MODERATOR_NAME = "moderator_name";
 
     private Integer id;
 
@@ -33,7 +33,7 @@ public class Biography {
 
     private ModerationStatus moderationStatus;
 
-    private Timestamp moderatorAt;
+    private Timestamp moderatedAt;
 
     private String moderatorName;
 
@@ -44,6 +44,8 @@ public class Biography {
     private long commentsCount;
 
     private boolean liked;
+
+    private Biography moderatorBiography;
 
     public Integer getId() {
         return id;
@@ -117,12 +119,12 @@ public class Biography {
         this.moderationStatus = moderationStatus;
     }
 
-    public Timestamp getModeratorAt() {
-        return moderatorAt;
+    public Timestamp getModeratedAt() {
+        return moderatedAt;
     }
 
-    public void setModeratorAt(Timestamp moderatorAt) {
-        this.moderatorAt = moderatorAt;
+    public void setModeratedAt(Timestamp moderatedAt) {
+        this.moderatedAt = moderatedAt;
     }
 
     public String getModeratorName() {
@@ -165,6 +167,14 @@ public class Biography {
         this.liked = liked;
     }
 
+    public Biography getModeratorBiography() {
+        return moderatorBiography;
+    }
+
+    public void setModeratorBiography(Biography moderatorBiography) {
+        this.moderatorBiography = moderatorBiography;
+    }
+
     public static class Builder {
 
         private Integer id;
@@ -189,12 +199,11 @@ public class Biography {
 
         private Timestamp moderatedAt;
 
+        private Biography moderatorBiography;
+
         public Builder() {}
 
         public Builder(String firstName, String lastName, String middleName) {
-            Objects.requireNonNull(firstName);
-            Objects.requireNonNull(lastName);
-            Objects.requireNonNull(middleName);
             this.firstName = firstName;
             this.lastName = lastName;
             this.middleName = middleName;
@@ -266,6 +275,14 @@ public class Biography {
             return this;
         }
 
+        public Biography getModeratorBiography() {
+            return moderatorBiography;
+        }
+
+        public void setModeratorBiography(Biography moderatorBiography) {
+            this.moderatorBiography = moderatorBiography;
+        }
+
         public Biography build() {
             Biography biography = new Biography();
 
@@ -279,8 +296,9 @@ public class Biography {
             biography.setBiography(this.biography);
             biography.setUpdatedAt(this.updatedAt);
             biography.setModerationStatus(moderationStatus);
-            biography.setModeratorAt(moderatedAt);
+            biography.setModeratedAt(moderatedAt);
             biography.setModeratorName(moderatorName);
+            biography.setModeratorBiography(moderatorBiography);
 
             return biography;
         }

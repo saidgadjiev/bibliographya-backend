@@ -15,7 +15,7 @@ import ru.saidgadjiev.bibliography.service.impl.BiographyCategoryService;
  * Created by said on 27.11.2018.
  */
 @RestController
-@RequestMapping("/api/biography_category")
+@RequestMapping("/api/biography/category")
 public class BiographyCategoryController {
 
     private final BiographyCategoryService biographyCategoryService;

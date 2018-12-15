@@ -32,11 +32,13 @@ public class BiographyResponse {
 
     private LastModified lastModified;
 
-    private int moderationStatus;
+    private Integer moderationStatus;
 
-    private Timestamp moderatorAt;
+    private Timestamp moderatedAt;
 
     private String moderatorName;
+
+    private BiographyResponse moderatorBiography;
 
     private Collection<String> categories;
 
@@ -125,28 +127,30 @@ public class BiographyResponse {
     }
 
     public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-        this.lastModified = new LastModified(updatedAt.getTime(), updatedAt.getNanos());
+        if (updatedAt != null) {
+            this.updatedAt = updatedAt;
+            this.lastModified = new LastModified(updatedAt.getTime(), updatedAt.getNanos());
+        }
     }
 
     public LastModified getLastModified() {
         return lastModified;
     }
 
-    public int getModerationStatus() {
+    public Integer getModerationStatus() {
         return moderationStatus;
     }
 
-    public void setModerationStatus(int moderationStatus) {
+    public void setModerationStatus(Integer moderationStatus) {
         this.moderationStatus = moderationStatus;
     }
 
-    public Timestamp getModeratorAt() {
-        return moderatorAt;
+    public Timestamp getModeratedAt() {
+        return moderatedAt;
     }
 
-    public void setModeratorAt(Timestamp moderatorAt) {
-        this.moderatorAt = moderatorAt;
+    public void setModeratedAt(Timestamp moderatedAt) {
+        this.moderatedAt = moderatedAt;
     }
 
     public String getModeratorName() {
@@ -163,5 +167,13 @@ public class BiographyResponse {
 
     public void setCategories(Collection<String> categories) {
         this.categories = categories;
+    }
+
+    public BiographyResponse getModeratorBiography() {
+        return moderatorBiography;
+    }
+
+    public void setModeratorBiography(BiographyResponse moderatorBiography) {
+        this.moderatorBiography = moderatorBiography;
     }
 }

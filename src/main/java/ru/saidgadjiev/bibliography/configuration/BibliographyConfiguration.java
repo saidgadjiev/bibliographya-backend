@@ -40,7 +40,11 @@ public class BibliographyConfiguration {
                 using(new Converter<ModerationStatus, Integer>() {
                     @Override
                     public Integer convert(MappingContext<ModerationStatus, Integer> mappingContext) {
-                        return mappingContext.getSource().getCode();
+                        if (mappingContext.getSource() != null) {
+                            return mappingContext.getSource().getCode();
+                        }
+
+                        return null;
                     }
                 }).map(source.getModerationStatus(), destination.getModerationStatus());
             }

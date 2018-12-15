@@ -123,6 +123,7 @@ public class BiographyService {
     public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
                                           String creatorNameFilter,
                                           String moderationStatusFilter,
+                                          String moderatorNameFilter,
                                           String categoryName) {
         List<FilterCriteria> criteria = new ArrayList<>();
 
@@ -130,7 +131,8 @@ public class BiographyService {
             criteria.add(
                     argumentResolver.resolve(
                             "creator_name",
-                            String::valueOf, PreparedStatement::setString,
+                            String::valueOf,
+                            PreparedStatement::setString,
                             creatorNameFilter
                     )
             );
@@ -139,15 +141,53 @@ public class BiographyService {
             criteria.add(
                     argumentResolver.resolve(
                             Biography.MODERATION_STATUS,
+                            object -> Integer.valueOf(String.valueOf(object)),
+                            PreparedStatement::setInt,
+                            moderationStatusFilter
+                    )
+            );
+        }
+        if (moderatorNameFilter != null) {
+            criteria.add(
+                    argumentResolver.resolve(
+                            Biography.MODERATOR_NAME,
                             String::valueOf,
                             PreparedStatement::setString,
-                            moderationStatusFilter
+                            moderatorNameFilter
                     )
             );
         }
 
         List<Biography> biographies = biographyDao.getBiographiesList(
-                pageRequest.getPageSize(), pageRequest.getOffset(), criteria, categoryName
+                pageRequest.getPageSize(), pageRequest.getOffset(), categoryName, criteria
+        );
+
+        if (biographies.isEmpty()) {
+            return new PageImpl<>(biographies, pageRequest, 0);
+        }
+
+        postProcess(biographies);
+
+        long total = biographyDao.countOff();
+
+        return new PageImpl<>(biographies, pageRequest, total);
+    }
+
+    public Page<Biography> getMyBiographies(OffsetLimitPageRequest pageRequest) {
+        UserDetails userDetails = securityService.findLoggedInUser();
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                argumentResolver.resolve(
+                        "creator_name",
+                        String::valueOf,
+                        PreparedStatement::setString,
+                        "eq:" + userDetails.getUsername()
+                )
+        );
+
+        List<Biography> biographies = biographyDao.getBiographiesList(
+                pageRequest.getPageSize(), pageRequest.getOffset(), null, criteria
         );
 
         if (biographies.isEmpty()) {
@@ -208,7 +248,7 @@ public class BiographyService {
         Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
         Map<Integer, Collection<String>> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
 
-        for (Biography biography: biographies) {
+        for (Biography biography : biographies) {
             biography.setLikesCount(biographiesLikesCount.get(biography.getId()));
             biography.setLiked(biographiesIsLiked.get(biography.getId()));
             biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));

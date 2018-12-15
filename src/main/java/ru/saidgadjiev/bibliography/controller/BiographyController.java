@@ -11,17 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.model.*;
-import ru.saidgadjiev.bibliography.service.impl.BiographyCommentService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyLikeService;
 import ru.saidgadjiev.bibliography.service.impl.BiographyService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by said on 22.10.2018.
@@ -49,7 +44,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertToDto(biographyService.getBiography(userNameFilter)));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[\\\\d]+}")
     public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) throws SQLException {
         return ResponseEntity.ok(convertToDto(biographyService.getBiographyById(id)));
     }
@@ -58,13 +53,24 @@ public class BiographyController {
     @GetMapping(value = "/biographies/{categoryName}")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
             OffsetLimitPageRequest pageRequest,
-            @PathVariable("categoryName") String categoryName,
-            @RequestParam(value = "creatorName", required = false) String creatorNameFilter,
-            @RequestParam(value = "moderationStatus", required = false) String moderationStatusFilter
+            @PathVariable(value = "categoryName") String categoryName
     ) throws SQLException {
         Page<Biography> page = biographyService.getBiographies(
-                pageRequest, creatorNameFilter, moderationStatusFilter, categoryName
+                pageRequest, null, null, null, categoryName
         );
+
+        if (page.getContent().size() == 0) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+    }
+
+    @GetMapping(value = "/my/biographies")
+    public ResponseEntity<Page<BiographyResponse>> getBiographies(
+            OffsetLimitPageRequest pageRequest
+    ) throws SQLException {
+        Page<Biography> page = biographyService.getMyBiographies(pageRequest);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -88,8 +94,10 @@ public class BiographyController {
         if (updateResult.isUpdated()) {
             UpdateBiographyResponse response = new UpdateBiographyResponse();
 
-            response.setLastModified(new LastModified(
-                    updateResult.getUpdatedAt().getTime(), updateResult.getUpdatedAt().getNanos())
+            response.setLastModified(
+                    new LastModified(
+                            updateResult.getUpdatedAt().getTime(), updateResult.getUpdatedAt().getNanos()
+                    )
             );
 
             return ResponseEntity.ok(response);
