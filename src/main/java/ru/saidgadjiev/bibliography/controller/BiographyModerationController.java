@@ -79,11 +79,28 @@ public class BiographyModerationController {
     }
 
     @PatchMapping("/complete/{id}")
-    public ResponseEntity<?> release(
+    public ResponseEntity<?> complete(
             @PathVariable("id") int biographyId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
         CompleteResult updated = biographyModerationService.complete(
+                biographyId,
+                completeRequest
+        );
+
+        if (updated.getUpdated() == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(convertToDto(updated.getBiography(), updated.getActions()));
+    }
+
+    @PatchMapping("/user/complete/{id}")
+    public ResponseEntity<?> userComplete(
+            @PathVariable("id") int biographyId,
+            @RequestBody CompleteRequest completeRequest
+    ) throws SQLException {
+        CompleteResult updated = biographyModerationService.userComplete(
                 biographyId,
                 completeRequest
         );

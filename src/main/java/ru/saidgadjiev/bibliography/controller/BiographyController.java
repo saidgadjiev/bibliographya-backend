@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.model.*;
 import ru.saidgadjiev.bibliography.service.impl.BiographyService;
+import ru.saidgadjiev.bibliography.service.impl.moderation.BiographyModerationService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
@@ -28,12 +29,16 @@ public class BiographyController {
 
     private BiographyService biographyService;
 
+    private BiographyModerationService biographyModerationService;
+
     private final ModelMapper modelMapper;
 
     @Autowired
     public BiographyController(BiographyService biographyService,
+                               BiographyModerationService biographyModerationService,
                                ModelMapper modelMapper) {
         this.biographyService = biographyService;
+        this.biographyModerationService = biographyModerationService;
         this.modelMapper = modelMapper;
     }
 
@@ -136,6 +141,8 @@ public class BiographyController {
 
         for (Biography biography : biographies) {
             BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
+
+            biographyResponse.setActions(biographyModerationService.getUserActions(biography));
 
             dto.add(biographyResponse);
         }

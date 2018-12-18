@@ -46,6 +46,8 @@ public class BiographyResponse {
 
     private Collection<ModerationAction> actions;
 
+    private String moderationInfo;
+
     public Integer getId() {
         return id;
     }
@@ -187,5 +189,13 @@ public class BiographyResponse {
 
     public void setActions(Collection<ModerationAction> actions) {
         this.actions = actions;
+    }
+
+    public String getModerationInfo() {
+        return moderationInfo;
+    }
+
+    public void setModerationInfo(String moderationInfo) {
+        this.moderationInfo = moderationInfo;
     }
 }

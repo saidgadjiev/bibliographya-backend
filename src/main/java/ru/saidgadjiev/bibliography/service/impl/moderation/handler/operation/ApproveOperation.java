@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,15 @@ public class ApproveOperation {
                         ModerationStatus.APPROVED.getCode(),
                         true,
                         PreparedStatement::setInt
+                )
+        );
+
+        values.add(
+                new UpdateValue<>(
+                        "moderation_info",
+                        null,
+                        true,
+                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 

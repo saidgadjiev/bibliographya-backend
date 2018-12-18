@@ -18,6 +18,7 @@ import ru.saidgadjiev.bibliography.service.impl.moderation.handler.*;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,29 +66,41 @@ public class BiographyModerationService {
     }
 
     public CompleteResult complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+        Biography updated = doComplete(biographyId, completeRequest);
+
+        return new CompleteResult(1, updated, getActions(updated));
+    }
+
+    public CompleteResult userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+        Biography updated = doComplete(biographyId, completeRequest);
+
+        return new CompleteResult(1, updated, getUserActions(updated));
+    }
+
+    private Biography doComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         User userDetails = (User) securityService.findLoggedInUser();
 
         Map<String, Object> processValues = new HashMap<>();
 
         processValues.put("biographyId", biographyId);
         processValues.put("moderatorName", userDetails.getUsername());
+        processValues.put("rejectText", completeRequest.getRejectText());
 
         Handler handler = handlerMap.get(
                 ModerationStatus.fromCode(completeRequest.getStatus())
         );
 
-
         Biography updated = handler.handle(Handler.Signal.fromDesc(completeRequest.getSignal()), processValues);
 
         if (updated == null) {
-            return new CompleteResult(0, null, null);
+            return null;
         }
 
         if (StringUtils.isNotBlank(updated.getModeratorName())) {
             updated.setModeratorBiography(userDetails.getBiography());
         }
 
-        return new CompleteResult(1, updated, getActions(updated));
+        return updated;
     }
 
     public Collection<ModerationAction> getActions(Biography biography) {
@@ -97,6 +110,10 @@ public class BiographyModerationService {
                     put("moderationStatus", biography.getModerationStatus());
                 }}
         );
+    }
+
+    public Collection<ModerationAction> getUserActions(Biography biography) {
+        return handlerMap.get(biography.getModerationStatus()).getUserActions(Collections.emptyMap());
     }
 
     public Biography getModeratorInfo(int biographyId) {

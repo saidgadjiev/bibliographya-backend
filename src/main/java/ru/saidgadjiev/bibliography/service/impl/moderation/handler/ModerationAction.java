@@ -48,4 +48,8 @@ public class ModerationAction {
     public static ModerationAction pending() {
         return new ModerationAction("Pending", "На модерацию", Handler.Signal.PENDING.getDesc());
     }
+
+    public static ModerationAction resend() {
+        return new ModerationAction("Resend", "Отправить повторно", Handler.Signal.PENDING.getDesc());
+    }
 }

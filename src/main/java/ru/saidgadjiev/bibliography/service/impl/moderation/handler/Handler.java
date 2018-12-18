@@ -4,6 +4,7 @@ import ru.saidgadjiev.bibliography.domain.Biography;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -14,6 +15,10 @@ public interface Handler {
     Biography handle(Signal signal, Map<String, Object> args) throws SQLException;
 
     Collection<ModerationAction> getActions(Map<String, Object> args);
+
+    default Collection<ModerationAction> getUserActions(Map<String, Object> args) {
+        return Collections.emptyList();
+    }
 
     enum Signal {
 

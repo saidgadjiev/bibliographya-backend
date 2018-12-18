@@ -65,7 +65,7 @@ public class BiographyDao {
         String clause = toClause(biographyCriteria, null);
 
         return jdbcTemplate.query(
-                "SELECT * FROM biography " + (clause != null ? "WHERE " + clause : ""),
+                "SELECT * FROM biography " + (clause.length() > 0 ? "WHERE " + clause : ""),
                 ps -> {
                     int i = 0;
 
@@ -99,7 +99,7 @@ public class BiographyDao {
 
         String biographyClause = toClause(biographyCriteria, "b");
 
-        if (biographyClause != null) {
+        if (biographyClause.length() > 0) {
             if (clause.length() > 0) {
                 clause.append(" AND ");
             }
@@ -164,6 +164,7 @@ public class BiographyDao {
                 .build();
 
         biography.setBiography(rs.getString("biography"));
+        biography.setModerationInfo(rs.getString("moderation_info"));
 
         if (biography.getModeratorName() != null) {
             Biography moderatorBiography = new Biography.Builder()
@@ -231,6 +232,7 @@ public class BiographyDao {
         selectList.append("b.moderation_status,");
         selectList.append("b.moderated_at,");
         selectList.append("b.moderator_name,");
+        selectList.append("b.moderation_info,");
         selectList.append("b.biography,");
         selectList.append("bm.first_name as m_first_name,");
         selectList.append("bm.last_name as m_last_name,");

@@ -44,4 +44,11 @@ public class RejectedHandler implements Handler {
             add(ModerationAction.release());
         }};
     }
+
+    @Override
+    public Collection<ModerationAction> getUserActions(Map<String, Object> args) {
+        return new ArrayList<ModerationAction>() {{
+            add(ModerationAction.pending());
+        }};
+    }
 }

@@ -116,10 +116,14 @@ public class BiographyModerationDao {
     private Biography mapModeratorInfo(ResultSet rs) throws SQLException {
         Biography biography = new Biography();
 
-        biography.setFirstName(rs.getString("m_first_name"));
-        biography.setLastName(rs.getString("m_last_name"));
-        biography.setUserName(rs.getString("m_user_name"));
-        biography.setId(rs.getInt("m_id"));
+        Biography moderatorBiography = new Biography();
+
+        moderatorBiography.setFirstName(rs.getString("m_first_name"));
+        moderatorBiography.setLastName(rs.getString("m_last_name"));
+        moderatorBiography.setUserName(rs.getString("m_user_name"));
+        moderatorBiography.setId(rs.getInt("m_id"));
+
+        biography.setModeratorBiography(moderatorBiography);
 
         return biography;
     }
