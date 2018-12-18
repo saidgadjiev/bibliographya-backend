@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliography.model;
 
+import ru.saidgadjiev.bibliography.service.impl.moderation.handler.ModerationAction;
+
 import java.sql.Timestamp;
 import java.util.Collection;
 
@@ -41,6 +43,8 @@ public class BiographyResponse {
     private BiographyResponse moderatorBiography;
 
     private Collection<String> categories;
+
+    private Collection<ModerationAction> actions;
 
     public Integer getId() {
         return id;
@@ -175,5 +179,13 @@ public class BiographyResponse {
 
     public void setModeratorBiography(BiographyResponse moderatorBiography) {
         this.moderatorBiography = moderatorBiography;
+    }
+
+    public Collection<ModerationAction> getActions() {
+        return actions;
+    }
+
+    public void setActions(Collection<ModerationAction> actions) {
+        this.actions = actions;
     }
 }

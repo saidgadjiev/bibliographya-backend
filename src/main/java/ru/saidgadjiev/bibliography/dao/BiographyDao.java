@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static ru.saidgadjiev.bibliography.data.FilterUtils.toClause;
+
 /**
  * Created by said on 22.10.2018.
  */
@@ -90,7 +92,7 @@ public class BiographyDao {
 
         if (categoryName != null) {
             clause
-                    .append("id IN (SELECT biography_id FROM biography_category_biography WHERE category_name = '")
+                    .append("b.id IN (SELECT biography_id FROM biography_category_biography WHERE category_name = '")
                     .append(categoryName)
                     .append("')");
         }
@@ -214,40 +216,6 @@ public class BiographyDao {
                 }
             }
         }
-    }
-
-    private String toClause(Collection<FilterCriteria> criteria, String alias) {
-        StringBuilder clause = new StringBuilder();
-
-        if (!criteria.isEmpty()) {
-            for (Iterator<FilterCriteria> iterator = criteria.iterator(); iterator.hasNext(); ) {
-                FilterCriteria criterion = iterator.next();
-
-                switch (criterion.getFilterOperation()) {
-                    case EQ:
-                        if (alias != null) {
-                            clause.append(alias).append(".").append(criterion.getPropertyName()).append("=").append("?");
-                        } else {
-                            clause.append(criterion.getPropertyName()).append("=").append("?");
-                        }
-
-                        break;
-                    case IS_NULL:
-                        if (alias != null) {
-                            clause.append(alias).append(".").append(criterion.getPropertyName()).append(" IS NULL");
-                        } else {
-                            clause.append(criterion.getPropertyName()).append(" IS NULL");
-                        }
-                }
-                if (iterator.hasNext()) {
-                    clause.append(" AND ");
-                }
-            }
-
-            return clause.toString();
-        }
-
-        return null;
     }
 
     private String getFullSelectList() {

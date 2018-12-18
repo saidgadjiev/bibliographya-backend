@@ -9,7 +9,9 @@ public enum ModerationStatus {
 
     APPROVED(1),
 
-    REJECTED(2);
+    REJECTED(2),
+
+    FIXED(3);
 
     private int code;
 

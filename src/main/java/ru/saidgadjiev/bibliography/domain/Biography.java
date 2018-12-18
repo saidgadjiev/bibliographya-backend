@@ -47,6 +47,8 @@ public class Biography {
 
     private Biography moderatorBiography;
 
+    private String moderationInfo;
+
     public Integer getId() {
         return id;
     }
@@ -173,6 +175,14 @@ public class Biography {
 
     public void setModeratorBiography(Biography moderatorBiography) {
         this.moderatorBiography = moderatorBiography;
+    }
+
+    public String getModerationInfo() {
+        return moderationInfo;
+    }
+
+    public void setModerationInfo(String moderationInfo) {
+        this.moderationInfo = moderationInfo;
     }
 
     public static class Builder {

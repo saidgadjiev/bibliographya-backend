@@ -9,12 +9,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.model.BiographyResponse;
+import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliography.service.impl.BiographyModerationService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyService;
+import ru.saidgadjiev.bibliography.service.impl.moderation.BiographyModerationService;
+import ru.saidgadjiev.bibliography.domain.CompleteResult;
+import ru.saidgadjiev.bibliography.service.impl.moderation.handler.ModerationAction;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,63 +59,40 @@ public class BiographyModerationController {
     }
 
     @PatchMapping("/assign-me/{id}")
-    public ResponseEntity<?> assignMe(@PathVariable("id") int biographyId) {
-        int updated = biographyModerationService.assignMe(biographyId);
+    public ResponseEntity<?> assignMe(@PathVariable("id") int biographyId,
+                                      @RequestBody CompleteRequest completeRequest) throws SQLException {
+        CompleteResult updated = biographyModerationService.complete(
+                biographyId,
+                completeRequest
+        );
         Biography biography = biographyModerationService.getModeratorInfo(biographyId);
 
         if (biography == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (updated == 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography));
+        if (updated.getUpdated() == 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography, Collections.emptyList()));
         }
 
-        return ResponseEntity.ok(convertToDto(biography));
+        return ResponseEntity.ok(convertToDto(biography, updated.getActions()));
     }
 
-    @PatchMapping("/release/{id}")
-    public ResponseEntity<?> release(@PathVariable("id") int biographyId) {
-        int updated = biographyModerationService.release(biographyId);
+    @PatchMapping("/complete/{id}")
+    public ResponseEntity<?> release(
+            @PathVariable("id") int biographyId,
+            @RequestBody CompleteRequest completeRequest
+    ) throws SQLException {
+        CompleteResult updated = biographyModerationService.complete(
+                biographyId,
+                completeRequest
+        );
 
-        if (updated == 0) {
+        if (updated.getUpdated() == 0) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping("/approve/{id}")
-    public ResponseEntity<?> approve(@PathVariable("id") int biographyId) {
-        int updated = biographyModerationService.approve(biographyId);
-
-        if (updated == 0) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping("/reject/{id}")
-    public ResponseEntity<?> reject(@PathVariable("id") int biographyId) {
-        int updated = biographyModerationService.reject(biographyId);
-
-        if (updated == 0) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping("/pending/{id}")
-    public ResponseEntity<?> pending(@PathVariable("id") int biographyId) {
-        int updated = biographyModerationService.pending(biographyId);
-
-        if (updated == 0) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(convertToDto(updated.getBiography(), updated.getActions()));
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {
@@ -120,13 +101,18 @@ public class BiographyModerationController {
         for (Biography biography : biographies) {
             BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
 
+            biographyResponse.setActions(biographyModerationService.getActions(biography));
             dto.add(biographyResponse);
         }
 
         return dto;
     }
 
-    private BiographyResponse convertToDto(Biography biography) {
-        return modelMapper.map(biography, BiographyResponse.class);
+    private BiographyResponse convertToDto(Biography biography, Collection<ModerationAction> actions) {
+        BiographyResponse response =  modelMapper.map(biography, BiographyResponse.class);
+
+        response.setActions(actions);
+
+        return response;
     }
 }
