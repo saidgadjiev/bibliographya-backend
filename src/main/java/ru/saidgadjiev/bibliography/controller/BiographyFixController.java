@@ -4,15 +4,21 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliography.bussiness.fix.FixAction;
+import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
+import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
-import ru.saidgadjiev.bibliography.model.BiographyFixResponse;
-import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliography.domain.CompleteResult;
+import ru.saidgadjiev.bibliography.model.*;
 import ru.saidgadjiev.bibliography.service.impl.BiographyFixService;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,9 +40,11 @@ public class BiographyFixController {
 
     @GetMapping("")
     public ResponseEntity<?> getFixes(
-            OffsetLimitPageRequest pageRequest
+            OffsetLimitPageRequest pageRequest,
+            @RequestParam(value = "fixerName", required = false) String fixerNameFilter,
+            @RequestParam(value = "status", required = false) String statusFilter
     ) {
-        Page<BiographyFix> page = fixService.getFixesList(pageRequest);
+        Page<BiographyFix> page = fixService.getFixesList(pageRequest, fixerNameFilter, statusFilter);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -45,28 +53,67 @@ public class BiographyFixController {
         return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), pageRequest, page.getTotalElements()));
     }
 
+    @PostMapping("/suggest/{id}")
+    public ResponseEntity<?> suggest(
+            @PathVariable("id") int biographyId,
+            @RequestBody BiographyFixSuggestRequest suggestRequest
+    ) {
+        fixService.suggest(biographyId, suggestRequest);
+
+        return ResponseEntity.ok().build();
+    }
+
     @PatchMapping("/assign-me/{id}")
-    public ResponseEntity<?> assignMe(@PathVariable("id") int fixId) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> assignMe(@PathVariable("id") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+        CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
+                fixId,
+                completeRequest
+        );
+        BiographyFix fix = fixService.getFixerInfo(fixId);
+
+        if (fix == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (updated.getUpdated() == 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(fix, Collections.emptyList()));
+        }
+
+        return ResponseEntity.ok(convertToDto(fix, updated.getActions()));
     }
 
-    @PatchMapping("/close/{id}")
-    public ResponseEntity<?> close(@PathVariable("id") int fixId) {
-        return ResponseEntity.ok().build();
-    }
+    @PatchMapping("/complete/{id}")
+    public ResponseEntity<?> close(@PathVariable("id") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+        CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
+                fixId,
+                completeRequest
+        );
 
-    @PatchMapping("/pending/{id}")
-    public ResponseEntity<?> pending(@PathVariable("id") int fixId) {
-        return ResponseEntity.ok().build();
+        if (updated.getUpdated() == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(convertToDto(updated.getObject(), updated.getActions()));
     }
 
     private List<BiographyFixResponse> convertToDto(Collection<BiographyFix> biographyFixes) {
         List<BiographyFixResponse> result = new ArrayList<>();
 
         for (BiographyFix fix: biographyFixes) {
-            result.add(modelMapper.map(fix, BiographyFixResponse.class));
+            BiographyFixResponse response = modelMapper.map(fix, BiographyFixResponse.class);
+
+            response.setActions(fixService.getActions(fix));
+            result.add(response);
         }
 
         return result;
+    }
+
+    private BiographyFixResponse convertToDto(BiographyFix biographyFix, Collection<FixAction> actions) {
+        BiographyFixResponse response = modelMapper.map(biographyFix, BiographyFixResponse.class);
+
+        response.setActions(actions);
+
+        return response;
     }
 }

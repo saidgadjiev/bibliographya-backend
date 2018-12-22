@@ -7,13 +7,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
 import ru.saidgadjiev.bibliography.domain.Biography;
+import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.model.BiographyResponse;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliography.service.impl.moderation.BiographyModerationService;
-import ru.saidgadjiev.bibliography.domain.CompleteResult;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.ModerationAction;
+import ru.saidgadjiev.bibliography.service.impl.BiographyModerationService;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class BiographyModerationController {
     @PatchMapping("/assign-me/{id}")
     public ResponseEntity<?> assignMe(@PathVariable("id") int biographyId,
                                       @RequestBody CompleteRequest completeRequest) throws SQLException {
-        CompleteResult updated = biographyModerationService.complete(
+        CompleteResult<Biography, ModerationAction> updated = biographyModerationService.complete(
                 biographyId,
                 completeRequest
         );
@@ -83,7 +83,7 @@ public class BiographyModerationController {
             @PathVariable("id") int biographyId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
-        CompleteResult updated = biographyModerationService.complete(
+        CompleteResult<Biography, ModerationAction> updated = biographyModerationService.complete(
                 biographyId,
                 completeRequest
         );
@@ -92,7 +92,7 @@ public class BiographyModerationController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertToDto(updated.getBiography(), updated.getActions()));
+        return ResponseEntity.ok(convertToDto(updated.getObject(), updated.getActions()));
     }
 
     @PatchMapping("/user/complete/{id}")
@@ -100,7 +100,7 @@ public class BiographyModerationController {
             @PathVariable("id") int biographyId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
-        CompleteResult updated = biographyModerationService.userComplete(
+        CompleteResult<Biography, ModerationAction> updated = biographyModerationService.userComplete(
                 biographyId,
                 completeRequest
         );
@@ -109,7 +109,7 @@ public class BiographyModerationController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertToDto(updated.getBiography(), updated.getActions()));
+        return ResponseEntity.ok(convertToDto(updated.getObject(), updated.getActions()));
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {

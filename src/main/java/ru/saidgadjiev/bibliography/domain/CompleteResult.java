@@ -1,23 +1,21 @@
 package ru.saidgadjiev.bibliography.domain;
 
-import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.ModerationAction;
+import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
 
 import java.util.Collection;
 
 /**
  * Created by said on 17.12.2018.
  */
-public class CompleteResult {
+public class CompleteResult<O, A> {
 
     private int updated;
 
-    private Biography biography;
+    private O biography;
 
-    private Collection<ModerationAction> actions;
+    private Collection<A> actions;
 
-    public CompleteResult(int updated, Biography biography, Collection<ModerationAction> actions) {
+    public CompleteResult(int updated, O biography, Collection<A> actions) {
         this.updated = updated;
         this.biography = biography;
         this.actions = actions;
@@ -31,11 +29,11 @@ public class CompleteResult {
         return updated;
     }
 
-    public Biography getBiography() {
+    public O getObject() {
         return biography;
     }
 
-    public Collection<ModerationAction> getActions() {
+    public Collection<A> getActions() {
         return actions;
     }
 }

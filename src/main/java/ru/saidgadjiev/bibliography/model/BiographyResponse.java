@@ -1,6 +1,6 @@
 package ru.saidgadjiev.bibliography.model;
 
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.ModerationAction;
+import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
 
 import java.sql.Timestamp;
 import java.util.Collection;

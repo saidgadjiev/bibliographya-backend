@@ -1,10 +1,10 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler;
+package ru.saidgadjiev.bibliography.bussiness.moderation;
 
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.PendingOperation;
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.RejectOperation;
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.PendingOperation;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.RejectOperation;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.ReleaseOperation;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

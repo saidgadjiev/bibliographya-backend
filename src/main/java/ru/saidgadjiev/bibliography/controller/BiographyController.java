@@ -12,7 +12,7 @@ import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.model.*;
 import ru.saidgadjiev.bibliography.service.impl.BiographyService;
-import ru.saidgadjiev.bibliography.service.impl.moderation.BiographyModerationService;
+import ru.saidgadjiev.bibliography.service.impl.BiographyModerationService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;

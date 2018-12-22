@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation;
+package ru.saidgadjiev.bibliography.bussiness.moderation.operation;
 
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;

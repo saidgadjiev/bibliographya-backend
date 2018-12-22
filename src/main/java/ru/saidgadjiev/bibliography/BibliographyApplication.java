@@ -7,8 +7,8 @@ import ru.saidgadjiev.bibliography.properties.JwtProperties;
 import ru.saidgadjiev.bibliography.properties.StorageProperties;
 
 @EnableConfigurationProperties(value = {
-		JwtProperties.class,
-		StorageProperties.class
+        JwtProperties.class,
+        StorageProperties.class
 })
 @SpringBootApplication
 public class BibliographyApplication {

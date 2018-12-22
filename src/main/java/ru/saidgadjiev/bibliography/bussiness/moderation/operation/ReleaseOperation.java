@@ -1,9 +1,8 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation;
+package ru.saidgadjiev.bibliography.bussiness.moderation.operation;
 
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterOperation;
-import ru.saidgadjiev.bibliography.data.PreparedSetter;
 import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.model.ModerationStatus;
@@ -18,38 +17,38 @@ import java.util.Map;
 /**
  * Created by said on 17.12.2018.
  */
-public class ApproveOperation {
+public class ReleaseOperation {
 
     private final BiographyModerationDao biographyModerationDao;
 
-    public ApproveOperation(BiographyModerationDao biographyModerationDao) {
+    public ReleaseOperation(BiographyModerationDao biographyModerationDao) {
         this.biographyModerationDao = biographyModerationDao;
     }
 
     public Biography execute(Map<String, Object> args) throws SQLException {
+        int biographyId = (int) args.get("biographyId");
+        String moderatorName = (String) args.get("moderatorName");
         List<UpdateValue> values = new ArrayList<>();
 
         values.add(
-                new UpdateValue<>(
-                        "moderation_status",
-                        ModerationStatus.APPROVED.getCode(),
-                        true,
-                        PreparedStatement::setInt
-                )
-        );
-
-        values.add(
-                new UpdateValue<>(
-                        "moderation_info",
+                new UpdateValue<String>(
+                        "moderator_name",
                         null,
                         true,
                         (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        List<FilterCriteria> criteria = new ArrayList<>();
+        values.add(
+                new UpdateValue<>(
+                        "moderation_status",
+                        ModerationStatus.PENDING.getCode(),
+                        true,
+                        PreparedStatement::setInt
+                )
+        );
 
-        int biographyId = (int) args.get("biographyId");
+        List<FilterCriteria> criteria = new ArrayList<>();
 
         criteria.add(
                 new FilterCriteria<>(
@@ -61,10 +60,8 @@ public class ApproveOperation {
                 )
         );
 
-        String moderatorName = (String) args.get("moderatorName");
-
         criteria.add(
-                new FilterCriteria<String>(
+                new FilterCriteria<>(
                         "moderator_name",
                         FilterOperation.EQ,
                         PreparedStatement::setString,

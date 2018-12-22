@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler;
+package ru.saidgadjiev.bibliography.bussiness.moderation;
 
 import ru.saidgadjiev.bibliography.domain.Biography;
 
@@ -26,7 +26,6 @@ public interface Handler {
         PENDING("pending"),
         APPROVE("approve"),
         RELEASE("release"),
-        FIX("fix"),
         REJECT("reject");
 
         private String desc;

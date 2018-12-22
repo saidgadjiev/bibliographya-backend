@@ -1,10 +1,10 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation;
+package ru.saidgadjiev.bibliography.service.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import ru.saidgadjiev.bibliography.bussiness.moderation.*;
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
@@ -13,8 +13,6 @@ import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.ModerationStatus;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyService;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.*;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -65,16 +63,16 @@ public class BiographyModerationService {
         );
     }
 
-    public CompleteResult complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+    public CompleteResult<Biography, ModerationAction> complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         Biography updated = doComplete(biographyId, completeRequest);
 
-        return new CompleteResult(1, updated, getActions(updated));
+        return new CompleteResult<>(1, updated, getActions(updated));
     }
 
-    public CompleteResult userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+    public CompleteResult<Biography, ModerationAction> userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         Biography updated = doComplete(biographyId, completeRequest);
 
-        return new CompleteResult(1, updated, getUserActions(updated));
+        return new CompleteResult<>(1, updated, getUserActions(updated));
     }
 
     private Biography doComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {

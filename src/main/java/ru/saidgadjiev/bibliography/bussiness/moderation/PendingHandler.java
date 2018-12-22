@@ -1,12 +1,12 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler;
+package ru.saidgadjiev.bibliography.bussiness.moderation;
 
 import org.apache.commons.lang.StringUtils;
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ApproveOperation;
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.AssignMeOperation;
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.RejectOperation;
+import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.ApproveOperation;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.AssignMeOperation;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.RejectOperation;
-import ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation.ReleaseOperation;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

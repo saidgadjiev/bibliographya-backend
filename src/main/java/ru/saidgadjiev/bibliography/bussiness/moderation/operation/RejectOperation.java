@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation;
+package ru.saidgadjiev.bibliography.bussiness.moderation.operation;
 
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
@@ -16,11 +16,11 @@ import java.util.Map;
 /**
  * Created by said on 17.12.2018.
  */
-public class PendingOperation {
+public class RejectOperation {
 
     private final BiographyModerationDao biographyModerationDao;
 
-    public PendingOperation(BiographyModerationDao biographyModerationDao) {
+    public RejectOperation(BiographyModerationDao biographyModerationDao) {
         this.biographyModerationDao = biographyModerationDao;
     }
 
@@ -30,9 +30,20 @@ public class PendingOperation {
         values.add(
                 new UpdateValue<>(
                         "moderation_status",
-                        ModerationStatus.PENDING.getCode(),
+                        ModerationStatus.REJECTED.getCode(),
                         true,
                         PreparedStatement::setInt
+                )
+        );
+
+        String rejectText = (String) args.get("rejectText");
+
+        values.add(
+                new UpdateValue<>(
+                        "moderation_info",
+                        rejectText,
+                        true,
+                        PreparedStatement::setString
                 )
         );
 

@@ -24,6 +24,9 @@ public class BiographyCategoryBiographyDao {
     }
 
     public Map<Integer, Collection<String>> getBiographiesCategories(Collection<Integer> biographiesIds) {
+        if (biographiesIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
         String inClause = biographiesIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 
         return jdbcTemplate.query(

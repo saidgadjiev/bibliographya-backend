@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler.operation;
+package ru.saidgadjiev.bibliography.bussiness.moderation.operation;
 
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
@@ -9,7 +9,6 @@ import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,27 +16,16 @@ import java.util.Map;
 /**
  * Created by said on 17.12.2018.
  */
-public class ReleaseOperation {
+public class PendingOperation {
 
     private final BiographyModerationDao biographyModerationDao;
 
-    public ReleaseOperation(BiographyModerationDao biographyModerationDao) {
+    public PendingOperation(BiographyModerationDao biographyModerationDao) {
         this.biographyModerationDao = biographyModerationDao;
     }
 
     public Biography execute(Map<String, Object> args) throws SQLException {
-        int biographyId = (int) args.get("biographyId");
-        String moderatorName = (String) args.get("moderatorName");
         List<UpdateValue> values = new ArrayList<>();
-
-        values.add(
-                new UpdateValue<String>(
-                        "moderator_name",
-                        null,
-                        true,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
-                )
-        );
 
         values.add(
                 new UpdateValue<>(
@@ -49,6 +37,7 @@ public class ReleaseOperation {
         );
 
         List<FilterCriteria> criteria = new ArrayList<>();
+        int biographyId = (int) args.get("biographyId");
 
         criteria.add(
                 new FilterCriteria<>(
@@ -59,6 +48,8 @@ public class ReleaseOperation {
                         true
                 )
         );
+
+        String moderatorName = (String) args.get("moderatorName");
 
         criteria.add(
                 new FilterCriteria<>(

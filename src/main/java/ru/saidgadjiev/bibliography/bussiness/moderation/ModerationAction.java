@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.service.impl.moderation.handler;
+package ru.saidgadjiev.bibliography.bussiness.moderation;
 
 /**
  * Created by said on 17.12.2018.
