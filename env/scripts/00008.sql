@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS biography_fix (
   created_at TIMESTAMP DEFAULT now(),
   fix_text TEXT NOT NULL,
   biography_id INTEGER REFERENCES biography(id),
-  creator_name VARCHAR(128) NOT NULL REFERENCES "user"(name),
-  fixer_name VARCHAR(128) REFERENCES "user"(name),
+  creator_id INTEGER NOT NULL REFERENCES "user"(id),
+  fixer_id INTEGER REFERENCES "user"(id),
   status INTEGER NOT NULL DEFAULT 0
 )

@@ -1,11 +1,18 @@
 server:
   port: 8000
 spring:
+    social:
+      facebook:
+        appId: ${APP_ID}
+        appSecret: ${APP_SECRET}
+        appToken: ${APP_TOKEN}
     datasource:
       driver-class-name: org.postgresql.Driver
       url: jdbc:postgresql://localhost:5432/bibliography
       userName: postgres
       password: postgres
 app:
+  jwt:
+    secret: ${JWT_SECRET}
   upload:
     dir: upload

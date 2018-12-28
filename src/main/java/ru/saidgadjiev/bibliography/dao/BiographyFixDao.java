@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliography.data.FilterUtils;
 import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
+import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,8 +40,8 @@ public class BiographyFixDao {
         return jdbcTemplate.query(
                 "SELECT " + selectList() +
                         " FROM biography_fix bf INNER JOIN biography b ON bf.biography_id = b.id\n" +
-                        "  INNER JOIN biography cb ON bf.creator_name = cb.user_name\n" +
-                        "  LEFT JOIN biography fb ON bf.fixer_name = fb.user_name " + (clause.length() > 0 ? " WHERE " + clause : "") +
+                        "  INNER JOIN biography cb ON bf.creator_id = cb.user_id\n" +
+                        "  LEFT JOIN biography fb ON bf.fixer_id = fb.user_id " + (clause.length() > 0 ? " WHERE " + clause : "") +
                         " LIMIT " + limit + "\n" +
                         " OFFSET " + offset,
                 ps -> {
@@ -75,7 +76,7 @@ public class BiographyFixDao {
         return jdbcTemplate.query(
                 "SELECT " + fixerInfoSelectList() + " " +
                         "FROM biography_fix bf " +
-                        "LEFT JOIN biography fb ON bf.fixer_name = fb.user_name WHERE bf.id =" + fixId + "",
+                        "LEFT JOIN biography fb ON bf.fixer_id = fb.user_id WHERE bf.id =" + fixId + "",
                 rs -> {
                     if (rs.next()) {
                         return mapFixerInfo(rs);
@@ -105,7 +106,7 @@ public class BiographyFixDao {
             sql.append(" WHERE ").append(clause);
         }
 
-        sql.append(" RETURNING status, fixer_name");
+        sql.append(" RETURNING status, fixer_id");
 
         return jdbcTemplate.execute(
                 sql.toString(),
@@ -130,7 +131,7 @@ public class BiographyFixDao {
                             BiographyFix biographyFix = new BiographyFix();
 
                             biographyFix.setStatus(BiographyFix.FixStatus.fromCode(resultSet.getInt("status")));
-                            biographyFix.setFixerName(resultSet.getString("fixer_name"));
+                            biographyFix.setFixerId(ResultSetUtils.intOrNull(resultSet, "fixer_id"));
 
                             return biographyFix;
                         }
@@ -147,7 +148,7 @@ public class BiographyFixDao {
         fix.setId(rs.getInt("id"));
         fix.setFixText(rs.getString("fix_text"));
         fix.setBiographyId(rs.getInt("biography_id"));
-        fix.setFixerName(rs.getString("fixer_name"));
+        fix.setFixerId(ResultSetUtils.intOrNull(rs, "fixer_id"));
         fix.setStatus(BiographyFix.FixStatus.fromCode(rs.getInt("status")));
 
         Biography biography = new Biography();
@@ -169,7 +170,7 @@ public class BiographyFixDao {
 
         fix.setCreatorBiography(creatorBiography);
 
-        if (fix.getFixerName() != null) {
+        if (fix.getFixerId() != null) {
             fix.setFixerBiography(mapFixerBiography(rs));
         }
 
@@ -179,11 +180,11 @@ public class BiographyFixDao {
     private BiographyFix mapFixerInfo(ResultSet rs) throws SQLException {
         BiographyFix fix = new BiographyFix();
 
-        fix.setFixerName(rs.getString("fixer_name"));
+        fix.setFixerId(ResultSetUtils.intOrNull(rs,"fixer_id"));
         fix.setStatus(BiographyFix.FixStatus.fromCode(rs.getInt("status")));
 
 
-        if (fix.getFixerName() != null) {
+        if (fix.getFixerId() != null) {
             fix.setFixerBiography(mapFixerBiography(rs));
         }
 
@@ -197,20 +198,20 @@ public class BiographyFixDao {
         fixerBiography.setFirstName(rs.getString("fb_first_name"));
         fixerBiography.setLastName(rs.getString("fb_first_name"));
         fixerBiography.setMiddleName(rs.getString("fb_middle_name"));
-        fixerBiography.setUserName(rs.getString("fb_user_name"));
+        fixerBiography.setUserId(rs.getInt("fb_user_id"));
 
         return fixerBiography;
     }
 
     public void create(BiographyFix biographyFix) {
         jdbcTemplate.update(
-                "INSERT INTO biography_fix(fix_text, biography_id, creator_name) VALUES (?, ?, ?)",
+                "INSERT INTO biography_fix(fix_text, biography_id, creator_id) VALUES (?, ?, ?)",
                 new PreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps) throws SQLException {
                         ps.setString(1, biographyFix.getFixText());
                         ps.setInt(2, biographyFix.getBiographyId());
-                        ps.setString(3, biographyFix.getCreatorName());
+                        ps.setInt(3, biographyFix.getCreatorId());
                     }
                 }
         );
@@ -223,7 +224,7 @@ public class BiographyFixDao {
                 .append("bf.id,")
                 .append("bf.fix_text,")
                 .append("bf.biography_id,")
-                .append("bf.fixer_name,")
+                .append("bf.fixer_id,")
                 .append("bf.status,")
                 .append("b.id as b_id,")
                 .append("b.first_name as b_first_name,")
@@ -236,7 +237,7 @@ public class BiographyFixDao {
                 .append("cb.middle_name as cb_middle_name,")
                 .append("fb.id as fb_id,")
                 .append("fb.first_name as fb_first_name,")
-                .append("fb.user_name as fb_user_name,")
+                .append("fb.user_id as fb_user_id,")
                 .append("fb.last_name as fb_last_name,")
                 .append("fb.middle_name as fb_middle_name");
 
@@ -247,7 +248,7 @@ public class BiographyFixDao {
         StringBuilder selectList = new StringBuilder();
 
         selectList
-                .append("bf.fixer_name,")
+                .append("bf.fixer_id,")
                 .append("bf.status,")
                 .append("fb.id as fb_id,")
                 .append("fb.first_name as fb_first_name,")

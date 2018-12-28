@@ -9,15 +9,15 @@ public class BiographyFix {
 
     private String fixText;
 
-    private Integer biographyId;
+    private int biographyId;
 
     private Biography biography;
 
-    private String fixerName;
+    private Integer fixerId;
 
     private Biography fixerBiography;
 
-    private String creatorName;
+    private Integer creatorId;
 
     private Biography creatorBiography;
 
@@ -39,20 +39,20 @@ public class BiographyFix {
         this.fixText = fixText;
     }
 
-    public Integer getBiographyId() {
+    public int getBiographyId() {
         return biographyId;
     }
 
-    public void setBiographyId(Integer biographyId) {
+    public void setBiographyId(int biographyId) {
         this.biographyId = biographyId;
     }
 
-    public String getFixerName() {
-        return fixerName;
+    public Integer getFixerId() {
+        return fixerId;
     }
 
-    public void setFixerName(String fixerName) {
-        this.fixerName = fixerName;
+    public void setFixerId(Integer fixerId) {
+        this.fixerId = fixerId;
     }
 
     public FixStatus getStatus() {
@@ -79,12 +79,12 @@ public class BiographyFix {
         this.fixerBiography = fixerBiography;
     }
 
-    public String getCreatorName() {
-        return creatorName;
+    public Integer getCreatorId() {
+        return creatorId;
     }
 
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
+    public void setCreatorId(Integer creatorId) {
+        this.creatorId = creatorId;
     }
 
     public Biography getCreatorBiography() {

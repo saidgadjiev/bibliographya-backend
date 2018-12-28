@@ -23,7 +23,7 @@ public class BiographyRequest {
 
     private String biography;
 
-    private String userName;
+    private Integer userId;
 
     private LastModified lastModified;
 
@@ -63,12 +63,12 @@ public class BiographyRequest {
         this.biography = biography;
     }
 
-    public String getUserName() {
-        return userName;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public LastModified getLastModified() {

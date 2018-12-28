@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliography.domain;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.saidgadjiev.bibliography.auth.ProviderType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -12,25 +13,33 @@ import java.util.Set;
  */
 public class User implements UserDetails, CredentialsContainer {
 
-    private String name;
+    private int id;
 
-    private String password;
+    private ProviderType providerType;
+
+    private UserAccount userAccount;
+
+    private SocialAccount socialAccount;
 
     private Biography biography;
 
     private Set<Role> roles;
 
-    public User(String name, String password, Set<Role> roles) {
-        this.name = name;
-        this.password = password;
+    public User(int id,
+                ProviderType providerType,
+                UserAccount userAccount,
+                SocialAccount socialAccount,
+                Biography biography,
+                Set<Role> roles) {
+        this.id = id;
+        this.providerType = providerType;
+        this.userAccount = userAccount;
+        this.socialAccount = socialAccount;
+        this.biography = biography;
         this.roles = roles;
     }
 
     public User() {
-    }
-
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -39,12 +48,12 @@ public class User implements UserDetails, CredentialsContainer {
     }
 
     public String getPassword() {
-        return password;
+        return userAccount == null ? null : userAccount.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return name;
+        return userAccount == null ? null : userAccount.getName();
     }
 
     @Override
@@ -72,11 +81,15 @@ public class User implements UserDetails, CredentialsContainer {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (userAccount != null) {
+            userAccount.setName(name);
+        }
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        if (userAccount != null) {
+            userAccount.setPassword(password);
+        }
     }
 
     public void setRoles(Set<Role> roles) {
@@ -93,6 +106,40 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public void eraseCredentials() {
-        password = null;
+        if (userAccount != null) {
+            userAccount.setPassword(null);
+        }
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public ProviderType getProviderType() {
+        return providerType;
+    }
+
+    public void setProviderType(ProviderType providerType) {
+        this.providerType = providerType;
+    }
+
+    public UserAccount getUserAccount() {
+        return userAccount;
+    }
+
+    public void setUserAccount(UserAccount userAccount) {
+        this.userAccount = userAccount;
+    }
+
+    public SocialAccount getSocialAccount() {
+        return socialAccount;
+    }
+
+    public void setSocialAccount(SocialAccount socialAccount) {
+        this.socialAccount = socialAccount;
     }
 }

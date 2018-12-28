@@ -32,7 +32,7 @@ public class BibliographyConfiguration {
                 map(source.getBiography().getLastName(), destination.getLastName());
                 map(source.getParent().getBiographyId(), destination.getReplyToBiographyId());
                 map(source.getParent().getBiography().getFirstName(), destination.getReplyToFirstName());
-                map(source.getParent().getUserName(), destination.getReplyToUserName());
+                map(source.getParent().getUserId(), destination.getReplyToUserId());
             }
         });
 

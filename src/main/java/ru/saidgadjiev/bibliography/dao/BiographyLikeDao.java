@@ -30,9 +30,9 @@ public class BiographyLikeDao {
     public int create(BiographyLike like) {
         return jdbcTemplate.update(
                 "INSERT INTO biography_like" +
-                        "(\"user_name\", \"biography_id\") " +
+                        "(\"user_id\", \"biography_id\") " +
                         "VALUES('" +
-                        like.getUserName() + "','" +
+                        like.getUserId() + "','" +
                         like.getBiographyId() +
                         "') ON CONFLICT DO NOTHING"
         );
@@ -42,7 +42,7 @@ public class BiographyLikeDao {
         return jdbcTemplate.update(
                 "DELETE " +
                         "FROM biography_like " +
-                        "WHERE user_name='" + like.getUserName() + "' AND biography_id=" + like.getBiographyId()
+                        "WHERE user_id='" + like.getUserId() + "' AND biography_id=" + like.getBiographyId()
         );
     }
 
@@ -53,7 +53,7 @@ public class BiographyLikeDao {
                     @Override
                     public BiographyLike mapRow(ResultSet rs, int row) throws SQLException, DataAccessException {
                         return new BiographyLike(
-                                rs.getString("user_name"),
+                                rs.getInt("user_id"),
                                 rs.getInt("biography_id")
                         );
 
@@ -78,9 +78,9 @@ public class BiographyLikeDao {
         );
     }
 
-    public boolean isLiked(String userName, int biographyId) {
+    public boolean isLiked(int userId, int biographyId) {
         return jdbcTemplate.query(
-                "SELECT 1 FROM biography_like WHERE user_name ='" + userName + "' AND biography_id ='" + biographyId + "'",
+                "SELECT 1 FROM biography_like WHERE user_id ='" + userId + "' AND biography_id ='" + biographyId + "'",
                 ResultSet::next
         );
     }
@@ -89,7 +89,7 @@ public class BiographyLikeDao {
         StringBuilder sql = new StringBuilder();
         String inClause = biographiesIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 
-        sql.append("SELECT biography_id FROM biography_like WHERE user_name ='");
+        sql.append("SELECT biography_id FROM biography_like WHERE user_id ='");
         sql.append(userName);
         sql.append("' AND biography_id IN (");
         sql.append(inClause);

@@ -15,7 +15,7 @@ public class BiographyComment {
 
     private int biographyId;
 
-    private String userName;
+    private Integer userId;
 
     private Integer parentId;
 
@@ -55,12 +55,12 @@ public class BiographyComment {
         this.biographyId = biographyId;
     }
 
-    public String getUserName() {
-        return userName;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public Integer getParentId() {

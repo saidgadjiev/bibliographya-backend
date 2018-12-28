@@ -1,8 +1,10 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.dao.BiographyCommentDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
@@ -38,12 +40,12 @@ public class BiographyCommentService {
 
         biographyComment.setContent(commentRequest.getContent());
         biographyComment.setBiographyId(biographyId);
-        biographyComment.setUserName(userDetails.getUsername());
+        biographyComment.setUserId(userDetails.getId());
 
-        Biography biography = new Biography.Builder()
-                .setFirstName(userDetails.getBiography().getFirstName())
-                .setLastName(userDetails.getBiography().getLastName())
-                .build();
+        Biography biography = new Biography();
+
+        biography.setFirstName(userDetails.getBiography().getFirstName());
+        biography.setLastName(userDetails.getBiography().getLastName());
 
         biographyComment.setBiography(biography);
 
@@ -53,10 +55,10 @@ public class BiographyCommentService {
 
             parent.setId(commentRequest.getParent().getId());
 
-            Biography replyTo = new Biography.Builder()
-                    .setFirstName(commentRequest.getParent().getFirstName())
-                    .setUserName(commentRequest.getParent().getLastName())
-                    .build();
+            Biography replyTo = new Biography();
+
+            replyTo.setFirstName(commentRequest.getParent().getFirstName());
+            replyTo.setLastName(commentRequest.getParent().getLastName());
 
             parent.setBiography(replyTo);
 

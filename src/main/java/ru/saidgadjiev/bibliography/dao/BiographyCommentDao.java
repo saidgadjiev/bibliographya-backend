@@ -3,7 +3,6 @@ package ru.saidgadjiev.bibliography.dao;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
@@ -27,11 +26,11 @@ public class BiographyCommentDao {
     public BiographyComment create(BiographyComment biographyComment) {
         try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
-                    "(\"content\", \"biography_id\", \"user_name\", \"parent_id\") " +
+                    "(content, biography_id, user_id, parent_id) " +
                     "VALUES(?, ?, ?, ?) RETURNING id, created_at")) {
                 ps.setString(1, biographyComment.getContent());
                 ps.setInt(2, biographyComment.getBiographyId());
-                ps.setString(3, biographyComment.getUserName());
+                ps.setInt(3, biographyComment.getUserId());
 
                 if (biographyComment.getParentId() != null) {
                     ps.setInt(4, biographyComment.getParentId());
@@ -49,7 +48,8 @@ public class BiographyCommentDao {
                 }
             }
         } catch (SQLException ex) {
-            throw new DataAccessException(ex.getMessage(), ex) {};
+            throw new DataAccessException(ex.getMessage(), ex) {
+            };
         }
 
         return biographyComment;
@@ -71,7 +71,7 @@ public class BiographyCommentDao {
             Sort.Order next = iterator.next();
 
             order.append(next.getProperty());
-            order.append(next.getDirection() == Sort.Direction.ASC ? " ASC": " DESC");
+            order.append(next.getDirection() == Sort.Direction.ASC ? " ASC" : " DESC");
 
             if (iterator.hasNext()) {
                 order.append(",");
@@ -85,11 +85,11 @@ public class BiographyCommentDao {
                         "  bg1.first_name,\n" +
                         "  bg1.last_name,\n" +
                         "  bg2.id as reply_biography_id," +
-                        "  bg2.user_name AS reply_user_name,\n" +
+                        "  bg2.user_id AS reply_user_name,\n" +
                         "  bg2.first_name AS reply_first_name\n" +
                         " FROM biography_comment bc1 LEFT JOIN biography_comment bc2 ON bc1.parent_id = bc2.id\n" +
-                        "  LEFT JOIN biography bg1 ON bc1.user_name = bg1.user_name\n" +
-                        "  LEFT JOIN biography bg2 ON bc2.user_name = bg2.user_name\n" +
+                        "  LEFT JOIN biography bg1 ON bc1.user_id = bg1.user_id\n" +
+                        "  LEFT JOIN biography bg2 ON bc2.user_id = bg2.user_id\n" +
                         " WHERE bc1.biography_id = ?\n" +
                         " ORDER BY " + order.toString() +
                         " LIMIT ?\n" +
@@ -156,28 +156,25 @@ public class BiographyCommentDao {
         return jdbcTemplate.query(
                 "SELECT\n" +
                         "  bc1.*,\n" +
-                        "  bg1.id as biography_id," +
+                        "  bg1.id AS biography_id," +
                         "  bg1.first_name,\n" +
                         "  bg1.last_name,\n" +
-                        "  bg2.id as reply_biography_id," +
-                        "  bg2.user_name AS reply_user_name,\n" +
+                        "  bg2.id AS reply_biography_id," +
+                        "  bg2.user_id AS reply_user_id,\n" +
                         "  bg2.first_name AS reply_first_name\n" +
                         "FROM biography_comment bc1 LEFT JOIN biography_comment bc2 ON bc1.parent_id = bc2.id\n" +
-                        "  LEFT JOIN biography bg1 ON bc1.user_name = bg1.user_name\n" +
-                        "  LEFT JOIN biography bg2 ON bc2.user_name = bg2.user_name\n" +
+                        "  LEFT JOIN biography bg1 ON bc1.user_id = bg1.user_id\n" +
+                        "  LEFT JOIN biography bg2 ON bc2.user_id = bg2.user_id\n" +
                         "WHERE bc1.id = ?",
                 ps -> {
                     ps.setInt(1, id);
                 },
-                new ResultSetExtractor<BiographyComment>() {
-                    @Override
-                    public BiographyComment extractData(ResultSet rs) throws SQLException, DataAccessException {
-                        if (rs.next()) {
-                            return map(rs);
-                        }
-
-                        return null;
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
                     }
+
+                    return null;
                 }
         );
     }
@@ -189,13 +186,13 @@ public class BiographyCommentDao {
         biographyComment.setCreatedAt(rs.getTimestamp("created_at"));
         biographyComment.setContent(rs.getString("content"));
         biographyComment.setBiographyId(rs.getInt("biography_id"));
-        biographyComment.setUserName(rs.getString("user_name"));
+        biographyComment.setUserId(rs.getInt("user_id"));
 
-        Biography biography = new Biography.Builder()
-                .setId(rs.getInt("biography_id"))
-                .setFirstName(rs.getString("first_name"))
-                .setLastName(rs.getString("last_name"))
-                .build();
+        Biography biography = new Biography();
+
+        biography.setId(rs.getInt("biography_id"));
+        biography.setFirstName(rs.getString("first_name"));
+        biography.setLastName(rs.getString("last_name"));
 
         biographyComment.setBiography(biography);
 
@@ -208,11 +205,10 @@ public class BiographyCommentDao {
 
             parent.setId(parentId);
 
-            Biography replyTo = new Biography.Builder()
-                    .setId(rs.getInt("reply_biography_id"))
-                    .setFirstName(rs.getString("reply_first_name"))
-                    .setUserName(rs.getString("reply_user_name"))
-                    .build();
+            Biography replyTo = new Biography();
+            replyTo.setId(rs.getInt("reply_biography_id"));
+            replyTo.setFirstName(rs.getString("reply_first_name"));
+            replyTo.setUserId(rs.getInt("reply_user_id"));
 
             parent.setBiography(replyTo);
             parent.setBiographyId(replyTo.getId());

@@ -15,11 +15,11 @@ public class BiographyCommentResponse {
 
     private String lastName;
 
-    private String userName;
+    private Integer userId;
 
     private String replyToFirstName;
 
-    private String replyToUserName;
+    private Integer replyToUserId;
 
     private Integer parentId;
 
@@ -45,12 +45,12 @@ public class BiographyCommentResponse {
         this.firstName = firstName;
     }
 
-    public String getUserName() {
-        return userName;
+    public Integer getUserName() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserName(Integer userId) {
+        this.userId = userId;
     }
 
     public String getLastName() {
@@ -69,12 +69,12 @@ public class BiographyCommentResponse {
         this.replyToFirstName = replyToFirstName;
     }
 
-    public String getReplyToUserName() {
-        return replyToUserName;
+    public Integer getReplyToUserId() {
+        return replyToUserId;
     }
 
-    public void setReplyToUserName(String replyToUserName) {
-        this.replyToUserName = replyToUserName;
+    public void setReplyToUserId(Integer replyToUserId) {
+        this.replyToUserId = replyToUserId;
     }
 
     public Timestamp getCreatedAt() {

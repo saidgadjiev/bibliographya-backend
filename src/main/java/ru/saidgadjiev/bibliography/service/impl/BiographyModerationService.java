@@ -94,7 +94,7 @@ public class BiographyModerationService {
             return null;
         }
 
-        if (StringUtils.isNotBlank(updated.getModeratorName())) {
+        if (updated.getModeratorId() != null) {
             updated.setModeratorBiography(userDetails.getBiography());
         }
 
@@ -104,7 +104,7 @@ public class BiographyModerationService {
     public Collection<ModerationAction> getActions(Biography biography) {
         return handlerMap.get(biography.getModerationStatus()).getActions(
                 new HashMap<String, Object>() {{
-                    put("moderatorName", biography.getModeratorName());
+                    put("moderatorName", biography.getModeratorId());
                     put("moderationStatus", biography.getModerationStatus());
                 }}
         );

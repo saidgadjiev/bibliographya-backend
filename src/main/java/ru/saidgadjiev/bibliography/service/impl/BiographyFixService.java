@@ -13,22 +13,17 @@ import ru.saidgadjiev.bibliography.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliography.dao.BiographyFixDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
-import ru.saidgadjiev.bibliography.data.PreparedSetter;
-import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyFixSuggestRequest;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyCategoryBiographyService;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -107,11 +102,11 @@ public class BiographyFixService {
     }
 
     public void suggest(int biographyId, BiographyFixSuggestRequest suggestRequest) {
-        UserDetails details = securityService.findLoggedInUser();
+        User details = (User) securityService.findLoggedInUser();
         BiographyFix biographyFix = new BiographyFix();
 
         biographyFix.setFixText(suggestRequest.getFixText());
-        biographyFix.setCreatorName(details.getUsername());
+        biographyFix.setCreatorId(details.getId());
         biographyFix.setBiographyId(biographyId);
 
         biographyFixDao.create(biographyFix);
@@ -126,7 +121,7 @@ public class BiographyFixService {
     public Collection<FixAction> getActions(BiographyFix fix) {
         return handlerMap.get(fix.getStatus()).getActions(
                 new HashMap<String, Object>() {{
-                    put("fixerName", fix.getFixerName());
+                    put("fixerName", fix.getFixerId());
                     put("status", fix.getStatus());
                 }}
         );
@@ -159,7 +154,7 @@ public class BiographyFixService {
             return null;
         }
 
-        if (StringUtils.isNotBlank(updated.getFixerName())) {
+        if (updated.getFixerId() != null) {
             updated.setFixerBiography(userDetails.getBiography());
         }
 

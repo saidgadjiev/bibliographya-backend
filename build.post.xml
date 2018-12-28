@@ -1,23 +1,35 @@
 <project name="post-build" basedir="." default="post-build">
     <target name="post-build">
         <Dc name="00001" description="Создаем сущность пользователь">
-            <SqlFile file="env/scripts/user.sql"/>
+            <SqlFile file="env/scripts/00001.sql"/>
         </Dc>
 
         <Dc name="00002" description="Создаем сущность роль">
-            <SqlFile file="env/scripts/role.sql"/>
+            <SqlFile file="env/scripts/00002.sql"/>
         </Dc>
 
         <Dc name="00003" description="Создаем сущность роль_пользователь">
-            <SqlFile file="env/scripts/user_role.sql"/>
+            <SqlFile file="env/scripts/00003.sql"/>
         </Dc>
 
         <Dc name="00004" description="Создаем сущность биография">
-            <SqlFile file="env/scripts/biography.sql"/>
+            <SqlFile file="env/scripts/00004.sql"/>
         </Dc>
 
         <Dc name="00005" description="Создаем сущность лайков биографий">
-            <SqlFile file="env/scripts/biography_like.sql"/>
+            <SqlFile file="env/scripts/00005.sql"/>
+        </Dc>
+
+        <Dc name="00006" description="Создаем сущность категорий биографий">
+            <SqlFile file="env/scripts/00006.sql"/>
+        </Dc>
+
+        <Dc name="00007" description="Создаем сущность комментарий биографий">
+            <SqlFile file="env/scripts/00007.sql"/>
+        </Dc>
+
+        <Dc name="00008" description="Создаем сущность исправлений биографий">
+            <SqlFile file="env/scripts/00008.sql"/>
         </Dc>
     </target>
 </project>

@@ -1,19 +1,21 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.model.ModerationStatus;
+import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,32 +35,30 @@ public class BiographyDao {
     }
 
     public Biography save(Biography biography) throws SQLException {
-        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO biography" +
-                            "(\"first_name\", \"last_name\", \"middle_name\", \"biography\", \"creator_name\", \"user_name\") " +
-                            "VALUES(?, ?, ?, ?, ?, ?) " +
-                            "RETURNING id, first_name, last_name, middle_name, biography, creator_name, user_name, updated_at"
-            )) {
-                ps.setString(1, biography.getFirstName());
-                ps.setString(2, biography.getLastName());
-                ps.setString(3, biography.getMiddleName());
-                ps.setString(4, biography.getBiography());
-                ps.setString(5, biography.getCreatorName());
-                ps.setString(6, biography.getUserName());
+        return jdbcTemplate.execute(
+                "INSERT INTO biography" +
+                        "(first_name, last_name, middle_name, biography, creator_id, user_id) " +
+                        "VALUES(?, ?, ?, ?, ?, ?) " +
+                        "RETURNING *",
+                (PreparedStatementCallback<Biography>) ps -> {
+                    ps.setString(1, biography.getFirstName());
+                    ps.setString(2, biography.getLastName());
+                    ps.setString(3, biography.getMiddleName());
+                    ps.setString(4, biography.getBiography());
+                    ps.setInt(5, biography.getCreatorId());
+                    ps.setInt(6, biography.getUserId());
 
-                ps.execute();
+                    ps.execute();
 
-                try (ResultSet resultSet = ps.getResultSet()) {
-                    if (resultSet.next()) {
-                        return mapFull(resultSet);
+                    try (ResultSet resultSet = ps.getResultSet()) {
+                        if (resultSet.next()) {
+                            return mapFull(resultSet);
+                        }
+
+                        return null;
                     }
-
-                    return null;
                 }
-
-            }
-        }
+        );
     }
 
     public Biography getBiography(Collection<FilterCriteria> biographyCriteria) {
@@ -110,7 +110,7 @@ public class BiographyDao {
         sql
                 .append("SELECT ")
                 .append(getFullSelectList())
-                .append(" FROM biography b LEFT JOIN biography bm ON b.moderator_name = bm.user_name ");
+                .append(" FROM biography b LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
         if (clause.length() > 0) {
             sql.append("WHERE ").append(clause.toString()).append(" ");
         }
@@ -149,30 +149,30 @@ public class BiographyDao {
     }
 
     private Biography mapFull(ResultSet rs) throws SQLException {
-        Biography biography = new Biography.Builder(
-                rs.getString("first_name"),
-                rs.getString("last_name"),
-                rs.getString("middle_name")
-        )
-                .setId(rs.getInt("id"))
-                .setCreatorName(rs.getString("creator_name"))
-                .setUserName(rs.getString("user_name"))
-                .setUpdatedAt(rs.getTimestamp("updated_at"))
-                .setModerationStatus(ModerationStatus.fromCode(rs.getInt("moderation_status")))
-                .setModeratedAt(rs.getTimestamp("moderated_at"))
-                .setModeratorName(rs.getString("moderator_name"))
-                .build();
+        Biography biography = new Biography();
 
+        biography.setId(rs.getInt("id"));
+        biography.setFirstName(rs.getString("first_name"));
+        biography.setLastName(rs.getString("last_name"));
+        biography.setMiddleName(rs.getString("middle_name"));
+
+        biography.setCreatorId(ResultSetUtils.intOrNull(rs,"creator_id"));
+        biography.setUserId(ResultSetUtils.intOrNull(rs,"user_id"));
+        biography.setUpdatedAt(rs.getTimestamp("updated_at"));
+        biography.setModerationStatus(ModerationStatus.fromCode(rs.getInt("moderation_status")));
+        biography.setModeratedAt(rs.getTimestamp("moderated_at"));
+
+        biography .setModeratorId(ResultSetUtils.intOrNull(rs,"moderator_id"));
         biography.setBiography(rs.getString("biography"));
         biography.setModerationInfo(rs.getString("moderation_info"));
 
-        if (biography.getModeratorName() != null) {
-            Biography moderatorBiography = new Biography.Builder()
-                    .setFirstName(rs.getString("m_first_name"))
-                    .setLastName(rs.getString("m_last_name"))
-                    .setId(rs.getInt("m_id"))
-                    .setUserName(biography.getModeratorName())
-                    .build();
+        if (biography.getModeratorId() != null) {
+            Biography moderatorBiography = new Biography();
+
+            moderatorBiography.setId(rs.getInt("m_id"));
+            moderatorBiography.setFirstName(rs.getString("m_first_name"));
+            moderatorBiography.setLastName(rs.getString("m_last_name"));
+            moderatorBiography.setUserId(biography.getModeratorId());
 
             biography.setModeratorBiography(moderatorBiography);
         }
@@ -182,7 +182,7 @@ public class BiographyDao {
 
     public Biography getById(int id) {
         return jdbcTemplate.query(
-                "SELECT " + getFullSelectList() + " FROM biography b LEFT JOIN biography bm ON b.moderator_name = bm.user_name  WHERE b.id=" + id + "",
+                "SELECT " + getFullSelectList() + " FROM biography b LEFT JOIN biography bm ON b.moderator_id = bm.user_id  WHERE b.id=" + id + "",
                 rs -> {
                     if (rs.next()) {
                         return mapFull(rs);
@@ -226,12 +226,12 @@ public class BiographyDao {
         selectList.append("b.last_name,");
         selectList.append("b.middle_name,");
         selectList.append("b.id,");
-        selectList.append("b.creator_name,");
-        selectList.append("b.user_name,");
+        selectList.append("b.creator_id,");
+        selectList.append("b.user_id,");
         selectList.append("b.updated_at,");
         selectList.append("b.moderation_status,");
         selectList.append("b.moderated_at,");
-        selectList.append("b.moderator_name,");
+        selectList.append("b.moderator_id,");
         selectList.append("b.moderation_info,");
         selectList.append("b.biography,");
         selectList.append("bm.first_name as m_first_name,");

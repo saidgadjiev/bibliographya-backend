@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.dao.BiographyLikeDao;
 import ru.saidgadjiev.bibliography.domain.BiographyLike;
+import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.util.Collection;
@@ -29,10 +30,10 @@ public class BiographyLikeService {
     }
 
     public void like(int biographyId) {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User userDetails = (User) securityService.findLoggedInUser();
 
         BiographyLike biographyLike = new BiographyLike(
-                userDetails.getUsername(),
+                userDetails.getId(),
                 biographyId
         );
 
@@ -40,10 +41,10 @@ public class BiographyLikeService {
     }
 
     public void unlike(int biographyId) {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User userDetails = (User) securityService.findLoggedInUser();
 
         BiographyLike biographyLike = new BiographyLike(
-                userDetails.getUsername(),
+                userDetails.getId(),
                 biographyId
         );
 
@@ -71,12 +72,12 @@ public class BiographyLikeService {
     }
 
     public boolean getBiographyIsLiked(Integer biographyId) {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User userDetails = (User) securityService.findLoggedInUser();
 
         if (userDetails == null) {
             return false;
         }
 
-        return biographyLikeDao.isLiked(userDetails.getUsername(), biographyId);
+        return biographyLikeDao.isLiked(userDetails.getId(), biographyId);
     }
 }

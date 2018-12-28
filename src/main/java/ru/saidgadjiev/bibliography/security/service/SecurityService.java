@@ -1,25 +1,19 @@
 package ru.saidgadjiev.bibliography.security.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
 
 /**
  * Created by said on 28.10.2018.
  */
 @Service
 public class SecurityService {
-
-    private final AuthenticationManager authenticationManager;
-
-    @Autowired
-    public SecurityService(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
 
     public UserDetails findLoggedInUser() {
         Authentication authentication = findLoggedInUserAuthentication();
@@ -40,10 +34,9 @@ public class SecurityService {
         return null;
     }
 
-    public Authentication signIn(String username, String password) {
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                new UsernamePasswordAuthenticationToken(username, password);
-        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+    public Authentication authenticate(Object principal, Collection<? extends GrantedAuthority> authorities) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

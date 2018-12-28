@@ -9,8 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.jwt")
 public class JwtProperties {
 
-    public String secretKey() {
-        return "Slumdog millionaire";
+    private String secret;
+
+    public String secret() {
+        return secret;
     }
 
     public SignatureAlgorithm alg() {

@@ -4,7 +4,6 @@ import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Objects;
 
 /**
  * Created by said on 22.10.2018.
@@ -15,7 +14,7 @@ public class Biography {
 
     public static final String MODERATOR_NAME = "moderator_name";
 
-    private Integer id;
+    private int id;
 
     private String firstName;
 
@@ -25,9 +24,9 @@ public class Biography {
 
     private String biography;
 
-    private String creatorName;
+    private Integer creatorId;
 
-    private String userName;
+    private Integer userId;
 
     private Timestamp updatedAt;
 
@@ -35,7 +34,7 @@ public class Biography {
 
     private Timestamp moderatedAt;
 
-    private String moderatorName;
+    private Integer moderatorId;
 
     private Collection<String> categories;
 
@@ -49,11 +48,11 @@ public class Biography {
 
     private String moderationInfo;
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -89,20 +88,20 @@ public class Biography {
         this.biography = biography;
     }
 
-    public String getCreatorName() {
-        return creatorName;
+    public Integer getCreatorId() {
+        return creatorId;
     }
 
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
+    public void setCreatorId(Integer creatorId) {
+        this.creatorId = creatorId;
     }
 
-    public String getUserName() {
-        return userName;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public Timestamp getUpdatedAt() {
@@ -129,12 +128,12 @@ public class Biography {
         this.moderatedAt = moderatedAt;
     }
 
-    public String getModeratorName() {
-        return moderatorName;
+    public Integer getModeratorId() {
+        return moderatorId;
     }
 
-    public void setModeratorName(String moderatorName) {
-        this.moderatorName = moderatorName;
+    public void setModeratorId(Integer moderatorId) {
+        this.moderatorId = moderatorId;
     }
 
     public Collection<String> getCategories() {
@@ -183,134 +182,5 @@ public class Biography {
 
     public void setModerationInfo(String moderationInfo) {
         this.moderationInfo = moderationInfo;
-    }
-
-    public static class Builder {
-
-        private Integer id;
-
-        private String firstName;
-
-        private String lastName;
-
-        private String middleName;
-
-        private String biography;
-
-        private String creatorName;
-
-        private String userName;
-
-        private Timestamp updatedAt;
-
-        private ModerationStatus moderationStatus;
-
-        private String moderatorName;
-
-        private Timestamp moderatedAt;
-
-        private Biography moderatorBiography;
-
-        public Builder() {}
-
-        public Builder(String firstName, String lastName, String middleName) {
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.middleName = middleName;
-        }
-
-        public Builder setFirstName(String firstName) {
-            this.firstName = firstName;
-
-            return this;
-        }
-
-        public Builder setLastName(String lastName) {
-            this.lastName = lastName;
-
-            return this;
-        }
-
-        public Builder setMiddleName(String middleName) {
-            this.middleName = middleName;
-
-            return this;
-        }
-
-        public Builder setId(Integer id) {
-            this.id = id;
-
-            return this;
-        }
-
-        public Builder setBiography(String biography) {
-            this.biography = biography;
-
-            return this;
-        }
-
-        public Builder setCreatorName(String creatorName) {
-            this.creatorName = creatorName;
-
-            return this;
-        }
-
-        public Builder setUserName(String userName) {
-            this.userName = userName;
-
-            return this;
-        }
-
-        public Builder setUpdatedAt(Timestamp updatedAt) {
-            this.updatedAt = updatedAt;
-
-            return this;
-        }
-
-        public Builder setModerationStatus(ModerationStatus moderationStatus) {
-            this.moderationStatus = moderationStatus;
-
-            return this;
-        }
-
-        public Builder setModeratorName(String moderatorName) {
-            this.moderatorName = moderatorName;
-
-            return this;
-        }
-
-        public Builder setModeratedAt(Timestamp moderatedAt) {
-            this.moderatedAt = moderatedAt;
-
-            return this;
-        }
-
-        public Biography getModeratorBiography() {
-            return moderatorBiography;
-        }
-
-        public void setModeratorBiography(Biography moderatorBiography) {
-            this.moderatorBiography = moderatorBiography;
-        }
-
-        public Biography build() {
-            Biography biography = new Biography();
-
-            biography.setId(id);
-            biography.setBiography(this.biography);
-            biography.setCreatorName(creatorName);
-            biography.setUserName(userName);
-            biography.setFirstName(firstName);
-            biography.setLastName(lastName);
-            biography.setMiddleName(middleName);
-            biography.setBiography(this.biography);
-            biography.setUpdatedAt(this.updatedAt);
-            biography.setModerationStatus(moderationStatus);
-            biography.setModeratedAt(moderatedAt);
-            biography.setModeratorName(moderatorName);
-            biography.setModeratorBiography(moderatorBiography);
-
-            return biography;
-        }
     }
 }

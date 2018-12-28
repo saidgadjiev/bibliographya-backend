@@ -30,7 +30,7 @@ public class JwtTokenServiceImpl implements TokenService {
     public String generate(Map<String, Object> payload) {
         return Jwts.builder()
                 .setClaims(payload)
-                .signWith(jwtProperties.alg(), jwtProperties.secretKey())
+                .signWith(jwtProperties.alg(), jwtProperties.secret())
                 .compact();
     }
 
@@ -38,7 +38,7 @@ public class JwtTokenServiceImpl implements TokenService {
     public Map<String, Object> validate(String token) {
         try {
             return Jwts.parser()
-                    .setSigningKey(jwtProperties.secretKey())
+                    .setSigningKey(jwtProperties.secret())
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {

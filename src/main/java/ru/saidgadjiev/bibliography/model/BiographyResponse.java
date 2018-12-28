@@ -20,9 +20,9 @@ public class BiographyResponse {
 
     private String biography;
 
-    private String creatorName;
+    private Integer creatorId;
 
-    private String userName;
+    private Integer userId;
 
     private int likesCount;
 
@@ -38,7 +38,7 @@ public class BiographyResponse {
 
     private Timestamp moderatedAt;
 
-    private String moderatorName;
+    private String moderatorId;
 
     private BiographyResponse moderatorBiography;
 
@@ -88,20 +88,20 @@ public class BiographyResponse {
         this.biography = biography;
     }
 
-    public String getCreatorName() {
-        return creatorName;
+    public Integer getCreatorId() {
+        return creatorId;
     }
 
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
+    public void setCreatorId(Integer creatorId) {
+        this.creatorId = creatorId;
     }
 
-    public String getUserName() {
-        return userName;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public int getLikesCount() {
@@ -159,12 +159,12 @@ public class BiographyResponse {
         this.moderatedAt = moderatedAt;
     }
 
-    public String getModeratorName() {
-        return moderatorName;
+    public String getModeratorId() {
+        return moderatorId;
     }
 
-    public void setModeratorName(String moderatorName) {
-        this.moderatorName = moderatorName;
+    public void setModeratorId(String moderatorId) {
+        this.moderatorId = moderatorId;
     }
 
     public Collection<String> getCategories() {

@@ -4,28 +4,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
-import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliography.auth.ProviderType;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.SignInRequest;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
-import ru.saidgadjiev.bibliography.properties.JwtProperties;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
-import ru.saidgadjiev.bibliography.service.api.TokenService;
 import ru.saidgadjiev.bibliography.service.api.UserService;
-import ru.saidgadjiev.bibliography.service.impl.TokenCookieService;
+import ru.saidgadjiev.bibliography.service.impl.auth.AuthContext;
+import ru.saidgadjiev.bibliography.service.impl.auth.AuthService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 /**
  * Created by said on 22.10.2018.
@@ -36,30 +29,13 @@ public class AuthController {
 
     private final UserService userService;
 
-    private final SecurityService securityService;
-
-    private final TokenService tokenService;
-
-    private final TokenCookieService tokenCookieService;
-
-    private final JwtProperties jwtProperties;
-
-    private LogoutHandler logoutHandler = new CompositeLogoutHandler(
-        new CookieClearingLogoutHandler("X-TOKEN"),
-        new SecurityContextLogoutHandler()
-    );
+    private final AuthService authService;
 
     @Autowired
     public AuthController(UserService userService,
-                          SecurityService securityService,
-                          TokenService tokenService,
-                          TokenCookieService tokenCookieService,
-                          JwtProperties jwtProperties) {
+                          AuthService authService) {
         this.userService = userService;
-        this.securityService = securityService;
-        this.tokenService = tokenService;
-        this.tokenCookieService = tokenCookieService;
-        this.jwtProperties = jwtProperties;
+        this.authService = authService;
     }
 
     @PostMapping("/signUp")
@@ -67,28 +43,24 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        userService.save(signUpRequest);
+        authService.signUp(signUpRequest);
 
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/signIn")
-    public ResponseEntity<?> singIn(HttpServletResponse response, @Valid @RequestBody SignInRequest signInRequest, BindingResult bindingResult) {
+    public ResponseEntity<?> singIn(HttpServletResponse response, @Valid @RequestBody SignInRequest signInRequest, BindingResult bindingResult) throws SQLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            Authentication authentication = securityService.signIn(signInRequest.getUsername(), signInRequest.getPassword());
-            User user = (User) authentication.getPrincipal();
-            String token = tokenService.generate(new HashMap<String, Object>() {{
-                put("username", user.getUsername());
-                put("authorities", user.getAuthorities());
-            }});
+            AuthContext authContext = new AuthContext()
+                    .setProviderType(ProviderType.USERNAME_PASSWORD)
+                    .setResponse(response)
+                    .setSignInRequest(signInRequest);
 
-            tokenCookieService.addCookie(response, "X-TOKEN", token);
-
-            return ResponseEntity.ok(authentication.getPrincipal());
+            return ResponseEntity.ok(authService.auth(authContext));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.badRequest().build();
         }
@@ -96,11 +68,9 @@ public class AuthController {
 
     @PostMapping("/signOut")
     public ResponseEntity<?> signOut(HttpServletRequest request, HttpServletResponse response) {
-        Authentication authentication = securityService.findLoggedInUserAuthentication();
+        User user = authService.signOut(request, response);
 
-        logoutHandler.logout(request, response, authentication);
-
-        if (authentication == null) {
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } else {
             return ResponseEntity.ok().build();
@@ -109,7 +79,7 @@ public class AuthController {
 
     @GetMapping("/account")
     public ResponseEntity<UserDetails> signOut() {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        UserDetails userDetails = authService.account();
 
         if (userDetails == null) {
             return ResponseEntity.notFound().build();

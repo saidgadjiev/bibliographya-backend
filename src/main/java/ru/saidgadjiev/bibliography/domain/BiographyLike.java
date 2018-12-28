@@ -5,21 +5,21 @@ package ru.saidgadjiev.bibliography.domain;
  */
 public class BiographyLike {
 
-    private String userName;
+    private Integer userId;
 
     private int biographyId;
 
-    public BiographyLike(String userName, int biographyId) {
-        this.userName = userName;
+    public BiographyLike(Integer userId, int biographyId) {
+        this.userId = userId;
         this.biographyId = biographyId;
     }
 
-    public String getUserName() {
-        return userName;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public int getBiographyId() {

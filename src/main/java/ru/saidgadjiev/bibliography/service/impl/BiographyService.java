@@ -11,8 +11,10 @@ import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliography.model.SignUpRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.sql.PreparedStatement;
@@ -59,17 +61,16 @@ public class BiographyService {
 
     @Transactional
     public Biography create(BiographyRequest biographyRequest) throws SQLException {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User userDetails = (User) securityService.findLoggedInUser();
 
-        Biography biography = new Biography.Builder(
-                biographyRequest.getFirstName(),
-                biographyRequest.getLastName(),
-                biographyRequest.getMiddleName()
-        )
-                .setBiography(biographyRequest.getBiography())
-                .setCreatorName(userDetails.getUsername())
-                .setUserName(biographyRequest.getUserName())
-                .build();
+        Biography biography = new Biography();
+
+        biography.setFirstName(biographyRequest.getFirstName());
+        biography.setLastName(biographyRequest.getLastName());
+        biography.setMiddleName(biographyRequest.getMiddleName());
+        biography.setBiography(biographyRequest.getBiography());
+        biography.setCreatorId(userDetails.getId());
+        biography.setUserId(biographyRequest.getUserId());
 
         Biography result = biographyDao.save(biography);
 
@@ -81,6 +82,19 @@ public class BiographyService {
         result.setCategories(biographyRequest.getAddedCategories());
 
         return result;
+    }
+
+    public Biography createAccountBiography(User user, BiographyRequest biographyRequest) throws SQLException {
+        Biography biography = new Biography();
+
+        biography.setFirstName(biographyRequest.getFirstName());
+        biography.setLastName(biographyRequest.getLastName());
+        biography.setMiddleName(biographyRequest.getMiddleName());
+        biography.setBiography(biographyRequest.getBiography());
+        biography.setCreatorId(user.getId());
+        biography.setUserId(user.getId());
+
+        return biographyDao.save(biography);
     }
 
     public Biography getBiography(String userNameFilter) {
@@ -203,22 +217,22 @@ public class BiographyService {
 
     @Transactional
     public BiographyUpdateStatus update(Integer id, BiographyRequest updateBiographyRequest) throws SQLException {
-        Biography.Builder builder = new Biography.Builder(
-                updateBiographyRequest.getFirstName(),
-                updateBiographyRequest.getLastName(),
-                updateBiographyRequest.getMiddleName()
-        );
+        Biography biography = new Biography();
 
-        builder.setId(id);
-        builder.setBiography(updateBiographyRequest.getBiography());
+        biography.setFirstName(updateBiographyRequest.getFirstName());
+        biography.setLastName(updateBiographyRequest.getLastName());
+        biography.setMiddleName(updateBiographyRequest.getMiddleName());
+
+        biography.setId(id);
+        biography.setBiography(updateBiographyRequest.getBiography());
 
         Timestamp timestamp = new Timestamp(updateBiographyRequest.getLastModified().getTime());
 
         timestamp.setNanos(updateBiographyRequest.getLastModified().getNanos());
 
-        builder.setUpdatedAt(timestamp);
+        biography.setUpdatedAt(timestamp);
 
-        BiographyUpdateStatus status = biographyDao.update(builder.build());
+        BiographyUpdateStatus status = biographyDao.update(biography);
 
         if (status.isUpdated()) {
             biographyCategoryBiographyService.addCategoriesToBiography(
