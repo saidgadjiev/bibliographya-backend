@@ -11,7 +11,6 @@ import org.springframework.security.web.authentication.logout.CompositeLogoutHan
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.social.oauth2.AccessGrant;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.auth.ProviderType;
 import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
@@ -23,6 +22,8 @@ import ru.saidgadjiev.bibliography.service.impl.TokenCookieService;
 import ru.saidgadjiev.bibliography.service.impl.TokenService;
 import ru.saidgadjiev.bibliography.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliography.service.impl.auth.social.SocialUserDetailsService;
+import ru.saidgadjiev.bibliography.service.impl.auth.social.VKService;
+import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,6 +37,8 @@ import java.util.Map;
 public class AuthService {
 
     private final FacebookService facebookService;
+
+    private final VKService vkService;
 
     private final SocialUserDetailsService socialUserDetailsService;
 
@@ -56,12 +59,14 @@ public class AuthService {
 
     @Autowired
     public AuthService(FacebookService facebookService,
+                       VKService vkService,
                        SocialUserDetailsService socialUserDetailsService,
                        UserService userService,
                        TokenService tokenService,
                        TokenCookieService tokenCookieService,
                        SecurityService securityService) {
         this.facebookService = facebookService;
+        this.vkService = vkService;
         this.socialUserDetailsService = socialUserDetailsService;
         this.userService = userService;
         this.tokenService = tokenService;
@@ -78,6 +83,10 @@ public class AuthService {
         switch (providerType) {
             case FACEBOOK:
                 return facebookService.createFacebookAuthorizationUrl();
+            case VK:
+                return vkService.createVKAuthorizationUrl();
+            case USERNAME_PASSWORD:
+                break;
         }
 
         return null;
@@ -88,10 +97,10 @@ public class AuthService {
         AccessGrant accessGrant = null;
 
         switch (authContext.getProviderType()) {
-            case FACEBOOK:
+            case FACEBOOK: {
                 accessGrant = facebookService.createFacebookAccessToken(authContext.getCode());
 
-                SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant);
+                SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant.getAccessToken());
 
                 user = (User) socialUserDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
 
@@ -102,6 +111,21 @@ public class AuthService {
                 securityService.authenticate(user, user.getAuthorities());
 
                 break;
+            }
+            case VK: {
+                accessGrant = vkService.createFacebookAccessToken(authContext.getCode());
+
+                SocialUserInfo userInfo = vkService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
+
+                user = (User) socialUserDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
+
+                if (user == null) {
+                    user = (User) socialUserDetailsService.saveSocialUser(userInfo);
+                }
+
+                securityService.authenticate(user, user.getAuthorities());
+                break;
+            }
             case USERNAME_PASSWORD:
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(
@@ -129,13 +153,15 @@ public class AuthService {
     public User signOut(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = securityService.findLoggedInUserAuthentication();
 
-        logoutHandler.logout(request, response, authentication);
+        if (authentication != null) {
+            User user = (User) authentication.getPrincipal();
 
-        if (authentication == null) {
-            return null;
+            logoutHandler.logout(request, response, authentication);
+
+            return user;
         }
 
-        return (User) authentication.getPrincipal();
+        return null;
     }
 
     public UserDetails account() {
@@ -153,6 +179,7 @@ public class AuthService {
             UserDetails userDetails = null;
 
             switch (providerType) {
+                case VK:
                 case FACEBOOK:
                     userDetails = socialUserDetailsService.loadSocialUserById(userId);
                     break;

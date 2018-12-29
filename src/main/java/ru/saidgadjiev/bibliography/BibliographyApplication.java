@@ -6,10 +6,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import ru.saidgadjiev.bibliography.properties.FacebookProperties;
 import ru.saidgadjiev.bibliography.properties.JwtProperties;
 import ru.saidgadjiev.bibliography.properties.StorageProperties;
+import ru.saidgadjiev.bibliography.properties.VKProperties;
 
 @EnableConfigurationProperties(value = {
         JwtProperties.class,
 		FacebookProperties.class,
+		VKProperties.class,
         StorageProperties.class
 })
 @SpringBootApplication

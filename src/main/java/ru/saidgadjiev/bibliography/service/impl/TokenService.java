@@ -1,11 +1,8 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
-import org.springframework.social.oauth2.AccessGrant;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
 import ru.saidgadjiev.bibliography.domain.User;
-import ru.saidgadjiev.bibliography.service.impl.auth.social.FacebookService;
-import ru.saidgadjiev.bibliography.service.impl.auth.social.TokenInfo;
+import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,11 +15,8 @@ public class TokenService {
 
     private final JwtTokenServiceImpl jwtTokenService;
 
-    private final FacebookService facebookService;
-
-    public TokenService(JwtTokenServiceImpl jwtTokenService, FacebookService facebookService) {
+    public TokenService(JwtTokenServiceImpl jwtTokenService) {
         this.jwtTokenService = jwtTokenService;
-        this.facebookService = facebookService;
     }
 
     public Map<String, Object> validate(String token) {
@@ -38,24 +32,17 @@ public class TokenService {
             return null;
         }
 
-        ProviderType providerType = ProviderType.fromId((String) details.get("providerId"));
-
-        switch (providerType) {
-            case FACEBOOK:
-                String accessToken = (String) details.get("accessToken");
-                AccessGrant accessGrant = new AccessGrant(accessToken, null, null, expiredAt);
-
-                TokenInfo tokenInfo = facebookService.checkToken(accessGrant);
-
-                if (!tokenInfo.isValid()) {
-                    return null;
-                }
-                break;
-            case USERNAME_PASSWORD:
-                break;
-        }
-
         return details;
+    }
+
+    public Map<String, Object> getClaims(String token) {
+        return jwtTokenService.validate(token);
+    }
+
+    public String getUserId(String token) {
+        Map<String, Object> details = jwtTokenService.validate(token);
+
+        return (String) details.get("userId");
     }
 
     public String createToken(User user, AccessGrant accessGrant) {
@@ -67,6 +54,7 @@ public class TokenService {
 
         switch (user.getProviderType()) {
             case FACEBOOK:
+                payload.put("accountId", user.getSocialAccount().getAccountId());
                 payload.put("expiredAt", accessGrant.getExpireTime());
                 payload.put("accessToken", accessGrant.getAccessToken());
 

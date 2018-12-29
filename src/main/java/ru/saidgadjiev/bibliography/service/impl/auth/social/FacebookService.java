@@ -1,19 +1,17 @@
 package ru.saidgadjiev.bibliography.service.impl.auth.social;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.social.connect.ConnectionFactoryLocator;
-import org.springframework.social.facebook.api.Facebook;
-import org.springframework.social.facebook.connect.FacebookConnectionFactory;
-import org.springframework.social.oauth2.AccessGrant;
-import org.springframework.social.oauth2.OAuth2Operations;
-import org.springframework.social.oauth2.OAuth2Parameters;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import ru.saidgadjiev.bibliography.auth.ProviderType;
 import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
 import ru.saidgadjiev.bibliography.properties.FacebookProperties;
+import ru.saidgadjiev.bibliography.social.facebook.Facebook;
+import ru.saidgadjiev.bibliography.social.facebook.OAuthFacebookTemplate;
+import ru.saidgadjiev.bibliography.social.facebook.PermissionOperations;
+import ru.saidgadjiev.bibliography.social.facebook.UserProfileOperations;
+import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
+
 
 /**
  * Created by said on 23.12.2018.
@@ -21,45 +19,36 @@ import ru.saidgadjiev.bibliography.properties.FacebookProperties;
 @Service
 public class FacebookService {
 
-    private static final String ID = "facebook";
-
-    private final ConnectionFactoryLocator connectionFactoryLocator;
-
-    private final FacebookProperties facebookProperties;
+    private final OAuthFacebookTemplate oAuthTemplate;
 
     @Autowired
-    public FacebookService(ConnectionFactoryLocator connectionFactoryLocator, FacebookProperties facebookProperties) {
-        this.connectionFactoryLocator = connectionFactoryLocator;
-        this.facebookProperties = facebookProperties;
+    public FacebookService(FacebookProperties facebookProperties) {
+        oAuthTemplate = new OAuthFacebookTemplate(
+                facebookProperties.getAppId(),
+                facebookProperties.getAppSecret(),
+                facebookProperties.getAppToken()
+        );
     }
 
     public String createFacebookAuthorizationUrl() {
-        FacebookConnectionFactory connectionFactory = (FacebookConnectionFactory) connectionFactoryLocator.getConnectionFactory(ID);
-
-        OAuth2Operations oauthOperations = connectionFactory.getOAuthOperations();
-        OAuth2Parameters params = new OAuth2Parameters();
-        params.setRedirectUri("http://localhost:8080/facebook/callback");
-        params.setScope("public_profile");
-
-        return oauthOperations.buildAuthorizeUrl(params);
+        return oAuthTemplate.buildOAuthUrl("http://localhost:8080/facebook/callback", null);
     }
 
     public AccessGrant createFacebookAccessToken(String code) {
-        FacebookConnectionFactory connectionFactory = (FacebookConnectionFactory) connectionFactoryLocator.getConnectionFactory(ID);
-
-        return connectionFactory.getOAuthOperations().exchangeForAccess(
+        return oAuthTemplate.exchangeForAccess(
                 code,
                 "http://localhost:8080/facebook/callback",
                 null
         );
     }
 
-    public SocialUserInfo getUserInfo(AccessGrant accessGrant) {
-        FacebookConnectionFactory connectionFactory = (FacebookConnectionFactory) connectionFactoryLocator.getConnectionFactory(ID);
+    public SocialUserInfo getUserInfo(String accessToken) {
+        Facebook facebook = new Facebook(accessToken);
+        UserProfileOperations userProfileOperations = facebook.getUserProfileOperations();
 
-        Facebook facebook = connectionFactory.createConnection(accessGrant).getApi();
-
-        ObjectNode objectNode = facebook.fetchObject("me", ObjectNode.class, "id", "first_name", "last_name", "middle_name");
+        ObjectNode objectNode = userProfileOperations.getFiels(
+                "id", "first_name", "last_name", "middle_name"
+        ).getBody();
 
         SocialUserInfo userInfo = new SocialUserInfo();
 
@@ -76,21 +65,13 @@ public class FacebookService {
     }
 
     public TokenInfo checkToken(AccessGrant accessGrant) {
-        FacebookConnectionFactory connectionFactory = (FacebookConnectionFactory) connectionFactoryLocator.getConnectionFactory(ID);
+        return oAuthTemplate.checkToken(accessGrant.getAccessToken());
+    }
 
-        Facebook facebook = connectionFactory.createConnection(accessGrant).getApi();
+    public void logout(String userId, String accessToken) {
+        Facebook facebook = new Facebook(accessToken);
+        PermissionOperations permissionOperations = facebook.getPermissionOperations();
 
-        ObjectNode objectNode = facebook.fetchObject("debug_token", ObjectNode.class, new LinkedMultiValueMap<String, String>() {{
-            add("input_token", accessGrant.getAccessToken());
-            add("access_token", accessGrant.getAccessToken());
-        }});
-
-        JsonNode data = objectNode.get("data");
-
-        TokenInfo tokenInfo = new TokenInfo();
-
-        tokenInfo.setValid(data.get("is_valid").asBoolean());
-
-        return tokenInfo;
+        permissionOperations.deletePermissions(userId);
     }
 }

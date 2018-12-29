@@ -15,6 +15,10 @@ public class JwtProperties {
         return secret;
     }
 
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
     public SignatureAlgorithm alg() {
         return SignatureAlgorithm.HS512;
     }

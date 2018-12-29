@@ -6,6 +6,7 @@ package ru.saidgadjiev.bibliography.auth;
 public enum ProviderType {
 
     FACEBOOK("facebook"),
+    VK("vk"),
     USERNAME_PASSWORD("username_password");
 
     private final String id;

@@ -7,7 +7,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.social.connect.ConnectionFactoryLocator;
 import org.springframework.social.connect.support.ConnectionFactoryRegistry;
 import org.springframework.social.facebook.connect.FacebookConnectionFactory;
+import org.springframework.social.vkontakte.connect.VKontakteConnectionFactory;
 import ru.saidgadjiev.bibliography.properties.FacebookProperties;
+import ru.saidgadjiev.bibliography.properties.VKProperties;
 
 /**
  * Created by said on 23.12.2018.
@@ -17,8 +19,11 @@ public class SocialConfig {
 
     private final FacebookProperties facebookProperties;
 
-    public SocialConfig(FacebookProperties facebookProperties) {
+    private final VKProperties vkProperties;
+
+    public SocialConfig(FacebookProperties facebookProperties, VKProperties vkProperties) {
         this.facebookProperties = facebookProperties;
+        this.vkProperties = vkProperties;
     }
 
     @Bean
@@ -28,6 +33,9 @@ public class SocialConfig {
 
         connectionFactoryLocator.addConnectionFactory(
                 new FacebookConnectionFactory(facebookProperties.getAppId(), facebookProperties.getAppSecret())
+        );
+        connectionFactoryLocator.addConnectionFactory(
+                new VKontakteConnectionFactory(vkProperties.getAppId(), vkProperties.getAppSecret())
         );
 
         return connectionFactoryLocator;
