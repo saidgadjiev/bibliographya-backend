@@ -42,14 +42,7 @@ public class BiographyController {
         this.modelMapper = modelMapper;
     }
 
-    @GetMapping("")
-    public ResponseEntity<BiographyResponse> getBiography(
-            @PathVariable(value = "username", required = false) String userNameFilter
-    ) throws SQLException {
-        return ResponseEntity.ok(convertToDto(biographyService.getBiography(userNameFilter)));
-    }
-
-    @GetMapping("/{id:[\\\\d]+}")
+    @GetMapping("/{id}")
     public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) throws SQLException {
         return ResponseEntity.ok(convertToDto(biographyService.getBiographyById(id)));
     }
