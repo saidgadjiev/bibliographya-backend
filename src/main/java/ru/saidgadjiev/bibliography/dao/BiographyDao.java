@@ -1,14 +1,12 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
 import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
 
 import java.sql.Connection;
@@ -159,7 +157,7 @@ public class BiographyDao {
         biography.setCreatorId(ResultSetUtils.intOrNull(rs,"creator_id"));
         biography.setUserId(ResultSetUtils.intOrNull(rs,"user_id"));
         biography.setUpdatedAt(rs.getTimestamp("updated_at"));
-        biography.setModerationStatus(ModerationStatus.fromCode(rs.getInt("moderation_status")));
+        biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("moderation_status")));
         biography.setModeratedAt(rs.getTimestamp("moderated_at"));
 
         biography .setModeratorId(ResultSetUtils.intOrNull(rs,"moderator_id"));

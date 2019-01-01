@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,6 @@ import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
@@ -32,7 +30,7 @@ public class BiographyModerationService {
 
     private final SecurityService securityService;
 
-    private Map<ModerationStatus, Handler> handlerMap = new HashMap<>();
+    private Map<Biography.ModerationStatus, Handler> handlerMap = new HashMap<>();
 
     @Autowired
     public BiographyModerationService(BiographyService biographyService,
@@ -46,9 +44,9 @@ public class BiographyModerationService {
     }
 
     private void initHandlers() {
-        handlerMap.put(ModerationStatus.PENDING, new PendingHandler(biographyModerationDao));
-        handlerMap.put(ModerationStatus.APPROVED, new ApprovedHandler(biographyModerationDao));
-        handlerMap.put(ModerationStatus.REJECTED, new RejectedHandler(biographyModerationDao));
+        handlerMap.put(Biography.ModerationStatus.PENDING, new PendingHandler(biographyModerationDao));
+        handlerMap.put(Biography.ModerationStatus.APPROVED, new ApprovedHandler(biographyModerationDao));
+        handlerMap.put(Biography.ModerationStatus.REJECTED, new RejectedHandler(biographyModerationDao));
     }
 
     public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
@@ -85,7 +83,7 @@ public class BiographyModerationService {
         processValues.put("rejectText", completeRequest.getRejectText());
 
         Handler handler = handlerMap.get(
-                ModerationStatus.fromCode(completeRequest.getStatus())
+                Biography.ModerationStatus.fromCode(completeRequest.getStatus())
         );
 
         Biography updated = handler.handle(Handler.Signal.fromDesc(completeRequest.getSignal()), processValues);

@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliography.configuration;
 
+import org.apache.commons.lang.StringUtils;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -9,10 +10,18 @@ import org.springframework.context.annotation.Configuration;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
+import ru.saidgadjiev.bibliography.domain.BiographyReport;
 import ru.saidgadjiev.bibliography.model.BiographyCommentResponse;
+import ru.saidgadjiev.bibliography.model.BiographyComplaintResponse;
 import ru.saidgadjiev.bibliography.model.BiographyFixResponse;
 import ru.saidgadjiev.bibliography.model.BiographyResponse;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
+
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by said on 16.11.2018.
@@ -39,9 +48,9 @@ public class BibliographyConfiguration {
         modelMapper.addMappings(new PropertyMap<Biography, BiographyResponse>() {
             @Override
             protected void configure() {
-                using(new Converter<ModerationStatus, Integer>() {
+                using(new Converter<Biography.ModerationStatus, Integer>() {
                     @Override
-                    public Integer convert(MappingContext<ModerationStatus, Integer> mappingContext) {
+                    public Integer convert(MappingContext<Biography.ModerationStatus, Integer> mappingContext) {
                         if (mappingContext.getSource() != null) {
                             return mappingContext.getSource().getCode();
                         }
@@ -49,6 +58,30 @@ public class BibliographyConfiguration {
                         return null;
                     }
                 }).map(source.getModerationStatus(), destination.getModerationStatus());
+                Converter<Collection<BiographyReport>, Map<Integer, BiographyComplaintResponse>> converter = context -> {
+                    if (context.getSource() != null) {
+                        Map<Integer, BiographyComplaintResponse> result = new HashMap<>();
+
+                        for (BiographyReport complaint: context.getSource()) {
+                            result.putIfAbsent(complaint.getReason().getCode(), new BiographyComplaintResponse());
+
+                            BiographyComplaintResponse complaintResponse = result.get(complaint.getReason().getCode());
+
+                            complaintResponse.setCount(complaintResponse.getCount() + 1);
+                            complaintResponse.setReason(complaint.getReason().getCode());
+                            if (StringUtils.isNotBlank(complaint.getReasonText())) {
+                                complaintResponse.addComplainText(complaint.getReasonText());
+                            }
+                        }
+
+                        return result;
+                    }
+
+                    return null;
+                };
+
+                using(converter).map(source.getNewComplaints(), destination.getNewComplaints());
+                using(converter).map(source.getOldComplaints(), destination.getOldComplaints());
             }
         });
 

@@ -1,9 +1,8 @@
 package ru.saidgadjiev.bibliography.domain;
 
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
-
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Created by said on 22.10.2018.
@@ -41,6 +40,14 @@ public class Biography {
     private int likesCount;
 
     private long commentsCount;
+
+    private long newComplaintsCount;
+
+    private Collection<BiographyReport> newComplaints;
+
+    private long oldComplaintsCount;
+
+    private Collection<BiographyReport> oldComplaints;
 
     private boolean liked;
 
@@ -182,5 +189,71 @@ public class Biography {
 
     public void setModerationInfo(String moderationInfo) {
         this.moderationInfo = moderationInfo;
+    }
+
+    public Collection<BiographyReport> getNewComplaints() {
+        return newComplaints;
+    }
+
+    public void setNewComplaints(Collection<BiographyReport> newComplaints) {
+        this.newComplaints = newComplaints;
+    }
+
+    public long getNewComplaintsCount() {
+        return newComplaintsCount;
+    }
+
+    public void setNewComplaintsCount(long newComplaintsCount) {
+        this.newComplaintsCount = newComplaintsCount;
+    }
+
+    public long getOldComplaintsCount() {
+        return oldComplaintsCount;
+    }
+
+    public void setOldComplaintsCount(long oldComplaintsCount) {
+        this.oldComplaintsCount = oldComplaintsCount;
+    }
+
+    public Collection<BiographyReport> getOldComplaints() {
+        return oldComplaints;
+    }
+
+    public void setOldComplaints(Collection<BiographyReport> oldComplaints) {
+        this.oldComplaints = oldComplaints;
+    }
+
+    /**
+     * Created by said on 26.11.2018.
+     */
+    public enum ModerationStatus {
+
+        PENDING(0),
+
+        APPROVED(1),
+
+        REJECTED(2),
+
+        FIXED(3);
+
+        private int code;
+
+        ModerationStatus(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public static ModerationStatus fromCode(int code) {
+            for (ModerationStatus moderationStatus : ModerationStatus.values()) {
+                if (moderationStatus.code == code) {
+                    return moderationStatus;
+                }
+            }
+
+            return null;
+        }
     }
 }

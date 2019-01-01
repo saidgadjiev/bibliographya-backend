@@ -15,7 +15,7 @@ public class FilterUtils {
     public static String toClause(Collection<FilterCriteria> criteria, String alias) {
         StringBuilder clause = new StringBuilder();
 
-        if (!criteria.isEmpty()) {
+        if (criteria != null && !criteria.isEmpty()) {
             for (Iterator<FilterCriteria> iterator = criteria.iterator(); iterator.hasNext(); ) {
                 FilterCriteria criterion = iterator.next();
 

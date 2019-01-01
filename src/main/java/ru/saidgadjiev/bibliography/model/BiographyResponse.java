@@ -1,9 +1,11 @@
 package ru.saidgadjiev.bibliography.model;
 
 import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
+import ru.saidgadjiev.bibliography.domain.BiographyReport;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Created by said on 22.10.2018.
@@ -47,6 +49,14 @@ public class BiographyResponse {
     private Collection<ModerationAction> actions;
 
     private String moderationInfo;
+
+    private long newComplaintsCount;
+
+    private Map<Integer, BiographyComplaintResponse> newComplaints;
+
+    private long oldComplaintsCount;
+
+    private Map<Integer, BiographyComplaintResponse> oldComplaints;
 
     public Integer getId() {
         return id;
@@ -197,5 +207,37 @@ public class BiographyResponse {
 
     public void setModerationInfo(String moderationInfo) {
         this.moderationInfo = moderationInfo;
+    }
+
+    public long getNewComplaintsCount() {
+        return newComplaintsCount;
+    }
+
+    public void setNewComplaintsCount(long newComplaintsCount) {
+        this.newComplaintsCount = newComplaintsCount;
+    }
+
+    public Map<Integer, BiographyComplaintResponse> getNewComplaints() {
+        return newComplaints;
+    }
+
+    public void setNewComplaints(Map<Integer, BiographyComplaintResponse> newComplaints) {
+        this.newComplaints = newComplaints;
+    }
+
+    public long getOldComplaintsCount() {
+        return oldComplaintsCount;
+    }
+
+    public void setOldComplaintsCount(long oldComplaintsCount) {
+        this.oldComplaintsCount = oldComplaintsCount;
+    }
+
+    public Map<Integer, BiographyComplaintResponse> getOldComplaints() {
+        return oldComplaints;
+    }
+
+    public void setOldComplaints(Map<Integer, BiographyComplaintResponse> oldComplaints) {
+        this.oldComplaints = oldComplaints;
     }
 }

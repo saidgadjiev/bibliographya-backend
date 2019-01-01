@@ -19,7 +19,7 @@ public class FilterArgumentResolver {
                                   String filter) {
         FilterCriteria criteria = new FilterCriteria();
 
-        criteria.setValueSetter((PreparedSetter<Object>) valueSetter);
+        criteria.setValueSetter(valueSetter);
         criteria.setPropertyName(propertyName);
 
         String split[] = filter.split(":");

@@ -5,7 +5,6 @@ import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterOperation;
 import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -30,7 +29,7 @@ public class PendingOperation {
         values.add(
                 new UpdateValue<>(
                         "moderation_status",
-                        ModerationStatus.PENDING.getCode(),
+                        Biography.ModerationStatus.PENDING.getCode(),
                         true,
                         PreparedStatement::setInt
                 )

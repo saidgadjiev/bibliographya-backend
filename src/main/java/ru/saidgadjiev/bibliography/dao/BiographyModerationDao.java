@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.model.ModerationStatus;
 
 import java.sql.*;
 import java.util.Collection;
@@ -85,7 +84,7 @@ public class BiographyModerationDao {
                         if (resultSet.next()) {
                             Biography biography = new Biography();
 
-                            biography.setModerationStatus(ModerationStatus.fromCode(resultSet.getInt("moderation_status")));
+                            biography.setModerationStatus(Biography.ModerationStatus.fromCode(resultSet.getInt("moderation_status")));
                             biography.setModeratorId(resultSet.getInt("moderator_id"));
                             biography.setModerationInfo(resultSet.getString("moderation_info"));
 
