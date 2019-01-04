@@ -48,14 +48,14 @@ public class PendingOperation {
                 )
         );
 
-        String moderatorName = (String) args.get("moderatorName");
+        int moderatorId = (Integer) args.get("moderatorId");
 
         criteria.add(
                 new FilterCriteria<>(
-                        "moderator_name",
+                        "moderator_id",
                         FilterOperation.EQ,
-                        PreparedStatement::setString,
-                        moderatorName,
+                        PreparedStatement::setInt,
+                        moderatorId,
                         true
                 )
         );

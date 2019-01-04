@@ -1,8 +1,8 @@
-package ru.saidgadjiev.bibliography.service.impl.auth.social;
+package ru.saidgadjiev.bibliography.service.api;
 
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
-import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
+import ru.saidgadjiev.bibliography.auth.social.SocialUserInfo;
 
 import java.sql.SQLException;
 

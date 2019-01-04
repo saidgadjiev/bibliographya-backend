@@ -46,22 +46,6 @@ public class BiographyLikeDao {
         );
     }
 
-    public List<BiographyLike> getLikes(int biographyId) {
-        return jdbcTemplate.query(
-                "SELECT * FROM biography_like WHERE biography_id=" + biographyId,
-                new RowMapper<BiographyLike>() {
-                    @Override
-                    public BiographyLike mapRow(ResultSet rs, int row) throws SQLException, DataAccessException {
-                        return new BiographyLike(
-                                rs.getInt("user_id"),
-                                rs.getInt("biography_id")
-                        );
-
-                    }
-                }
-        );
-    }
-
     public int getLikesCount(int biographyId) {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM biography_like WHERE biography_id=" + biographyId,
@@ -85,13 +69,13 @@ public class BiographyLikeDao {
         );
     }
 
-    public Map<Integer, Boolean> isLikedByBiographies(String userName, Collection<Integer> biographiesIds) {
+    public Map<Integer, Boolean> isLikedByBiographies(int userId, Collection<Integer> biographiesIds) {
         StringBuilder sql = new StringBuilder();
         String inClause = biographiesIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 
-        sql.append("SELECT biography_id FROM biography_like WHERE user_id ='");
-        sql.append(userName);
-        sql.append("' AND biography_id IN (");
+        sql.append("SELECT biography_id FROM biography_like WHERE user_id =");
+        sql.append(userId);
+        sql.append(" AND biography_id IN (");
         sql.append(inClause);
         sql.append(")");
 

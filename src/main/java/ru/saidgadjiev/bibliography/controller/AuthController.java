@@ -7,12 +7,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
+import ru.saidgadjiev.bibliography.auth.common.AuthContext;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.SignInRequest;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
-import ru.saidgadjiev.bibliography.service.api.UserService;
-import ru.saidgadjiev.bibliography.service.impl.auth.AuthContext;
 import ru.saidgadjiev.bibliography.service.impl.auth.AuthService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,15 +26,26 @@ import java.sql.SQLException;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final UserService userService;
-
     private final AuthService authService;
 
     @Autowired
-    public AuthController(UserService userService,
-                          AuthService authService) {
-        this.userService = userService;
+    public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @PostMapping("/oauth/{providerId}")
+    public ResponseEntity<String> signIn(@PathVariable("providerId") String providerId) {
+        ProviderType providerType = ProviderType.fromId(providerId);
+
+        if (providerType == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (providerType.equals(ProviderType.USERNAME_PASSWORD)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(authService.getOauthUrl(providerType));
     }
 
     @PostMapping("/signUp")
@@ -48,8 +58,36 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/signIn/{providerId}")
+    public ResponseEntity<?> singInSocial(
+            HttpServletResponse response,
+            @PathVariable("providerId") String providerId,
+            @RequestParam("code") String code
+    ) throws SQLException {
+        ProviderType providerType = ProviderType.fromId(providerId);
+
+        if (providerType == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            AuthContext authContext = new AuthContext()
+                    .setProviderType(providerType)
+                    .setCode(code)
+                    .setResponse(response);
+
+            return ResponseEntity.ok(authService.auth(authContext));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/signIn")
-    public ResponseEntity<?> singIn(HttpServletResponse response, @Valid @RequestBody SignInRequest signInRequest, BindingResult bindingResult) throws SQLException {
+    public ResponseEntity<?> singIn(
+            HttpServletResponse response,
+            @Valid @RequestBody SignInRequest signInRequest,
+            BindingResult bindingResult
+    ) throws SQLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
@@ -86,14 +124,5 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(userDetails);
-    }
-
-    @RequestMapping(value = "/exist/{username}", method = RequestMethod.HEAD)
-    public ResponseEntity existUserName(@PathVariable(value = "username") String username) throws SQLException {
-        if (userService.isExistUserName(username)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
-
-        return ResponseEntity.ok().build();
     }
 }

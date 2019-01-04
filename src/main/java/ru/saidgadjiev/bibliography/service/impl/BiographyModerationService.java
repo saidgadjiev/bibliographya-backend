@@ -1,22 +1,26 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.*;
+import org.apache.commons.lang.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.bussiness.moderation.*;
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
+import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliography.data.FilterOperation;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Types;
+import java.util.*;
 
 /**
  * Created by said on 09.12.2018.
@@ -49,16 +53,21 @@ public class BiographyModerationService {
         handlerMap.put(Biography.ModerationStatus.REJECTED, new RejectedHandler(biographyModerationDao));
     }
 
-    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
-                                          String moderatorNameFilter,
-                                          String moderationStatusFilter) {
-        return biographyService.getBiographies(
-                pageRequest,
-                null,
-                moderationStatusFilter,
-                moderatorNameFilter,
-                null
-        );
+    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest, String query) {
+        Collection<FilterCriteria> criteria = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(query)) {
+            Node parsed = new RSQLParser(new HashSet<ComparisonOperator>() {{
+                add(RSQLOperators.EQUAL);
+            }}).parse(query);
+
+            parsed.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
+                put("moderator_id", FilterCriteriaVisitor.Type.INTEGER);
+                put("moderation_status", FilterCriteriaVisitor.Type.INTEGER);
+            }}));
+        }
+
+        return biographyService.getBiographies(pageRequest, criteria, null);
     }
 
     public CompleteResult<Biography, ModerationAction> complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
@@ -79,7 +88,7 @@ public class BiographyModerationService {
         Map<String, Object> processValues = new HashMap<>();
 
         processValues.put("biographyId", biographyId);
-        processValues.put("moderatorName", userDetails.getUsername());
+        processValues.put("moderatorId", userDetails.getId());
         processValues.put("rejectText", completeRequest.getRejectText());
 
         Handler handler = handlerMap.get(
@@ -102,7 +111,7 @@ public class BiographyModerationService {
     public Collection<ModerationAction> getActions(Biography biography) {
         return handlerMap.get(biography.getModerationStatus()).getActions(
                 new HashMap<String, Object>() {{
-                    put("moderatorName", biography.getModeratorId());
+                    put("moderatorId", biography.getModeratorId());
                     put("moderationStatus", biography.getModerationStatus());
                 }}
         );

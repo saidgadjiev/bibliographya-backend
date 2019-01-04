@@ -3,13 +3,14 @@ package ru.saidgadjiev.bibliography.service.impl.auth.social;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
-import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
+import ru.saidgadjiev.bibliography.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.social.TokenInfo;
 import ru.saidgadjiev.bibliography.properties.VKProperties;
-import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
-import ru.saidgadjiev.bibliography.social.vk.OAuthVKTemplate;
-import ru.saidgadjiev.bibliography.social.vk.UserProfileOperations;
-import ru.saidgadjiev.bibliography.social.vk.VK;
+import ru.saidgadjiev.bibliography.auth.social.AccessGrant;
+import ru.saidgadjiev.bibliography.auth.social.vk.OAuthVKTemplate;
+import ru.saidgadjiev.bibliography.auth.social.vk.UserProfileOperations;
+import ru.saidgadjiev.bibliography.auth.social.vk.VK;
 
 /**
  * Created by said on 29.12.2018.

@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.domain.SocialAccount;

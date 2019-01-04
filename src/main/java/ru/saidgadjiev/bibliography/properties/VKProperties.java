@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Created by said on 23.12.2018.
  */
-@ConfigurationProperties(prefix = "spring.social.vk")
+@ConfigurationProperties(prefix = "app.social.vk")
 public class VKProperties {
 
     private String appId;

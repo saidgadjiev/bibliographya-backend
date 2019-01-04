@@ -26,15 +26,15 @@ public class ReleaseOperation {
 
     public Biography execute(Map<String, Object> args) throws SQLException {
         int biographyId = (int) args.get("biographyId");
-        String moderatorName = (String) args.get("moderatorName");
+        Integer moderatorId = (Integer) args.get("moderatorId");
         List<UpdateValue> values = new ArrayList<>();
 
         values.add(
                 new UpdateValue<String>(
-                        "moderator_name",
+                        "moderator_id",
                         null,
                         true,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
+                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER)
                 )
         );
 
@@ -61,10 +61,10 @@ public class ReleaseOperation {
 
         criteria.add(
                 new FilterCriteria<>(
-                        "moderator_name",
+                        "moderator_id",
                         FilterOperation.EQ,
-                        PreparedStatement::setString,
-                        moderatorName,
+                        PreparedStatement::setInt,
+                        moderatorId,
                         true
                 )
         );

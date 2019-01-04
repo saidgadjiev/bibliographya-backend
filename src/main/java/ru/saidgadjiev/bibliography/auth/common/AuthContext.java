@@ -1,6 +1,5 @@
-package ru.saidgadjiev.bibliography.service.impl.auth;
+package ru.saidgadjiev.bibliography.auth.common;
 
-import ru.saidgadjiev.bibliography.auth.ProviderType;
 import ru.saidgadjiev.bibliography.model.SignInRequest;
 
 import javax.servlet.http.HttpServletResponse;

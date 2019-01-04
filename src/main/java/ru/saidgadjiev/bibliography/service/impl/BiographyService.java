@@ -9,21 +9,18 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliography.dao.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.FilterOperation;
+import ru.saidgadjiev.bibliography.data.PreparedSetter;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliography.model.SignUpRequest;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,11 +72,11 @@ public class BiographyService {
         Biography result = biographyDao.save(biography);
 
         biographyCategoryBiographyService.addCategoriesToBiography(
-                biographyRequest.getAddedCategories(),
+                biographyRequest.getAddCategories(),
                 result.getId()
         );
 
-        result.setCategories(biographyRequest.getAddedCategories());
+        result.setCategories(biographyRequest.getAddCategories());
 
         return result;
     }
@@ -134,44 +131,15 @@ public class BiographyService {
         return biography;
     }
 
+    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest, String categoryName) {
+        return getBiographies(pageRequest, Collections.emptyList(), categoryName);
+    }
+
+
     public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
-                                          String creatorNameFilter,
-                                          String moderationStatusFilter,
-                                          String moderatorNameFilter,
-                                          String categoryName) {
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        if (creatorNameFilter != null) {
-            criteria.add(
-                    argumentResolver.resolve(
-                            "creator_name",
-                            String::valueOf,
-                            PreparedStatement::setString,
-                            creatorNameFilter
-                    )
-            );
-        }
-        if (moderationStatusFilter != null) {
-            criteria.add(
-                    argumentResolver.resolve(
-                            Biography.MODERATION_STATUS,
-                            object -> Integer.valueOf(String.valueOf(object)),
-                            PreparedStatement::setInt,
-                            moderationStatusFilter
-                    )
-            );
-        }
-        if (moderatorNameFilter != null) {
-            criteria.add(
-                    argumentResolver.resolve(
-                            Biography.MODERATOR_NAME,
-                            String::valueOf,
-                            PreparedStatement::setString,
-                            moderatorNameFilter
-                    )
-            );
-        }
-
+                                          Collection<FilterCriteria> criteria,
+                                          String categoryName
+    ) {
         List<Biography> biographies = biographyDao.getBiographiesList(
                 pageRequest.getPageSize(), pageRequest.getOffset(), categoryName, criteria
         );
@@ -187,16 +155,18 @@ public class BiographyService {
         return new PageImpl<>(biographies, pageRequest, total);
     }
 
+
     public Page<Biography> getMyBiographies(OffsetLimitPageRequest pageRequest) {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User user = (User) securityService.findLoggedInUser();
         List<FilterCriteria> criteria = new ArrayList<>();
 
         criteria.add(
-                argumentResolver.resolve(
-                        "creator_name",
-                        String::valueOf,
-                        PreparedStatement::setString,
-                        "eq:" + userDetails.getUsername()
+                new FilterCriteria<Integer>(
+                        "creator_id",
+                        FilterOperation.EQ,
+                        PreparedStatement::setInt,
+                        user.getId(),
+                        true
                 )
         );
 
@@ -236,7 +206,7 @@ public class BiographyService {
 
         if (status.isUpdated()) {
             biographyCategoryBiographyService.addCategoriesToBiography(
-                    updateBiographyRequest.getAddedCategories(),
+                    updateBiographyRequest.getAddCategories(),
                     id
             );
             biographyCategoryBiographyService.deleteCategoriesFromBiography(

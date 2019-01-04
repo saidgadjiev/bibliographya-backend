@@ -9,10 +9,6 @@ import java.util.Map;
  */
 public class Biography {
 
-    public static final String MODERATION_STATUS = "moderation_status";
-
-    public static final String MODERATOR_NAME = "moderator_name";
-
     private int id;
 
     private String firstName;
@@ -232,9 +228,7 @@ public class Biography {
 
         APPROVED(1),
 
-        REJECTED(2),
-
-        FIXED(3);
+        REJECTED(2);
 
         private int code;
 

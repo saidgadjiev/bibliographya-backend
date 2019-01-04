@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 /**
  * Created by said on 29.10.2018.
  */
-@Controller
-public class CrossController {
+//@Controller
+public class CorsController {
 
     @RequestMapping(method = RequestMethod.OPTIONS)
     public ResponseEntity handle() {

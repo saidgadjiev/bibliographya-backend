@@ -3,14 +3,15 @@ package ru.saidgadjiev.bibliography.service.impl.auth.social;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
-import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
+import ru.saidgadjiev.bibliography.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.social.TokenInfo;
 import ru.saidgadjiev.bibliography.properties.FacebookProperties;
-import ru.saidgadjiev.bibliography.social.facebook.Facebook;
-import ru.saidgadjiev.bibliography.social.facebook.OAuthFacebookTemplate;
-import ru.saidgadjiev.bibliography.social.facebook.PermissionOperations;
-import ru.saidgadjiev.bibliography.social.facebook.UserProfileOperations;
-import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
+import ru.saidgadjiev.bibliography.auth.social.facebook.Facebook;
+import ru.saidgadjiev.bibliography.auth.social.facebook.OAuthFacebookTemplate;
+import ru.saidgadjiev.bibliography.auth.social.facebook.PermissionOperations;
+import ru.saidgadjiev.bibliography.auth.social.facebook.UserProfileOperations;
+import ru.saidgadjiev.bibliography.auth.social.AccessGrant;
 
 
 /**

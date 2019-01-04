@@ -37,23 +37,23 @@ public class ReleaseOperation {
                 )
         );
         values.add(
-                new UpdateValue<String>(
-                        "fixer_name",
+                new UpdateValue<>(
+                        "fixer_id",
                         null,
                         true,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
+                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER)
                 )
         );
 
         List<FilterCriteria> criteria = new ArrayList<>();
-        String fixerName = (String) args.get("fixerName");
+        int fixerId = (Integer) args.get("fixerId");
 
         criteria.add(
                 new FilterCriteria<>(
-                        "fixer_name",
+                        "fixer_id",
                         FilterOperation.EQ,
-                        PreparedStatement::setString,
-                        fixerName,
+                        PreparedStatement::setInt,
+                        fixerId,
                         true
                 )
         );

@@ -27,7 +27,7 @@ public class BiographyRequest {
 
     private LastModified lastModified;
 
-    private Collection<String> addedCategories;
+    private Collection<String> addCategories;
 
     private Collection<String> deleteCategories;
 
@@ -79,12 +79,12 @@ public class BiographyRequest {
         this.lastModified = lastModified;
     }
 
-    public Collection<String> getAddedCategories() {
-        return addedCategories;
+    public Collection<String> getAddCategories() {
+        return addCategories;
     }
 
-    public void setAddedCategories(Collection<String> addedCategories) {
-        this.addedCategories = addedCategories;
+    public void setAddCategories(Collection<String> addCategories) {
+        this.addCategories = addCategories;
     }
 
     public Collection<String> getDeleteCategories() {

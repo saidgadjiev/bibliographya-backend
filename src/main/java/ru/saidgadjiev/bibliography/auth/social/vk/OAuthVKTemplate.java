@@ -1,12 +1,12 @@
-package ru.saidgadjiev.bibliography.social.facebook;
+package ru.saidgadjiev.bibliography.auth.social.vk;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import ru.saidgadjiev.bibliography.service.impl.auth.social.TokenInfo;
-import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
+import ru.saidgadjiev.bibliography.auth.social.TokenInfo;
+import ru.saidgadjiev.bibliography.auth.social.AccessGrant;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -18,17 +18,17 @@ import java.util.stream.Collectors;
 /**
  * Created by said on 29.12.2018.
  */
-public class OAuthFacebookTemplate {
+public class OAuthVKTemplate {
 
-    private static final String API_VERSION = "3.2";
+    private static final String API_VERSION = "5.92";
 
-    private static final String GRAPH_API_URL = "https://graph.facebook.com/v" + API_VERSION + "/";
+    private static final String VK_API_URL = "https://api.vk.com/method/";
 
-    private static final String OAUTH_URL = "https://www.facebook.com/v" + API_VERSION + "/dialog/oauth";
+    private static final String OAUTH_URL = "https://oauth.vk.com/authorize";
 
-    private static final String TOKEN_CHECK_URL = GRAPH_API_URL + "debug_token";
+    private static final String TOKEN_CHECK_URL = VK_API_URL + "secure.checkToken";
 
-    private static final String ACCESS_TOKEN_URL = GRAPH_API_URL + "oauth/access_token";
+    private static final String ACCESS_TOKEN_URL = "https://oauth.vk.com/access_token";
 
     private String clientId;
 
@@ -38,9 +38,9 @@ public class OAuthFacebookTemplate {
 
     private RestTemplate restTemplate;
 
-    public OAuthFacebookTemplate(String clientId,
-                                 String clientSecret,
-                                 String appToken) {
+    public OAuthVKTemplate(String clientId,
+                           String clientSecret,
+                           String appToken) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.appToken = appToken;
@@ -56,6 +56,7 @@ public class OAuthFacebookTemplate {
         params.set("response_type", "code");
         params.set("client_id", formEncode(clientId));
         params.set("redirect_uri", redirectUri);
+        params.set("v", API_VERSION);
 
         return buildUrl(OAUTH_URL, params);
     }
@@ -73,6 +74,7 @@ public class OAuthFacebookTemplate {
         params.set("client_secret", clientSecret);
         params.set("code", code);
         params.set("redirect_uri", redirectUri);
+        params.set("v", API_VERSION);
 
         String url = buildUrl(ACCESS_TOKEN_URL, params);
 
@@ -82,21 +84,20 @@ public class OAuthFacebookTemplate {
         return new AccessGrant(
                 body.get("access_token").asText(),
                 body.get("expires_in").asLong(),
-                null
+                body.get("user_id").asText()
         );
     }
 
     public TokenInfo checkToken(String token) {
         String url = buildUrl(TOKEN_CHECK_URL, new LinkedMultiValueMap<String, String>() {{
-            add("input_token", token);
-            add("access_token", appToken);
+            add("token", token);
         }});
 
         ResponseEntity<ObjectNode> checkTokenResponse = getRestTemplate().getForEntity(url, ObjectNode.class);
         ObjectNode body = checkTokenResponse.getBody();
         TokenInfo tokenInfo = new TokenInfo();
 
-        tokenInfo.setValid(body.get("data").get("is_valid").asBoolean());
+        tokenInfo.setValid(body.get("status").asInt() == 1);
 
         return tokenInfo;
     }

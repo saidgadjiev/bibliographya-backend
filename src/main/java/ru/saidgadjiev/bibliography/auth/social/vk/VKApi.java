@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.social.vk;
+package ru.saidgadjiev.bibliography.auth.social.vk;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;

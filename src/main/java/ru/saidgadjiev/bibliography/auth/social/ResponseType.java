@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.social.oauth;
+package ru.saidgadjiev.bibliography.auth.social;
 
 /**
  * Created by said on 29.12.2018.

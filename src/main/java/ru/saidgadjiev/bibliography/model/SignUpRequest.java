@@ -24,8 +24,6 @@ public class SignUpRequest {
     @Size(min = 1)
     private String lastName;
 
-    @NotNull
-    @Size(min = 1)
     private String middleName;
 
     public String getUsername() {

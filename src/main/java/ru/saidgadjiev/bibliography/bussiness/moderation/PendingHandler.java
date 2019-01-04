@@ -42,9 +42,9 @@ public class PendingHandler implements Handler {
 
     @Override
     public Collection<ModerationAction> getActions(Map<String, Object> args) {
-        String moderatorName = (String) args.get("moderatorName");
+        Integer moderatorId = (Integer) args.get("moderatorId");
 
-        if (StringUtils.isBlank(moderatorName)) {
+        if (moderatorId == null) {
             return new ArrayList<ModerationAction>() {{
                 add(ModerationAction.assignMe());
             }};

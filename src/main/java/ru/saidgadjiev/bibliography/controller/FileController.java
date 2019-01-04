@@ -10,7 +10,7 @@ import ru.saidgadjiev.bibliography.service.api.StorageService;
 import ru.saidgadjiev.bibliography.service.impl.storage.StorageFileNotFoundException;
 
 @RestController
-@RequestMapping("/api/file")
+@RequestMapping("/api/files")
 public class FileController {
 
     private final StorageService storageService;

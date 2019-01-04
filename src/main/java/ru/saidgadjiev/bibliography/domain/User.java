@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliography.domain;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
 
 import java.util.Collection;
 import java.util.Set;

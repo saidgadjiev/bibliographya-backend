@@ -59,14 +59,14 @@ public class ApproveOperation {
                 )
         );
 
-        String moderatorName = (String) args.get("moderatorName");
+        int moderatorId = (Integer) args.get("moderatorId");
 
         criteria.add(
-                new FilterCriteria<String>(
-                        "moderator_name",
+                new FilterCriteria<>(
+                        "moderator_id",
                         FilterOperation.EQ,
-                        PreparedStatement::setString,
-                        moderatorName,
+                        PreparedStatement::setInt,
+                        moderatorId,
                         true
                 )
         );

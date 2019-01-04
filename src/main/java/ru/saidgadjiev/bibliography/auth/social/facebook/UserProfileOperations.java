@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.social.facebook;
+package ru.saidgadjiev.bibliography.auth.social.facebook;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.ResponseEntity;

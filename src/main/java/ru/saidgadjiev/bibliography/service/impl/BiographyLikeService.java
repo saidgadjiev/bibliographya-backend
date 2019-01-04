@@ -1,12 +1,10 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.dao.BiographyLikeDao;
 import ru.saidgadjiev.bibliography.domain.BiographyLike;
 import ru.saidgadjiev.bibliography.domain.User;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.util.Collection;
 import java.util.Map;
@@ -60,7 +58,7 @@ public class BiographyLikeService {
     }
 
     public Map<Integer, Boolean> getBiographiesIsLiked(Collection<Integer> biographiesIds) {
-        UserDetails userDetails = securityService.findLoggedInUser();
+        User userDetails = (User) securityService.findLoggedInUser();
 
         if (userDetails == null) {
             return biographiesIds
@@ -68,7 +66,7 @@ public class BiographyLikeService {
                     .collect(Collectors.toMap(Function.identity(), integer -> false));
         }
 
-        return biographyLikeDao.isLikedByBiographies(userDetails.getUsername(), biographiesIds);
+        return biographyLikeDao.isLikedByBiographies(userDetails.getId(), biographiesIds);
     }
 
     public boolean getBiographyIsLiked(Integer biographyId) {

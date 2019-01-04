@@ -25,7 +25,7 @@ import java.util.List;
  * Created by said on 15.12.2018.
  */
 @RestController
-@RequestMapping("/api/biography/fix")
+@RequestMapping("/api/fixes")
 public class BiographyFixController {
 
     private final BiographyFixService fixService;
@@ -41,10 +41,9 @@ public class BiographyFixController {
     @GetMapping("")
     public ResponseEntity<?> getFixes(
             OffsetLimitPageRequest pageRequest,
-            @RequestParam(value = "fixerName", required = false) String fixerNameFilter,
-            @RequestParam(value = "status", required = false) String statusFilter
+            @RequestParam(value = "q", required = false) String query
     ) {
-        Page<BiographyFix> page = fixService.getFixesList(pageRequest, fixerNameFilter, statusFilter);
+        Page<BiographyFix> page = fixService.getFixesList(pageRequest, query);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -53,18 +52,8 @@ public class BiographyFixController {
         return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), pageRequest, page.getTotalElements()));
     }
 
-    @PostMapping("/suggest/{id}")
-    public ResponseEntity<?> suggest(
-            @PathVariable("id") int biographyId,
-            @RequestBody BiographyFixSuggestRequest suggestRequest
-    ) {
-        fixService.suggest(biographyId, suggestRequest);
-
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping("/assign-me/{id}")
-    public ResponseEntity<?> assignMe(@PathVariable("id") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+    @PatchMapping("/{fixId}/assign-me")
+    public ResponseEntity<?> assignMe(@PathVariable("fixId") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
         CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
                 fixId,
                 completeRequest
@@ -82,8 +71,8 @@ public class BiographyFixController {
         return ResponseEntity.ok(convertToDto(fix, updated.getActions()));
     }
 
-    @PatchMapping("/complete/{id}")
-    public ResponseEntity<?> close(@PathVariable("id") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+    @PatchMapping("/{fixId}/complete")
+    public ResponseEntity<?> close(@PathVariable("fixId") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
         CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
                 fixId,
                 completeRequest

@@ -35,14 +35,14 @@ public class CloseOperation {
         );
 
         List<FilterCriteria> criteria = new ArrayList<>();
-        String fixerName = (String) args.get("fixerName");
+        int fixerId = (Integer) args.get("fixerId");
 
         criteria.add(
                 new FilterCriteria<>(
-                        "fixer_name",
+                        "fixer_id",
                         FilterOperation.EQ,
-                        PreparedStatement::setString,
-                        fixerName,
+                        PreparedStatement::setInt,
+                        fixerId,
                         true
                 )
         );

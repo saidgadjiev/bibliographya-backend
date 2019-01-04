@@ -7,15 +7,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
-import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
+import ru.saidgadjiev.bibliography.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliography.dao.SocialAccountDao;
 import ru.saidgadjiev.bibliography.dao.UserAccountDao;
 import ru.saidgadjiev.bibliography.domain.*;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
 import ru.saidgadjiev.bibliography.service.api.UserService;
-import ru.saidgadjiev.bibliography.service.impl.auth.social.SocialUserDetailsService;
+import ru.saidgadjiev.bibliography.service.api.SocialUserDetailsService;
 
 import java.sql.SQLException;
 import java.util.stream.Collectors;

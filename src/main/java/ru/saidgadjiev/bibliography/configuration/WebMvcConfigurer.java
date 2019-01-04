@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliography.configuration;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
@@ -43,17 +44,29 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
 
             @Override
             public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-                return new OffsetLimitPageRequest.Builder()
-                        .setLimit(Integer.parseInt(webRequest.getParameter("limit")))
-                        .setOffset(Long.parseLong(webRequest.getParameter("offset")))
-                        .build();
+                OffsetLimitPageRequest.Builder builder = new OffsetLimitPageRequest.Builder();
+                String limit = webRequest.getParameter("limit");
+
+                if (StringUtils.isBlank(limit)) {
+                    throw new IllegalArgumentException("Limit can't be null");
+                }
+                String offset = webRequest.getParameter("offset");
+
+                if (StringUtils.isBlank(offset)) {
+                    throw new IllegalArgumentException("Offset can't be null");
+                }
+
+                builder.setLimit(Integer.parseInt(limit))
+                        .setOffset(Long.parseLong(offset));
+
+                return builder.build();
             }
         });
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry .addMapping("/**")
+        registry.addMapping("/**")
                 .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

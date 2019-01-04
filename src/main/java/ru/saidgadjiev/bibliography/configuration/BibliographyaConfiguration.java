@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * Created by said on 16.11.2018.
  */
 @Configuration
-public class BibliographyConfiguration {
+public class BibliographyaConfiguration {
 
     @Bean
     public ModelMapper modelMapper() {
@@ -79,9 +79,6 @@ public class BibliographyConfiguration {
 
                     return null;
                 };
-
-                using(converter).map(source.getNewComplaints(), destination.getNewComplaints());
-                using(converter).map(source.getOldComplaints(), destination.getOldComplaints());
             }
         });
 

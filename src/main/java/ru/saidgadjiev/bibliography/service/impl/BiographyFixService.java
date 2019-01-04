@@ -1,10 +1,13 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.ComparisonOperator;
+import cz.jirutka.rsql.parser.ast.Node;
+import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.bussiness.fix.ClosedHandler;
 import ru.saidgadjiev.bibliography.bussiness.fix.FixAction;
@@ -13,13 +16,13 @@ import ru.saidgadjiev.bibliography.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliography.dao.BiographyFixDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.FilterCriteriaVisitor;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyFixSuggestRequest;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -55,31 +58,20 @@ public class BiographyFixService {
         initHandlers();
     }
 
-    public Page<BiographyFix> getFixesList(OffsetLimitPageRequest pageRequest,
-                                           String fixerNameFilter,
-                                           String statusFilter) {
+    public Page<BiographyFix> getFixesList(OffsetLimitPageRequest pageRequest, String query) {
         List<FilterCriteria> criteria = new ArrayList<>();
 
-        if (fixerNameFilter != null) {
-            criteria.add(
-                    argumentResolver.resolve(
-                            "fixer_name",
-                            String::valueOf,
-                            PreparedStatement::setString,
-                            fixerNameFilter
-                    )
-            );
+        if (StringUtils.isNotBlank(query)) {
+            Node parsed = new RSQLParser(new HashSet<ComparisonOperator>() {{
+                add(RSQLOperators.EQUAL);
+            }}).parse(query);
+
+            parsed.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
+                put("fixer_id", FilterCriteriaVisitor.Type.INTEGER);
+                put("status", FilterCriteriaVisitor.Type.INTEGER);
+            }}));
         }
-        if (statusFilter != null) {
-            criteria.add(
-                    argumentResolver.resolve(
-                            "status",
-                            object -> Integer.valueOf(String.valueOf(object)),
-                            PreparedStatement::setInt,
-                            statusFilter
-                    )
-            );
-        }
+
         List<BiographyFix> biographyFixes = biographyFixDao.getFixesList(
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),

@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliography;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ru.saidgadjiev.bibliography.properties.FacebookProperties;
 import ru.saidgadjiev.bibliography.properties.JwtProperties;
 import ru.saidgadjiev.bibliography.properties.StorageProperties;

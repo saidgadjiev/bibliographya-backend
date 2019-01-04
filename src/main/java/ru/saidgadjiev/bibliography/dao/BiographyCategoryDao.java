@@ -35,6 +35,20 @@ public class BiographyCategoryDao {
         );
     }
 
+    public BiographyCategory getByName(String categoryName) {
+        return jdbcTemplate.query(
+                "SELECT * FROM biography_category WHERE name=?",
+                ps -> ps.setString(1, categoryName),
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
     public long countOff() {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) FROM biography_category",
@@ -56,19 +70,5 @@ public class BiographyCategoryDao {
         biographyCategory.setImagePath(rs.getString("image_path"));
 
         return biographyCategory;
-    }
-
-    public BiographyCategory getByName(String categoryName) {
-        return jdbcTemplate.query(
-                "SELECT * FROM biography_category WHERE name=?",
-                ps -> ps.setString(1, categoryName),
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
-        );
     }
 }

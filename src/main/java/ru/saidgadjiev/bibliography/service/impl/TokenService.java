@@ -2,7 +2,7 @@ package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.domain.User;
-import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
+import ru.saidgadjiev.bibliography.auth.social.AccessGrant;
 
 import java.util.HashMap;
 import java.util.Map;

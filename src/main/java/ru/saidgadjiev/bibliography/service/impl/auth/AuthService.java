@@ -12,18 +12,19 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
-import ru.saidgadjiev.bibliography.auth.SocialUserInfo;
+import ru.saidgadjiev.bibliography.auth.common.AuthContext;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
+import ru.saidgadjiev.bibliography.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
+import ru.saidgadjiev.bibliography.service.impl.SecurityService;
 import ru.saidgadjiev.bibliography.service.api.UserService;
 import ru.saidgadjiev.bibliography.service.impl.TokenCookieService;
 import ru.saidgadjiev.bibliography.service.impl.TokenService;
 import ru.saidgadjiev.bibliography.service.impl.auth.social.FacebookService;
-import ru.saidgadjiev.bibliography.service.impl.auth.social.SocialUserDetailsService;
+import ru.saidgadjiev.bibliography.service.api.SocialUserDetailsService;
 import ru.saidgadjiev.bibliography.service.impl.auth.social.VKService;
-import ru.saidgadjiev.bibliography.social.oauth.AccessGrant;
+import ru.saidgadjiev.bibliography.auth.social.AccessGrant;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -108,8 +109,6 @@ public class AuthService {
                     user = (User) socialUserDetailsService.saveSocialUser(userInfo);
                 }
 
-                securityService.authenticate(user, user.getAuthorities());
-
                 break;
             }
             case VK: {
@@ -123,7 +122,6 @@ public class AuthService {
                     user = (User) socialUserDetailsService.saveSocialUser(userInfo);
                 }
 
-                securityService.authenticate(user, user.getAuthorities());
                 break;
             }
             case USERNAME_PASSWORD:
@@ -134,10 +132,12 @@ public class AuthService {
                         );
                 Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 
-                securityService.authenticate(authentication.getPrincipal(), authentication.getAuthorities());
+                user = (User) authentication.getPrincipal();
 
                 break;
         }
+
+        securityService.authenticate(user, user.getAuthorities());
 
         String token = tokenService.createToken(user, accessGrant);
 

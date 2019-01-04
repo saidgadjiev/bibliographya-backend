@@ -1,12 +1,11 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliography.auth.ProviderType;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.domain.User;
@@ -187,7 +186,7 @@ public class UserAccountDao {
         User user = new User();
 
         user.setId(rs.getInt("u_id"));
-        user.setProviderType(ProviderType.fromId("u_provider_id"));
+        user.setProviderType(ProviderType.fromId(rs.getString("u_provider_id")));
 
         UserAccount userAccount = new UserAccount();
 

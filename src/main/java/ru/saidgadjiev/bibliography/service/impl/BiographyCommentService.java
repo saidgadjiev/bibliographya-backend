@@ -11,7 +11,6 @@ import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyCommentRequest;
-import ru.saidgadjiev.bibliography.security.service.SecurityService;
 
 import java.util.Collection;
 import java.util.List;

@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.security.service;
+package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

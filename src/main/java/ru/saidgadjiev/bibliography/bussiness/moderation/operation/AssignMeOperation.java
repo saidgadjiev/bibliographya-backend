@@ -25,15 +25,15 @@ public class AssignMeOperation {
 
     public Biography execute(Map<String, Object> args) throws SQLException {
         int biographyId = (int) args.get("biographyId");
-        String moderatorName = (String) args.get("moderatorName");
+        Integer moderatorId = (Integer) args.get("moderatorId");
         List<UpdateValue> values = new ArrayList<>();
 
         values.add(
                 new UpdateValue<>(
-                        "moderator_name",
-                        moderatorName,
+                        "moderator_id",
+                        moderatorId,
                         true,
-                        PreparedStatement::setString
+                        PreparedStatement::setInt
                 )
         );
         List<FilterCriteria> criteria = new ArrayList<>();
@@ -50,7 +50,7 @@ public class AssignMeOperation {
 
         criteria.add(
                 new FilterCriteria<>(
-                        "moderator_name",
+                        "moderator_id",
                         FilterOperation.IS_NULL,
                         null,
                         null,

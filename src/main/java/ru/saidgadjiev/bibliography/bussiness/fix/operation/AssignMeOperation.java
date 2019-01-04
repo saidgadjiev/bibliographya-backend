@@ -26,22 +26,22 @@ public class AssignMeOperation {
 
     public BiographyFix execute(Map<String, Object> args) {
         List<UpdateValue> values = new ArrayList<>();
-        String fixerName = (String) args.get("fixerName");
+        int fixerId = (Integer) args.get("fixerId");
 
         values.add(
                 new UpdateValue<>(
-                        "fixer_name",
-                        fixerName,
+                        "fixer_id",
+                        fixerId,
                         true,
-                        PreparedStatement::setString
+                        PreparedStatement::setInt
                 )
         );
 
         List<FilterCriteria> criteria = new ArrayList<>();
 
         criteria.add(
-                new FilterCriteria<String>(
-                        "fixer_name",
+                new FilterCriteria<>(
+                        "fixer_id",
                         FilterOperation.IS_NULL,
                         null,
                         null,

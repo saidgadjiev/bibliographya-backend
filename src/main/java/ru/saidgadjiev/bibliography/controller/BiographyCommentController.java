@@ -21,43 +21,19 @@ import java.util.List;
  * Created by said on 16.11.2018.
  */
 @RestController
-@RequestMapping("/api/comment/")
+@RequestMapping("/api/comments")
 public class BiographyCommentController {
 
     private BiographyCommentService biographyCommentService;
 
-    private final ModelMapper modelMapper;
-
     @Autowired
-    public BiographyCommentController(BiographyCommentService biographyCommentService, ModelMapper modelMapper) {
+    public BiographyCommentController(BiographyCommentService biographyCommentService) {
         this.biographyCommentService = biographyCommentService;
-        this.modelMapper = modelMapper;
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<Page<BiographyCommentResponse>> getComments(
-            @PathVariable("id") Integer biographyId,
-            OffsetLimitPageRequest pageRequest
-    ) {
-        Page<BiographyComment> page = biographyCommentService.getComments(biographyId, pageRequest);
-
-        if (page.getContent().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), pageRequest, page.getTotalElements()));
-    }
-
-    @PostMapping("{id}/add")
-    public ResponseEntity<BiographyCommentResponse> addComment(@PathVariable("id") Integer biographyId,
-                                                               @RequestBody BiographyCommentRequest commentRequest) {
-        BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
-
-        return ResponseEntity.ok(convertToDto(biographyComment));
-    }
-
-    @PostMapping("update/{id}")
-    public ResponseEntity<?> update(@PathVariable("id") Integer commentId, @RequestBody ObjectNode comment) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable("id") Integer commentId,
+                                    @RequestBody ObjectNode comment) {
         int result = biographyCommentService.updateComment(commentId, comment.get("content").asText());
 
         if (result == 0) {
@@ -67,26 +43,10 @@ public class BiographyCommentController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable("id") Integer commentId) {
         biographyCommentService.deleteComment(commentId);
 
         return ResponseEntity.ok().build();
-    }
-
-    private List<BiographyCommentResponse> convertToDto(List<BiographyComment> biographyComments) {
-        List<BiographyCommentResponse> biographyCommentResponses = new ArrayList<>();
-
-        for (BiographyComment biographyComment : biographyComments) {
-            BiographyCommentResponse biographyCommentResponse = modelMapper.map(biographyComment, BiographyCommentResponse.class);
-
-            biographyCommentResponses.add(biographyCommentResponse);
-        }
-
-        return biographyCommentResponses;
-    }
-
-    private BiographyCommentResponse convertToDto(BiographyComment biographyComment) {
-        return modelMapper.map(biographyComment, BiographyCommentResponse.class);
     }
 }

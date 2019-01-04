@@ -1,7 +1,5 @@
 package ru.saidgadjiev.bibliography.domain;
 
-import ru.saidgadjiev.bibliography.auth.ProviderType;
-
 /**
  * Created by said on 25.12.2018.
  */
