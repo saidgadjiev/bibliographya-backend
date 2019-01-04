@@ -7,13 +7,14 @@ import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
+import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
 
 import java.sql.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static ru.saidgadjiev.bibliography.data.FilterUtils.toClause;
+import static ru.saidgadjiev.bibliography.utils.FilterUtils.toClause;
 
 /**
  * Created by said on 25.11.2018.
@@ -85,7 +86,7 @@ public class BiographyModerationDao {
                             Biography biography = new Biography();
 
                             biography.setModerationStatus(Biography.ModerationStatus.fromCode(resultSet.getInt("moderation_status")));
-                            biography.setModeratorId(resultSet.getInt("moderator_id"));
+                            biography.setModeratorId(ResultSetUtils.intOrNull(resultSet, "moderator_id"));
                             biography.setModerationInfo(resultSet.getString("moderation_info"));
 
                             return biography;

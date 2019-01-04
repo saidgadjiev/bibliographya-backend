@@ -1,16 +1,18 @@
 package ru.saidgadjiev.bibliography.dao;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
-import ru.saidgadjiev.bibliography.data.FilterUtils;
+import ru.saidgadjiev.bibliography.utils.FilterUtils;
 import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
 import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
+import ru.saidgadjiev.bibliography.utils.SortUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.saidgadjiev.bibliography.data.FilterUtils.toClause;
+import static ru.saidgadjiev.bibliography.utils.FilterUtils.toClause;
 
 /**
  * Created by said on 15.12.2018.
@@ -34,14 +36,16 @@ public class BiographyFixDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<BiographyFix> getFixesList(int limit, long offset, Collection<FilterCriteria> criteria) {
+    public List<BiographyFix> getFixesList(int limit, long offset, Collection<FilterCriteria> criteria, Sort sort) {
         String clause = FilterUtils.toClause(criteria, "bf");
+        String sortClause = SortUtils.toSql(sort, "b");
 
         return jdbcTemplate.query(
                 "SELECT " + selectList() +
                         " FROM biography_fix bf INNER JOIN biography b ON bf.biography_id = b.id\n" +
                         "  INNER JOIN biography cb ON bf.creator_id = cb.user_id\n" +
                         "  LEFT JOIN biography fb ON bf.fixer_id = fb.user_id " + (clause.length() > 0 ? " WHERE " + clause : "") +
+                        (StringUtils.isNotBlank(sortClause) ? " ORDER BY " + sortClause : "") +
                         " LIMIT " + limit + "\n" +
                         " OFFSET " + offset,
                 ps -> {

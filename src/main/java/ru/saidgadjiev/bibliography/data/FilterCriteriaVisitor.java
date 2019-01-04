@@ -53,9 +53,9 @@ public class FilterCriteriaVisitor<R, A> implements RSQLVisitor<R, A> {
                         FilterCriteria<String> criterion = new FilterCriteria<>(
                                 comparisonNode.getSelector(),
                                 FilterOperation.IS_NULL,
-                                (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER),
                                 null,
-                                true
+                                null,
+                                false
                         );
 
                         criteria.add(criterion);

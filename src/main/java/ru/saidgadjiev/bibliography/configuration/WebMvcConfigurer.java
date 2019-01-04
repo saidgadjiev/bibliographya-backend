@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
+import org.springframework.data.web.SortArgumentResolver;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -24,9 +25,12 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
 
     private final AuthService authService;
 
+    private final SortArgumentResolver sortArgumentResolver;
+
     @Autowired
-    public WebMvcConfigurer(AuthService authService) {
+    public WebMvcConfigurer(AuthService authService, SortArgumentResolver sortArgumentResolver) {
         this.authService = authService;
+        this.sortArgumentResolver = sortArgumentResolver;
     }
 
     @Override
@@ -57,7 +61,8 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
                 }
 
                 builder.setLimit(Integer.parseInt(limit))
-                        .setOffset(Long.parseLong(offset));
+                        .setOffset(Long.parseLong(offset))
+                        .setSort(sortArgumentResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory));
 
                 return builder.build();
             }

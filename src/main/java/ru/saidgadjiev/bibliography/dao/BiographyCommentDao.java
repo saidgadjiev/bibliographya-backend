@@ -1,11 +1,13 @@
 package ru.saidgadjiev.bibliography.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
+import ru.saidgadjiev.bibliography.utils.SortUtils;
 
 import java.sql.*;
 import java.util.*;
@@ -63,20 +65,7 @@ public class BiographyCommentDao {
     }
 
     public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset) {
-        StringBuilder order = new StringBuilder();
-
-        Iterator<Sort.Order> iterator = sort.iterator();
-
-        while (iterator.hasNext()) {
-            Sort.Order next = iterator.next();
-
-            order.append(next.getProperty());
-            order.append(next.getDirection() == Sort.Direction.ASC ? " ASC" : " DESC");
-
-            if (iterator.hasNext()) {
-                order.append(",");
-            }
-        }
+        String sortClause = SortUtils.toSql(sort, "bc1");
 
         return jdbcTemplate.query(
                 "SELECT " +
@@ -91,8 +80,8 @@ public class BiographyCommentDao {
                         "  LEFT JOIN biography bg1 ON bc1.user_id = bg1.user_id\n" +
                         "  LEFT JOIN biography bg2 ON bc2.user_id = bg2.user_id\n" +
                         " WHERE bc1.biography_id = ?\n" +
-                        " ORDER BY " + order.toString() +
-                        " LIMIT ?\n" +
+                        (StringUtils.isNotBlank(sortClause) ? " ORDER BY " + sortClause : "") +
+                        " LIMIT ? " +
                         " OFFSET ?",
                 ps -> {
                     ps.setInt(1, biographyId);

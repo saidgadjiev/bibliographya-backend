@@ -1,4 +1,6 @@
-package ru.saidgadjiev.bibliography.data;
+package ru.saidgadjiev.bibliography.utils;
+
+import ru.saidgadjiev.bibliography.data.FilterCriteria;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -13,9 +15,12 @@ public class FilterUtils {
     }
 
     public static String toClause(Collection<FilterCriteria> criteria, String alias) {
+        if (criteria == null) {
+            return null;
+        }
         StringBuilder clause = new StringBuilder();
 
-        if (criteria != null && !criteria.isEmpty()) {
+        if (!criteria.isEmpty()) {
             for (Iterator<FilterCriteria> iterator = criteria.iterator(); iterator.hasNext(); ) {
                 FilterCriteria criterion = iterator.next();
 

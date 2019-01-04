@@ -75,7 +75,8 @@ public class BiographyFixService {
         List<BiographyFix> biographyFixes = biographyFixDao.getFixesList(
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
-                criteria
+                criteria,
+                pageRequest.getSort()
         );
 
         if (biographyFixes.isEmpty()) {

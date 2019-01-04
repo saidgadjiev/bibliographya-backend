@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
@@ -86,7 +85,7 @@ public class BiographyController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+        return ResponseEntity.ok(new PageImpl<>(convertMyBiographiesToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
     @PutMapping(value = "/{id:[\\d]+}")
@@ -161,7 +160,7 @@ public class BiographyController {
                                                                @RequestBody BiographyCommentRequest commentRequest) {
         BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
 
-        return ResponseEntity.ok(convertToDto(biographyComment));
+        return ResponseEntity.ok(convertCommentToDto(biographyComment));
     }
 
     @PostMapping("/{biographyId}/fixes")
@@ -189,10 +188,10 @@ public class BiographyController {
         }
 
         if (updated.getUpdated() == 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography, Collections.emptyList()));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertModerationToDto(biography, Collections.emptyList()));
         }
 
-        return ResponseEntity.ok(convertToDto(biography, updated.getActions()));
+        return ResponseEntity.ok(convertModerationToDto(biography, updated.getActions()));
     }
 
     @PatchMapping("/{biographyId}/moderation/complete")
@@ -209,7 +208,7 @@ public class BiographyController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertToDto(updated.getObject(), updated.getActions()));
+        return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
     }
 
     @PatchMapping("/{biographyId}/moderation/user-complete")
@@ -226,7 +225,7 @@ public class BiographyController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertToDto(updated.getObject(), updated.getActions()));
+        return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
     }
 
     @GetMapping(value = "/moderation")
@@ -240,10 +239,48 @@ public class BiographyController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+        return ResponseEntity.ok(new PageImpl<>(convertModerationToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {
+        List<BiographyResponse> dto = new ArrayList<>();
+
+        for (Biography biography : biographies) {
+            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
+
+            dto.add(biographyResponse);
+        }
+
+        return dto;
+    }
+
+    private BiographyResponse convertToDto(Biography biography) {
+        return modelMapper.map(biography, BiographyResponse.class);
+    }
+
+    private List<BiographyResponse> convertModerationToDto(List<Biography> biographies) {
+        List<BiographyResponse> dto = new ArrayList<>();
+
+        for (Biography biography : biographies) {
+            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
+
+            biographyResponse.setActions(biographyModerationService.getActions(biography));
+
+            dto.add(biographyResponse);
+        }
+
+        return dto;
+    }
+
+    private BiographyResponse convertModerationToDto(Biography biography, Collection<ModerationAction> actions) {
+        BiographyResponse response =  modelMapper.map(biography, BiographyResponse.class);
+
+        response.setActions(actions);
+
+        return response;
+    }
+
+    private List<BiographyResponse> convertMyBiographiesToDto(List<Biography> biographies) {
         List<BiographyResponse> dto = new ArrayList<>();
 
         for (Biography biography : biographies) {
@@ -255,10 +292,6 @@ public class BiographyController {
         }
 
         return dto;
-    }
-
-    private BiographyResponse convertToDto(Biography biography) {
-        return modelMapper.map(biography, BiographyResponse.class);
     }
 
     private List<BiographyCommentResponse> convertCommentsToDto(List<BiographyComment> biographyComments) {
@@ -273,15 +306,7 @@ public class BiographyController {
         return biographyCommentResponses;
     }
 
-    private BiographyCommentResponse convertToDto(BiographyComment biographyComment) {
+    private BiographyCommentResponse convertCommentToDto(BiographyComment biographyComment) {
         return modelMapper.map(biographyComment, BiographyCommentResponse.class);
-    }
-
-    private BiographyResponse convertToDto(Biography biography, Collection<ModerationAction> actions) {
-        BiographyResponse response =  modelMapper.map(biography, BiographyResponse.class);
-
-        response.setActions(actions);
-
-        return response;
     }
 }

@@ -3,14 +3,12 @@ package ru.saidgadjiev.bibliography.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliography.dao.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterOperation;
-import ru.saidgadjiev.bibliography.data.PreparedSetter;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.domain.User;
@@ -141,8 +139,7 @@ public class BiographyService {
                                           String categoryName
     ) {
         List<Biography> biographies = biographyDao.getBiographiesList(
-                pageRequest.getPageSize(), pageRequest.getOffset(), categoryName, criteria
-        );
+                pageRequest.getPageSize(), pageRequest.getOffset(), categoryName, criteria, pageRequest.getSort());
 
         if (biographies.isEmpty()) {
             return new PageImpl<>(biographies, pageRequest, 0);
@@ -171,8 +168,8 @@ public class BiographyService {
         );
 
         List<Biography> biographies = biographyDao.getBiographiesList(
-                pageRequest.getPageSize(), pageRequest.getOffset(), null, criteria
-        );
+                pageRequest.getPageSize(), pageRequest.getOffset(), null, criteria,
+                null);
 
         if (biographies.isEmpty()) {
             return new PageImpl<>(biographies, pageRequest, 0);

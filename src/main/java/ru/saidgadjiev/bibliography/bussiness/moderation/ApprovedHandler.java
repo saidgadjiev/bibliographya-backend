@@ -5,10 +5,12 @@ import ru.saidgadjiev.bibliography.bussiness.moderation.operation.RejectOperatio
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
+import ru.saidgadjiev.bibliography.domain.User;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -38,10 +40,17 @@ public class ApprovedHandler implements Handler {
 
     @Override
     public Collection<ModerationAction> getActions(Map<String, Object> args) {
-        return new ArrayList<ModerationAction>() {{
-            add(ModerationAction.reject());
-            add(ModerationAction.pending());
-            add(ModerationAction.release());
-        }};
+        User user = (User) args.get("user");
+        int moderatorId = (Integer) args.get("moderatorId");
+
+        if (user.getId() == moderatorId) {
+            return new ArrayList<ModerationAction>() {{
+                add(ModerationAction.reject());
+                add(ModerationAction.pending());
+                add(ModerationAction.release());
+            }};
+        }
+
+        return Collections.emptyList();
     }
 }

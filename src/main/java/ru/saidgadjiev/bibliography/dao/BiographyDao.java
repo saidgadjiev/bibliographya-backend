@@ -1,6 +1,8 @@
 package ru.saidgadjiev.bibliography.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
@@ -8,6 +10,7 @@ import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
+import ru.saidgadjiev.bibliography.utils.SortUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.saidgadjiev.bibliography.data.FilterUtils.toClause;
+import static ru.saidgadjiev.bibliography.utils.FilterUtils.toClause;
 
 /**
  * Created by said on 22.10.2018.
@@ -84,7 +87,8 @@ public class BiographyDao {
     public List<Biography> getBiographiesList(int limit,
                                               long offset,
                                               String categoryName,
-                                              Collection<FilterCriteria> biographyCriteria
+                                              Collection<FilterCriteria> biographyCriteria,
+                                              Sort sort
     ) {
         StringBuilder clause = new StringBuilder();
 
@@ -109,9 +113,17 @@ public class BiographyDao {
                 .append("SELECT ")
                 .append(getFullSelectList())
                 .append(" FROM biography b LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
+
         if (clause.length() > 0) {
             sql.append("WHERE ").append(clause.toString()).append(" ");
         }
+
+        String sortClause = SortUtils.toSql(sort, "b");
+
+        if (StringUtils.isNotBlank(sortClause)) {
+            sql.append("ORDER BY ").append(sortClause).append(" ");
+        }
+
         sql
                 .append("LIMIT ")
                 .append(limit)

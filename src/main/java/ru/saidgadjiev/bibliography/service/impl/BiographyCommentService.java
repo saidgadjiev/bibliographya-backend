@@ -74,7 +74,7 @@ public class BiographyCommentService {
     public Page<BiographyComment> getComments(int biographyId, Pageable pageRequest) {
         List<BiographyComment> biographyComments = biographyCommentDao.getComments(
                 biographyId,
-                pageRequest.getSort() == null ? Sort.by(Sort.Direction.ASC, "created_at") : pageRequest.getSort(),
+                pageRequest.getSort(),
                 pageRequest.getPageSize(),
                 pageRequest.getOffset()
         );

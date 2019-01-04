@@ -7,10 +7,12 @@ import ru.saidgadjiev.bibliography.bussiness.moderation.operation.RejectOperatio
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
+import ru.saidgadjiev.bibliography.domain.User;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -50,10 +52,16 @@ public class PendingHandler implements Handler {
             }};
         }
 
-        return new ArrayList<ModerationAction>() {{
-            add(ModerationAction.reject());
-            add(ModerationAction.approve());
-            add(ModerationAction.release());
-        }};
+        User user = (User) args.get("user");
+
+        if (user.getId() == moderatorId) {
+            return new ArrayList<ModerationAction>() {{
+                add(ModerationAction.reject());
+                add(ModerationAction.approve());
+                add(ModerationAction.release());
+            }};
+        }
+
+        return Collections.emptyList();
     }
 }

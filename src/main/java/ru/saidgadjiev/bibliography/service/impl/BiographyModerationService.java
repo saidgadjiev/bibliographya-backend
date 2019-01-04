@@ -109,8 +109,11 @@ public class BiographyModerationService {
     }
 
     public Collection<ModerationAction> getActions(Biography biography) {
+        User user = (User) securityService.findLoggedInUser();
+
         return handlerMap.get(biography.getModerationStatus()).getActions(
                 new HashMap<String, Object>() {{
+                    put("user", user);
                     put("moderatorId", biography.getModeratorId());
                     put("moderationStatus", biography.getModerationStatus());
                 }}
