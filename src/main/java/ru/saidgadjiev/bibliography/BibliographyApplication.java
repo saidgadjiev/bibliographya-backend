@@ -47,11 +47,15 @@ public class BibliographyApplication implements CommandLineRunner, ApplicationCo
 
 	@Override
 	public void run(String... args) throws Exception {
-		FirebaseBiographyCommentDao bean = applicationContext.getBean(FirebaseBiographyCommentDao.class);
+		/*FirebaseBiographyCommentDao bean = applicationContext.getBean(FirebaseBiographyCommentDao.class);
 
-		List<BiographyComment> comment = bean.getComments(13, null, 1, 0, 2);
+		BiographyComment comment = new BiographyComment();
 
-		System.out.println("YES");
+		comment.setBiographyId(13);
+
+		bean.delete(13, 1);
+
+		System.out.println("YES");*/
 	}
 
 	@Override

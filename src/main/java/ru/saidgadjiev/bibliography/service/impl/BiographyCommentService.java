@@ -84,14 +84,14 @@ public class BiographyCommentService {
     }
 
     public Page<BiographyComment> getComments(int biographyId, Pageable pageRequest) {
-        List<BiographyComment> biographyComments = firebaseCommentDao.getComments(
+        List<BiographyComment> biographyComments = biographyCommentDao.getComments(
                 biographyId,
                 pageRequest.getSort(),
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 null
         );
-        long total = firebaseCommentDao.countOffByBiographyId(biographyId);
+        long total = biographyCommentDao.countOffByBiographyId(biographyId);
 
         return new PageImpl<>(biographyComments, pageRequest, total);
     }
@@ -108,7 +108,7 @@ public class BiographyCommentService {
     public int updateComment(Integer commentId, String content) {
         int updated = biographyCommentDao.updateContent(commentId, content);
 
-        firebaseCommentDao.updateContent(commentId, content);
+        //firebaseCommentDao.updateContent(commentId, content);
 
         return updated;
     }

@@ -35,7 +35,30 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
 
     @Override
     public BiographyComment create(BiographyComment biographyComment) {
-        Map<String, Object> commentMap = new HashMap<>();
+        databaseReference
+                .child("stats/biography/biography" + biographyComment.getBiographyId() + "/commentsCount")
+                .runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        long commentsCount = 1;
+
+                        if (mutableData.getValue() != null) {
+                            commentsCount = mutableData.getValue(Long.class);
+
+                            commentsCount += 1;
+                        }
+
+                        mutableData.setValue(commentsCount);
+
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                    }
+                });
+        /*Map<String, Object> commentMap = new HashMap<>();
 
         commentMap.put("id", biographyComment.getId());
         commentMap.put("content", biographyComment.getContent());
@@ -53,28 +76,53 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
                         .child(String.valueOf(biographyComment.getBiographyId()))
                         .child("comments")
                         .child("biography" + biographyComment.getId())
-                        .setValueAsync(true));
+                        .setValueAsync(true));*/
 
         return null;
     }
 
     @Override
     public int delete(int biographyId, int commentId) {
-        databaseReference
+        /*databaseReference
                 .child("biography_comment")
                 .child(String.valueOf(commentId))
                 .removeValue((databaseError, newDatabaseReference) -> databaseReference
                         .child("biography")
                         .child(String.valueOf(biographyId))
                         .child("comments")
-                        .removeValueAsync());
+                        .removeValueAsync());*/
+        databaseReference
+                .child("stats/biography/biography" + biographyId + "/commentsCount")
+                .runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        long commentsCount = 0;
+
+                        if (mutableData.getValue() != null) {
+                            commentsCount = mutableData.getValue(Long.class);
+
+                            if (commentsCount > 0) {
+                                commentsCount -= 1;
+                            }
+                        }
+
+                        mutableData.setValue(commentsCount);
+
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                    }
+                });
 
         return 1;
     }
 
     @Override
     public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset, Integer afterKey) {
-        Query query = databaseReference
+        /*Query query = databaseReference
                 .child("biography/biography" + biographyId + "/comments")
                 .orderByKey()
                 .limitToFirst(limit);
@@ -176,12 +224,14 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
             return completableFuture.get();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
+
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public long countOffByBiographyId(int biographyId) {
-        //TODO: поменять подсчет через Cloud function
+        /*//TODO: поменять подсчет через Cloud function
         CompletableFuture<Long> completableFuture = new CompletableFuture<>();
 
         databaseReference
@@ -202,7 +252,9 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
             return completableFuture.get();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
+
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -212,7 +264,7 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
 
     @Override
     public BiographyComment getById(int id) {
-        CompletableFuture<BiographyComment> completableFuture = CompletableFuture.supplyAsync(() -> {
+        /*CompletableFuture<BiographyComment> completableFuture = CompletableFuture.supplyAsync(() -> {
             CompletableFuture<BiographyComment> future = new CompletableFuture<>();
 
             databaseReference
@@ -263,18 +315,22 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
             return completableFuture.get();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
-        }
+        }*/
+
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int updateContent(Integer commentId, String content) {
-        databaseReference
+        /*databaseReference
                 .child("biography_comment/comment" + commentId)
                 .updateChildrenAsync(new HashMap<String, Object>() {{
                     put("content", content);
                 }});
 
-        return 1;
+        return 1;*/
+
+        throw new UnsupportedOperationException();
     }
 
     private CompletableFuture<Biography> getBiography(int biographyId) {

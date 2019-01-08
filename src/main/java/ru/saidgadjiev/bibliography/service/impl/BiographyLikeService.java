@@ -1,8 +1,10 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.dao.impl.BiographyLikeDao;
+import ru.saidgadjiev.bibliography.dao.api.BiographyLikeDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyLikeDaoImpl;
 import ru.saidgadjiev.bibliography.domain.BiographyLike;
 import ru.saidgadjiev.bibliography.domain.User;
 
@@ -21,10 +23,15 @@ public class BiographyLikeService {
 
     private final BiographyLikeDao biographyLikeDao;
 
+    private BiographyLikeDao firebaseLikeDao;
+
     @Autowired
-    public BiographyLikeService(SecurityService securityService, BiographyLikeDao biographyLikeDao) {
+    public BiographyLikeService(SecurityService securityService,
+                                @Qualifier("sql") BiographyLikeDao biographyLikeDao,
+                                @Qualifier("firebase") BiographyLikeDao firebaseLikeDao) {
         this.securityService = securityService;
         this.biographyLikeDao = biographyLikeDao;
+        this.firebaseLikeDao = firebaseLikeDao;
     }
 
     public void like(int biographyId) {
@@ -36,6 +43,8 @@ public class BiographyLikeService {
         );
 
         biographyLikeDao.create(biographyLike);
+
+        firebaseLikeDao.create(biographyLike);
     }
 
     public void unlike(int biographyId) {
@@ -47,6 +56,7 @@ public class BiographyLikeService {
         );
 
         biographyLikeDao.delete(biographyLike);
+        firebaseLikeDao.delete(biographyLike);
     }
 
     public Map<Integer, Integer> getBiographiesLikesCount(Collection<Integer> biographiesIds) {

@@ -42,22 +42,18 @@ public class BiographyController {
 
     private final ModelMapper modelMapper;
 
-    private final CommentsPusherService commentsPusherService;
-
     @Autowired
     public BiographyController(BiographyService biographyService,
                                BiographyModerationService biographyModerationService,
                                BiographyCommentService biographyCommentService,
                                BiographyFixService fixService,
-                               ModelMapper modelMapper,
-                               CommentsPusherService commentsPusherService
+                               ModelMapper modelMapper
     ) {
         this.biographyService = biographyService;
         this.biographyModerationService = biographyModerationService;
         this.biographyCommentService = biographyCommentService;
         this.fixService = fixService;
         this.modelMapper = modelMapper;
-        this.commentsPusherService = commentsPusherService;
     }
 
     @GetMapping("/{id:[\\d]+}")
@@ -162,8 +158,6 @@ public class BiographyController {
     public ResponseEntity<BiographyCommentResponse> addComment(@PathVariable("biographyId") Integer biographyId,
                                                                @RequestBody BiographyCommentRequest commentRequest) {
         BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
-
-        commentsPusherService.addComment(biographyComment);
 
         return ResponseEntity.ok(convertCommentToDto(biographyComment));
     }
