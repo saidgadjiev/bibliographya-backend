@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.dao.BiographyCategoryDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyCategoryDao;
 import ru.saidgadjiev.bibliography.domain.BiographyCategory;
 
 import java.util.List;

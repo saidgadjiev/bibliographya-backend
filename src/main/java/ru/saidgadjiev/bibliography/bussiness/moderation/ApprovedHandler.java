@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliography.bussiness.moderation;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.PendingOperation;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.RejectOperation;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.User;
 

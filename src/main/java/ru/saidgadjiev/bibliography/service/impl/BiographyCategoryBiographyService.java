@@ -1,17 +1,10 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.dao.BiographyCategoryBiographyDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyCategoryBiographyDao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by said on 01.12.2018.

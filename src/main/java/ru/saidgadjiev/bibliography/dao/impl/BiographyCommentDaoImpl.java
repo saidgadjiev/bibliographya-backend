@@ -1,30 +1,35 @@
-package ru.saidgadjiev.bibliography.dao;
+package ru.saidgadjiev.bibliography.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.saidgadjiev.bibliography.dao.api.BiographyCommentDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.utils.SortUtils;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
  * Created by said on 17.11.2018.
  */
 @Repository
-public class BiographyCommentDao {
+@Qualifier("sql")
+public class BiographyCommentDaoImpl implements BiographyCommentDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public BiographyCommentDao(JdbcTemplate jdbcTemplate) {
+    public BiographyCommentDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
     public BiographyComment create(BiographyComment biographyComment) {
         try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
@@ -57,14 +62,16 @@ public class BiographyCommentDao {
         return biographyComment;
     }
 
-    public int delete(int commentId) {
+    @Override
+    public int delete(int biographyId, int commentId) {
         return jdbcTemplate.update(
                 "DELETE FROM biography_comment WHERE id = ?",
                 ps -> ps.setInt(1, commentId)
         );
     }
 
-    public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset) {
+    @Override
+    public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset, AtomicReference<Integer> afterKey) {
         String sortClause = SortUtils.toSql(sort, "bc1");
 
         return jdbcTemplate.query(
@@ -92,6 +99,7 @@ public class BiographyCommentDao {
         );
     }
 
+    @Override
     public long countOffByBiographyId(int biographyId) {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) FROM biography_comment WHERE biography_id=?",
@@ -106,6 +114,7 @@ public class BiographyCommentDao {
         );
     }
 
+    @Override
     public Map<Integer, Long> countOffByBiographiesIds(Collection<Integer> biographiesIds) {
         if (biographiesIds.isEmpty()) {
             Map<Integer, Long> result = new HashMap<>();
@@ -141,6 +150,7 @@ public class BiographyCommentDao {
         );
     }
 
+    @Override
     public BiographyComment getById(int id) {
         return jdbcTemplate.query(
                 "SELECT\n" +
@@ -208,6 +218,7 @@ public class BiographyCommentDao {
         return biographyComment;
     }
 
+    @Override
     public int updateContent(Integer commentId, String content) {
         return jdbcTemplate.update(
                 "UPDATE biography_comment SET content = ? WHERE id = ?",

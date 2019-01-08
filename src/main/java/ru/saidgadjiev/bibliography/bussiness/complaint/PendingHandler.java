@@ -3,8 +3,7 @@ package ru.saidgadjiev.bibliography.bussiness.complaint;
 import ru.saidgadjiev.bibliography.bussiness.complaint.operation.AssignMeOperation;
 import ru.saidgadjiev.bibliography.bussiness.complaint.operation.ConsiderOperation;
 import ru.saidgadjiev.bibliography.bussiness.complaint.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliography.bussiness.fix.FixAction;
-import ru.saidgadjiev.bibliography.dao.BiographyReportDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyReportDao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

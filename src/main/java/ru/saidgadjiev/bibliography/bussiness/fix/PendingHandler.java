@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import ru.saidgadjiev.bibliography.bussiness.fix.operation.AssignMeOperation;
 import ru.saidgadjiev.bibliography.bussiness.fix.operation.CloseOperation;
 import ru.saidgadjiev.bibliography.bussiness.fix.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliography.dao.BiographyFixDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
 
 import java.sql.SQLException;

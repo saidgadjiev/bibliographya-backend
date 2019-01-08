@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.dao;
+package ru.saidgadjiev.bibliography.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.domain.Sort;

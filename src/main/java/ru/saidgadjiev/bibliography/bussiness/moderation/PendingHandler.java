@@ -1,11 +1,10 @@
 package ru.saidgadjiev.bibliography.bussiness.moderation;
 
-import org.apache.commons.lang.StringUtils;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ApproveOperation;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.AssignMeOperation;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.RejectOperation;
 import ru.saidgadjiev.bibliography.bussiness.moderation.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.User;
 

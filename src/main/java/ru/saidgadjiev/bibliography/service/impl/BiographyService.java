@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliography.dao.BiographyDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterOperation;

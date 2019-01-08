@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.dao.BiographyReportDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyReportDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyReport;
 import ru.saidgadjiev.bibliography.domain.BiographyReportRequest;

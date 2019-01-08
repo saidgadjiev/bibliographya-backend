@@ -7,19 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliography.bussiness.moderation.*;
-import ru.saidgadjiev.bibliography.dao.BiographyModerationDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyModerationDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterCriteriaVisitor;
-import ru.saidgadjiev.bibliography.data.FilterOperation;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.*;
 
 /**

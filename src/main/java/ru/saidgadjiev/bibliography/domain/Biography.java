@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class Biography {
 
-    private int id;
+    private Integer id;
 
     private String firstName;
 
@@ -51,11 +51,11 @@ public class Biography {
 
     private String moderationInfo;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

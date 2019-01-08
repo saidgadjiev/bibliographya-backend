@@ -9,6 +9,16 @@ spring:
       userName: ${DB_USER_NAME}
       password: ${DB_PASSWORD}
 app:
+  firebase:
+    database:
+      url: ${FIREBASE_DATABASE_URL}
+    config:
+      path: bibliographya-65e17-firebase-adminsdk-tyixc-a47f9151b6.json
+  pusher:
+    appId: ${PUSHER_APP_ID}
+    key: ${PUSHER_KEY}
+    secret: ${PUSHER_SECRET}
+    cluster: ${PUSHER_CLUSTER}
   social:
     facebook:
       appId: ${FACEBOOK_APP_ID}

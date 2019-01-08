@@ -13,7 +13,7 @@ import ru.saidgadjiev.bibliography.bussiness.fix.ClosedHandler;
 import ru.saidgadjiev.bibliography.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliography.bussiness.fix.Handler;
 import ru.saidgadjiev.bibliography.bussiness.fix.PendingHandler;
-import ru.saidgadjiev.bibliography.dao.BiographyFixDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterCriteriaVisitor;
@@ -24,7 +24,6 @@ import ru.saidgadjiev.bibliography.model.BiographyFixSuggestRequest;
 import ru.saidgadjiev.bibliography.model.CompleteRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;

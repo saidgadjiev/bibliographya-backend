@@ -2,7 +2,7 @@ package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.dao.BiographyLikeDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyLikeDao;
 import ru.saidgadjiev.bibliography.domain.BiographyLike;
 import ru.saidgadjiev.bibliography.domain.User;
 

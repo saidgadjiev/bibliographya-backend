@@ -14,6 +14,8 @@ public class OffsetLimitPageRequest implements Pageable {
 
     private Sort sort;
 
+    private Integer endAt;
+
     @Override
     public int getPageNumber() {
         return 0;
@@ -58,6 +60,14 @@ public class OffsetLimitPageRequest implements Pageable {
         this.sort = sort;
     }
 
+    public Integer getEndAt() {
+        return endAt;
+    }
+
+    public void setEndAt(Integer endAt) {
+        this.endAt = endAt;
+    }
+
     public static class Builder {
 
         private int limit;
@@ -65,6 +75,8 @@ public class OffsetLimitPageRequest implements Pageable {
         private long offset;
 
         private Sort sort;
+
+        private Integer endAt;
 
         public Builder setLimit(int limit) {
             this.limit = limit;
@@ -84,12 +96,19 @@ public class OffsetLimitPageRequest implements Pageable {
             return this;
         }
 
+        public Builder setEndAt(Integer endAt) {
+            this.endAt = endAt;
+
+            return this;
+        }
+
         public OffsetLimitPageRequest build() {
             OffsetLimitPageRequest offsetLimitPageRequest = new OffsetLimitPageRequest();
 
             offsetLimitPageRequest.limit = limit;
             offsetLimitPageRequest.offset = offset;
             offsetLimitPageRequest.sort = sort;
+            offsetLimitPageRequest.endAt = endAt;
 
             return offsetLimitPageRequest;
         }

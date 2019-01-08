@@ -1,12 +1,13 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliography.dao.BiographyCommentDao;
+import org.springframework.transaction.annotation.Transactional;
+import ru.saidgadjiev.bibliography.dao.api.BiographyCommentDao;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.domain.User;
@@ -26,13 +27,18 @@ public class BiographyCommentService {
 
     private final BiographyCommentDao biographyCommentDao;
 
+    private final BiographyCommentDao firebaseCommentDao;
+
     @Autowired
     public BiographyCommentService(SecurityService securityService,
-                                   BiographyCommentDao biographyCommentDao) {
+                                   @Qualifier("sql") BiographyCommentDao biographyCommentDao,
+                                   @Qualifier("firebase") BiographyCommentDao firebaseCommentDao) {
         this.securityService = securityService;
         this.biographyCommentDao = biographyCommentDao;
+        this.firebaseCommentDao = firebaseCommentDao;
     }
 
+    @Transactional
     public BiographyComment addComment(int biographyId, BiographyCommentRequest commentRequest) {
         User userDetails = (User) securityService.findLoggedInUser();
         BiographyComment biographyComment = new BiographyComment();
@@ -64,21 +70,28 @@ public class BiographyCommentService {
             biographyComment.setParent(parent);
         }
 
-        return biographyCommentDao.create(biographyComment);
+        BiographyComment comment = biographyCommentDao.create(biographyComment);
+
+        firebaseCommentDao.create(comment);
+
+        return comment;
     }
 
-    public void deleteComment(int commentId) {
-        biographyCommentDao.delete(commentId);
+    @Transactional
+    public void deleteComment(int biographyId, int commentId) {
+        biographyCommentDao.delete(biographyId, commentId);
+        firebaseCommentDao.delete(biographyId, commentId);
     }
 
     public Page<BiographyComment> getComments(int biographyId, Pageable pageRequest) {
-        List<BiographyComment> biographyComments = biographyCommentDao.getComments(
+        List<BiographyComment> biographyComments = firebaseCommentDao.getComments(
                 biographyId,
                 pageRequest.getSort(),
                 pageRequest.getPageSize(),
-                pageRequest.getOffset()
+                pageRequest.getOffset(),
+                null
         );
-        long total = biographyCommentDao.countOffByBiographyId(biographyId);
+        long total = firebaseCommentDao.countOffByBiographyId(biographyId);
 
         return new PageImpl<>(biographyComments, pageRequest, total);
     }
@@ -91,7 +104,12 @@ public class BiographyCommentService {
         return biographyCommentDao.countOffByBiographiesIds(biographiesIds);
     }
 
+    @Transactional
     public int updateComment(Integer commentId, String content) {
-        return biographyCommentDao.updateContent(commentId, content);
+        int updated = biographyCommentDao.updateContent(commentId, content);
+
+        firebaseCommentDao.updateContent(commentId, content);
+
+        return updated;
     }
 }

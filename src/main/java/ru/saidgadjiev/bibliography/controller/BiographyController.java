@@ -14,10 +14,8 @@ import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.model.*;
-import ru.saidgadjiev.bibliography.service.impl.BiographyCommentService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyFixService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyModerationService;
-import ru.saidgadjiev.bibliography.service.impl.BiographyService;
+import ru.saidgadjiev.bibliography.pusher.Channel;
+import ru.saidgadjiev.bibliography.service.impl.*;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
@@ -44,17 +42,22 @@ public class BiographyController {
 
     private final ModelMapper modelMapper;
 
+    private final CommentsPusherService commentsPusherService;
+
     @Autowired
     public BiographyController(BiographyService biographyService,
                                BiographyModerationService biographyModerationService,
                                BiographyCommentService biographyCommentService,
                                BiographyFixService fixService,
-                               ModelMapper modelMapper) {
+                               ModelMapper modelMapper,
+                               CommentsPusherService commentsPusherService
+    ) {
         this.biographyService = biographyService;
         this.biographyModerationService = biographyModerationService;
         this.biographyCommentService = biographyCommentService;
         this.fixService = fixService;
         this.modelMapper = modelMapper;
+        this.commentsPusherService = commentsPusherService;
     }
 
     @GetMapping("/{id:[\\d]+}")
@@ -160,7 +163,19 @@ public class BiographyController {
                                                                @RequestBody BiographyCommentRequest commentRequest) {
         BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
 
+        commentsPusherService.addComment(biographyComment);
+
         return ResponseEntity.ok(convertCommentToDto(biographyComment));
+    }
+
+    @DeleteMapping("/{biographyId}/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(
+            @PathVariable("commentId") Integer commentId,
+            @PathVariable("biographyId") Integer biographyId
+    ) {
+        biographyCommentService.deleteComment(biographyId, commentId);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{biographyId}/fixes")

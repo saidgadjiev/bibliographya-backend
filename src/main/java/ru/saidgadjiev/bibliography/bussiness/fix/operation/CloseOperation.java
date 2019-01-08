@@ -1,6 +1,6 @@
 package ru.saidgadjiev.bibliography.bussiness.fix.operation;
 
-import ru.saidgadjiev.bibliography.dao.BiographyFixDao;
+import ru.saidgadjiev.bibliography.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterOperation;
 import ru.saidgadjiev.bibliography.data.UpdateValue;

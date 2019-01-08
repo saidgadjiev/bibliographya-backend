@@ -1,11 +1,9 @@
 package ru.saidgadjiev.bibliography.model;
 
 import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
-import ru.saidgadjiev.bibliography.domain.BiographyReport;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Created by said on 22.10.2018.
@@ -200,4 +198,6 @@ public class BiographyResponse {
     public void setModerationInfo(String moderationInfo) {
         this.moderationInfo = moderationInfo;
     }
+
+
 }

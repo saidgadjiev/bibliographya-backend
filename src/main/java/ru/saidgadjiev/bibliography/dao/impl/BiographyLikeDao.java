@@ -1,4 +1,4 @@
-package ru.saidgadjiev.bibliography.dao;
+package ru.saidgadjiev.bibliography.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;

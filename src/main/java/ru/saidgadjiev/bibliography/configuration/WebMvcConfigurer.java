@@ -62,7 +62,8 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
 
                 builder.setLimit(Integer.parseInt(limit))
                         .setOffset(Long.parseLong(offset))
-                        .setSort(sortArgumentResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory));
+                        .setSort(sortArgumentResolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory))
+                        .setEndAt(Integer.parseInt(webRequest.getParameter("endAt")));
 
                 return builder.build();
             }

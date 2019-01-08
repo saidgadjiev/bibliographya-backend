@@ -42,11 +42,4 @@ public class BiographyCommentController {
 
         return ResponseEntity.ok().build();
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable("id") Integer commentId) {
-        biographyCommentService.deleteComment(commentId);
-
-        return ResponseEntity.ok().build();
-    }
 }
