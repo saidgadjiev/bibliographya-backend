@@ -31,8 +31,8 @@ public class FirebaseConfiguration {
     }
 
     @Bean
-    public DatabaseReference databaseReference() {
-        return FirebaseDatabase.getInstance().getReference();
+    public FirebaseDatabase databaseReference() {
+        return FirebaseDatabase.getInstance();
     }
 
     @PostConstruct

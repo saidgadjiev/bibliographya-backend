@@ -17,15 +17,17 @@ import java.util.Map;
 @Qualifier("firebase")
 public class FirebaseLikeDao implements BiographyLikeDao {
 
-    private final DatabaseReference databaseReference;
+    private final FirebaseDatabase firebaseDatabase;
 
     @Autowired
-    public FirebaseLikeDao(DatabaseReference databaseReference) {
-        this.databaseReference = databaseReference;
+    public FirebaseLikeDao(FirebaseDatabase firebaseDatabase) {
+        this.firebaseDatabase = firebaseDatabase;
     }
 
     @Override
     public int create(BiographyLike like) {
+        DatabaseReference databaseReference = firebaseDatabase.getReference();
+
         databaseReference
                 .child("stats/biography/biography" + like.getBiographyId() + "/likesCount")
                 .runTransaction(new Transaction.Handler() {
@@ -55,6 +57,8 @@ public class FirebaseLikeDao implements BiographyLikeDao {
 
     @Override
     public int delete(BiographyLike like) {
+        DatabaseReference databaseReference = firebaseDatabase.getReference();
+
         databaseReference
                 .child("stats/biography/biography" + like.getBiographyId() + "/likesCount")
                 .runTransaction(new Transaction.Handler() {

@@ -33,7 +33,7 @@ public class Biography {
 
     private Collection<String> categories;
 
-    private int likesCount;
+    private long likesCount;
 
     private long commentsCount;
 
@@ -147,11 +147,11 @@ public class Biography {
         this.categories = categories;
     }
 
-    public int getLikesCount() {
+    public long getLikesCount() {
         return likesCount;
     }
 
-    public void setLikesCount(int likesCount) {
+    public void setLikesCount(long likesCount) {
         this.likesCount = likesCount;
     }
 

@@ -2,10 +2,12 @@ package ru.saidgadjiev.bibliography.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
+import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
@@ -26,15 +28,17 @@ import static ru.saidgadjiev.bibliography.utils.FilterUtils.toClause;
  * Created by said on 22.10.2018.
  */
 @Repository
-public class BiographyDao {
+@Qualifier("sql")
+public class BiographyDaoImpl implements BiographyDao {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public BiographyDao(JdbcTemplate jdbcTemplate) {
+    public BiographyDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
     public Biography save(Biography biography) throws SQLException {
         return jdbcTemplate.execute(
                 "INSERT INTO biography" +
@@ -62,6 +66,7 @@ public class BiographyDao {
         );
     }
 
+    @Override
     public Biography getBiography(Collection<FilterCriteria> biographyCriteria) {
         String clause = toClause(biographyCriteria, null);
 
@@ -84,6 +89,7 @@ public class BiographyDao {
         );
     }
 
+    @Override
     public List<Biography> getBiographiesList(int limit,
                                               long offset,
                                               String categoryName,
@@ -148,6 +154,7 @@ public class BiographyDao {
         );
     }
 
+    @Override
     public long countOff() {
         return jdbcTemplate.query("SELECT COUNT(*) FROM biography", rs -> {
             if (rs.next()) {
@@ -190,6 +197,7 @@ public class BiographyDao {
         return biography;
     }
 
+    @Override
     public Biography getById(int id) {
         return jdbcTemplate.query(
                 "SELECT " + getFullSelectList() + " FROM biography b LEFT JOIN biography bm ON b.moderator_id = bm.user_id  WHERE b.id=" + id + "",
@@ -203,6 +211,7 @@ public class BiographyDao {
         );
     }
 
+    @Override
     public BiographyUpdateStatus update(Biography biography) throws SQLException {
         try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(

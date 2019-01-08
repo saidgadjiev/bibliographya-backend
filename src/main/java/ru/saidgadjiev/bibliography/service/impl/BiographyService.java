@@ -1,11 +1,13 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliography.dao.impl.BiographyDao;
+import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
+import ru.saidgadjiev.bibliography.dao.impl.firebase.FirebaseBiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterOperation;
@@ -14,6 +16,7 @@ import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliography.model.firebase.BiographyStats;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -29,6 +32,8 @@ public class BiographyService {
 
     private final BiographyDao biographyDao;
 
+    private final BiographyDao firebaseBiographyDao;
+
     private final SecurityService securityService;
 
     private final FilterArgumentResolver argumentResolver;
@@ -40,13 +45,15 @@ public class BiographyService {
     private final BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(BiographyDao biographyDao,
+    public BiographyService(@Qualifier("sql") BiographyDao biographyDao,
+                            @Qualifier("firebase") BiographyDao firebaseBiographyDao,
                             SecurityService securityService,
                             FilterArgumentResolver argumentResolver,
                             BiographyLikeService biographyLikeService,
                             BiographyCommentService biographyCommentService,
                             BiographyCategoryBiographyService biographyCategoryBiographyService) {
         this.biographyDao = biographyDao;
+        this.firebaseBiographyDao = firebaseBiographyDao;
         this.securityService = securityService;
         this.argumentResolver = argumentResolver;
         this.biographyLikeService = biographyLikeService;
@@ -75,6 +82,8 @@ public class BiographyService {
         );
 
         result.setCategories(biographyRequest.getAddCategories());
+
+        firebaseBiographyDao.save(result);
 
         return result;
     }
@@ -216,23 +225,24 @@ public class BiographyService {
     }
 
     private void postProcess(Biography biography) {
-        biography.setLikesCount(biographyLikeService.getBiographyLikesCount(biography.getId()));
-        biography.setCommentsCount(biographyCommentService.getBiographyCommentsCount(biography.getId()));
+        BiographyStats stats = ((FirebaseBiographyDao) firebaseBiographyDao).getBiographyStats(biography.getId());
+
+        biography.setLikesCount(stats.getLikesCount());
+        biography.setCommentsCount(stats.getCommentsCount());
         biography.setLiked(biographyLikeService.getBiographyIsLiked(biography.getId()));
         biography.setCategories(biographyCategoryBiographyService.getBiographyCategories(biography.getId()));
     }
 
     private void postProcess(Collection<Biography> biographies) {
-        Collection<Integer> ids = biographies.stream().map(Biography::getId).collect(Collectors.toList());
-        Map<Integer, Integer> biographiesLikesCount = biographyLikeService.getBiographiesLikesCount(ids);
+        List<Integer> ids = biographies.stream().map(Biography::getId).collect(Collectors.toList());
         Map<Integer, Boolean> biographiesIsLiked = biographyLikeService.getBiographiesIsLiked(ids);
-        Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
+        Map<Integer, BiographyStats> biographyStatsMap = ((FirebaseBiographyDao) firebaseBiographyDao).getBiographiesStats(ids);
         Map<Integer, Collection<String>> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
 
         for (Biography biography : biographies) {
-            biography.setLikesCount(biographiesLikesCount.get(biography.getId()));
             biography.setLiked(biographiesIsLiked.get(biography.getId()));
-            biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
+            biography.setLikesCount(biographyStatsMap.get(biography.getId()).getLikesCount());
+            biography.setCommentsCount(biographyStatsMap.get(biography.getId()).getCommentsCount());
             biography.setCategories(biographiesCategories.get(biography.getId()));
         }
     }

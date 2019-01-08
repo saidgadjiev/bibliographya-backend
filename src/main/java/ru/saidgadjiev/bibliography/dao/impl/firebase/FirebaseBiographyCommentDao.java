@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliography.dao.impl.firebase;
 
 import com.google.firebase.database.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
@@ -27,14 +28,17 @@ import java.util.stream.Collectors;
 @Qualifier("firebase")
 public class FirebaseBiographyCommentDao implements BiographyCommentDao {
 
-    private final DatabaseReference databaseReference;
+    private final FirebaseDatabase firebaseDatabase;
 
-    public FirebaseBiographyCommentDao(DatabaseReference databaseReference) {
-        this.databaseReference = databaseReference;
+    @Autowired
+    public FirebaseBiographyCommentDao(FirebaseDatabase firebaseDatabase) {
+        this.firebaseDatabase = firebaseDatabase;
     }
 
     @Override
     public BiographyComment create(BiographyComment biographyComment) {
+        DatabaseReference databaseReference = firebaseDatabase.getReference();
+
         databaseReference
                 .child("stats/biography/biography" + biographyComment.getBiographyId() + "/commentsCount")
                 .runTransaction(new Transaction.Handler() {
@@ -83,6 +87,8 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
 
     @Override
     public int delete(int biographyId, int commentId) {
+        DatabaseReference databaseReference = firebaseDatabase.getReference();
+
         /*databaseReference
                 .child("biography_comment")
                 .child(String.valueOf(commentId))
@@ -334,6 +340,7 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
     }
 
     private CompletableFuture<Biography> getBiography(int biographyId) {
+        DatabaseReference databaseReference = firebaseDatabase.getReference();
         CompletableFuture<Biography> completableFuture = new CompletableFuture<>();
 
         databaseReference
