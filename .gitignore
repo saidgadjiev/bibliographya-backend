@@ -85,3 +85,7 @@ fabric.properties
 
 #Maven
 target/
+
+#Mac OS
+.DS_Store
+*.json

@@ -1,8 +1,6 @@
 server:
   port: ${PORT}
 spring:
-    profiles:
-      active: prod
     datasource:
       driver-class-name: ${DB_DRIVER_CLASS_NAME}
       url: ${DB_URL}
@@ -13,7 +11,7 @@ app:
     database:
       url: ${FIREBASE_DATABASE_URL}
     config:
-      path: bibliographya-65e17-firebase-adminsdk-tyixc-a47f9151b6.json
+      path: ${FIREBASE_CONFIG_PATH}
   pusher:
     appId: ${PUSHER_APP_ID}
     key: ${PUSHER_KEY}
