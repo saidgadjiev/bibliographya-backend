@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS biography (
   moderation_status INTEGER NOT NULL DEFAULT 0,
   moderation_info TEXT,
   moderated_at TIMESTAMP,
-  moderator_id INTEGER REFERENCES "user"(id)
+  moderator_id INTEGER REFERENCES "user"(id),
+  publish_status INTEGER
 );

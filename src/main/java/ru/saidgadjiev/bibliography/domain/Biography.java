@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliography.domain;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by said on 22.10.2018.
@@ -50,6 +51,8 @@ public class Biography {
     private Biography moderatorBiography;
 
     private String moderationInfo;
+
+    private PublishStatus publishStatus;
 
     public Integer getId() {
         return id;
@@ -219,6 +222,14 @@ public class Biography {
         this.oldComplaints = oldComplaints;
     }
 
+    public PublishStatus getPublishStatus() {
+        return publishStatus;
+    }
+
+    public void setPublishStatus(PublishStatus publishStatus) {
+        this.publishStatus = publishStatus;
+    }
+
     /**
      * Created by said on 26.11.2018.
      */
@@ -244,6 +255,33 @@ public class Biography {
             for (ModerationStatus moderationStatus : ModerationStatus.values()) {
                 if (moderationStatus.code == code) {
                     return moderationStatus;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public enum PublishStatus {
+
+        PUBLISHED(0),
+
+        NOT_PUBLISHED(1);
+
+        private final int code;
+
+        PublishStatus(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public static PublishStatus fromCode(Integer code) {
+            for (PublishStatus status: values()) {
+                if (Objects.equals(code, status.code)) {
+                    return status;
                 }
             }
 

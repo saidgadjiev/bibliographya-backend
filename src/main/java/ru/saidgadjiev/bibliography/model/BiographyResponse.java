@@ -48,6 +48,8 @@ public class BiographyResponse {
 
     private String moderationInfo;
 
+    private int publishStatus;
+
     public Integer getId() {
         return id;
     }
@@ -199,5 +201,11 @@ public class BiographyResponse {
         this.moderationInfo = moderationInfo;
     }
 
+    public int getPublishStatus() {
+        return publishStatus;
+    }
 
+    public void setPublishStatus(int publishStatus) {
+        this.publishStatus = publishStatus;
+    }
 }

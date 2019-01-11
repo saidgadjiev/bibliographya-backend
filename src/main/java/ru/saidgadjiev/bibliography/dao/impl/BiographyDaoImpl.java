@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
@@ -42,8 +43,8 @@ public class BiographyDaoImpl implements BiographyDao {
     public Biography save(Biography biography) throws SQLException {
         return jdbcTemplate.execute(
                 "INSERT INTO biography" +
-                        "(first_name, last_name, middle_name, biography, creator_id, user_id) " +
-                        "VALUES(?, ?, ?, ?, ?, ?) " +
+                        "(first_name, last_name, middle_name, biography, creator_id, user_id, publish_status) " +
+                        "VALUES(?, ?, ?, ?, ?, ?, ?) " +
                         "RETURNING *",
                 (PreparedStatementCallback<Biography>) ps -> {
                     ps.setString(1, biography.getFirstName());
@@ -52,6 +53,10 @@ public class BiographyDaoImpl implements BiographyDao {
                     ps.setString(4, biography.getBiography());
                     ps.setInt(5, biography.getCreatorId());
                     ps.setInt(6, biography.getUserId());
+
+                    if (biography.getPublishStatus() != null) {
+                        ps.setInt(7, biography.getPublishStatus().getCode());
+                    }
 
                     ps.execute();
 
@@ -182,6 +187,7 @@ public class BiographyDaoImpl implements BiographyDao {
         biography .setModeratorId(ResultSetUtils.intOrNull(rs,"moderator_id"));
         biography.setBiography(rs.getString("biography"));
         biography.setModerationInfo(rs.getString("moderation_info"));
+        biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
 
         if (biography.getModeratorId() != null) {
             Biography moderatorBiography = new Biography();
@@ -238,6 +244,10 @@ public class BiographyDaoImpl implements BiographyDao {
         }
     }
 
+    public int updateValues(Collection<UpdateValue> values, Collection<FilterCriteria> criteria) {
+
+    }
+
     private String getFullSelectList() {
         StringBuilder selectList = new StringBuilder();
 
@@ -253,6 +263,7 @@ public class BiographyDaoImpl implements BiographyDao {
         selectList.append("b.moderator_id,");
         selectList.append("b.moderation_info,");
         selectList.append("b.biography,");
+        selectList.append("b.publish_status,");
         selectList.append("bm.first_name as m_first_name,");
         selectList.append("bm.last_name as m_last_name,");
         selectList.append("bm.id as m_id");

@@ -172,6 +172,20 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{biographyId}/publish")
+    public ResponseEntity<?> publish(@PathVariable("biographyId") Integer biographyId) {
+        biographyService.publish(biographyId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{biographyId}/unpublish")
+    public ResponseEntity<?> unpublish(@PathVariable("biographyId") Integer biographyId) {
+        biographyService.unpublish(biographyId);
+
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{biographyId}/fixes")
     public ResponseEntity<?> suggest(
             @PathVariable("biographyId") int biographyId,
