@@ -18,7 +18,7 @@ import ru.saidgadjiev.bibliography.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
 import ru.saidgadjiev.bibliography.service.impl.SecurityService;
-import ru.saidgadjiev.bibliography.service.api.UserService;
+import ru.saidgadjiev.bibliography.service.api.UserAccountDetailsService;
 import ru.saidgadjiev.bibliography.service.impl.TokenCookieService;
 import ru.saidgadjiev.bibliography.service.impl.TokenService;
 import ru.saidgadjiev.bibliography.service.impl.auth.social.FacebookService;
@@ -43,7 +43,7 @@ public class AuthService {
 
     private final SocialUserDetailsService socialUserDetailsService;
 
-    private final UserService userService;
+    private final UserAccountDetailsService userAccountDetailsService;
 
     private final TokenService tokenService;
 
@@ -62,14 +62,14 @@ public class AuthService {
     public AuthService(FacebookService facebookService,
                        VKService vkService,
                        SocialUserDetailsService socialUserDetailsService,
-                       UserService userService,
+                       UserAccountDetailsService userAccountDetailsService,
                        TokenService tokenService,
                        TokenCookieService tokenCookieService,
                        SecurityService securityService) {
         this.facebookService = facebookService;
         this.vkService = vkService;
         this.socialUserDetailsService = socialUserDetailsService;
-        this.userService = userService;
+        this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.tokenCookieService = tokenCookieService;
         this.securityService = securityService;
@@ -147,7 +147,7 @@ public class AuthService {
     }
 
     public void signUp(SignUpRequest signUpRequest) throws SQLException {
-        userService.save(signUpRequest);
+        userAccountDetailsService.save(signUpRequest);
     }
 
     public User signOut(HttpServletRequest request, HttpServletResponse response) {
@@ -184,7 +184,7 @@ public class AuthService {
                     userDetails = socialUserDetailsService.loadSocialUserById(userId);
                     break;
                 case USERNAME_PASSWORD:
-                    userDetails = userService.loadUserById(userId);
+                    userDetails = userAccountDetailsService.loadUserById(userId);
                     break;
             }
 

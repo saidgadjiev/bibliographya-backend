@@ -14,8 +14,10 @@ import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.domain.CompleteResult;
 import ru.saidgadjiev.bibliography.model.*;
-import ru.saidgadjiev.bibliography.pusher.Channel;
-import ru.saidgadjiev.bibliography.service.impl.*;
+import ru.saidgadjiev.bibliography.service.impl.BiographyCommentService;
+import ru.saidgadjiev.bibliography.service.impl.BiographyFixService;
+import ru.saidgadjiev.bibliography.service.impl.BiographyModerationService;
+import ru.saidgadjiev.bibliography.service.impl.BiographyService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
@@ -139,6 +141,16 @@ public class BiographyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @DeleteMapping("/{biographyId}")
+    public ResponseEntity<?> delete(@PathVariable("biographyId") int biographyId) {
+        int deleted = biographyService.delete(biographyId);
+
+        if (deleted == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/{biographyId}/comments")
     public ResponseEntity<Page<BiographyCommentResponse>> getComments(
@@ -174,14 +186,22 @@ public class BiographyController {
 
     @PostMapping("/{biographyId}/publish")
     public ResponseEntity<?> publish(@PathVariable("biographyId") Integer biographyId) {
-        biographyService.publish(biographyId);
+        int updated = biographyService.publish(biographyId);
+
+        if (updated == 0) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{biographyId}/unpublish")
     public ResponseEntity<?> unpublish(@PathVariable("biographyId") Integer biographyId) {
-        biographyService.unpublish(biographyId);
+        int updated = biographyService.unpublish(biographyId);
+
+        if (updated == 0) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok().build();
     }

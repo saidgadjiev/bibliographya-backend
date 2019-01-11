@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliography.dao.api;
 
 import org.springframework.data.domain.Sort;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 
@@ -29,4 +30,8 @@ public interface BiographyDao {
     Biography getById(int id);
 
     BiographyUpdateStatus update(Biography biography) throws SQLException;
+
+    int updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria);
+
+    int delete(int biographyId);
 }

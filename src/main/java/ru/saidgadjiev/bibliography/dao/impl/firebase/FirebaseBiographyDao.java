@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.UpdateValue;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.model.firebase.BiographyStats;
@@ -72,6 +73,16 @@ public class FirebaseBiographyDao implements BiographyDao {
     @Override
     public BiographyUpdateStatus update(Biography biography) throws SQLException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
+        return 0;
+    }
+
+    @Override
+    public int delete(int biographyId) {
+        return 0;
     }
 
 

@@ -20,6 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -244,8 +245,53 @@ public class BiographyDaoImpl implements BiographyDao {
         }
     }
 
-    public int updateValues(Collection<UpdateValue> values, Collection<FilterCriteria> criteria) {
+    @Override
+    public int updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
+        String clause = toClause(criteria, null);
 
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("UPDATE biography SET ");
+
+        for (Iterator<UpdateValue> iterator = updateValues.iterator(); iterator.hasNext(); ) {
+            sql.append(iterator.next().getName()).append(" = ?");
+
+            if (iterator.hasNext()) {
+                sql.append(", ");
+            }
+        }
+
+        if (StringUtils.isNotBlank(clause)) {
+            sql.append(" WHERE ").append(clause);
+        }
+
+        sql.append(" RETURNING *");
+
+        return jdbcTemplate.update(
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (UpdateValue updateValue: updateValues) {
+                        if (updateValue.isNeedPreparedSet()) {
+                            updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        }
+                    }
+                    for (FilterCriteria criterion: criteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
+                }
+        );
+    }
+
+    @Override
+    public int delete(int biographyId) {
+        return jdbcTemplate.update(
+                "DELETE FROM biography WHERE id = ?",
+                preparedStatement -> preparedStatement.setInt(1, biographyId)
+        );
     }
 
     private String getFullSelectList() {

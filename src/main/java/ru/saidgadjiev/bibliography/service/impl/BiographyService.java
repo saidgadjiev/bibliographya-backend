@@ -7,9 +7,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
-import ru.saidgadjiev.bibliography.data.FilterArgumentResolver;
-import ru.saidgadjiev.bibliography.data.FilterCriteria;
-import ru.saidgadjiev.bibliography.data.FilterOperation;
+import ru.saidgadjiev.bibliography.data.*;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.domain.User;
@@ -221,6 +219,46 @@ public class BiographyService {
         return status;
     }
 
+    public int delete(int biographyId) {
+        return biographyDao.delete(biographyId);
+    }
+
+
+    public int publish(Integer biographyId) {
+        return publishUpdate(biographyId, Biography.PublishStatus.PUBLISHED);
+    }
+
+    public int unpublish(Integer biographyId) {
+        return publishUpdate(biographyId, Biography.PublishStatus.NOT_PUBLISHED);
+    }
+
+    private int publishUpdate(int biographyId, Biography.PublishStatus publishStatus) {
+        List<UpdateValue> updateValues = new ArrayList<>();
+
+        updateValues.add(
+                new UpdateValue<>(
+                        "publish_status",
+                        publishStatus.getCode(),
+                        true,
+                        PreparedStatement::setInt
+                )
+        );
+
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria<>(
+                        "id",
+                        FilterOperation.EQ,
+                        PreparedStatement::setInt,
+                        biographyId,
+                        true
+                )
+        );
+
+        return biographyDao.updateValues(updateValues, criteria);
+    }
+
     private void postProcess(Biography biography) {
         biography.setLikesCount(biographyLikeService.getBiographyLikesCount(biography.getId()));
         biography.setCommentsCount(biographyCommentService.getBiographyCommentsCount(biography.getId()));
@@ -241,12 +279,5 @@ public class BiographyService {
             biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
             biography.setCategories(biographiesCategories.get(biography.getId()));
         }
-    }
-
-    public void publish(Integer biographyId) {
-    }
-
-    public void unpublish(Integer biographyId) {
-
     }
 }

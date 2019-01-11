@@ -15,7 +15,6 @@ import ru.saidgadjiev.bibliography.model.BiographyCommentResponse;
 import ru.saidgadjiev.bibliography.model.BiographyComplaintResponse;
 import ru.saidgadjiev.bibliography.model.BiographyFixResponse;
 import ru.saidgadjiev.bibliography.model.BiographyResponse;
-import ru.saidgadjiev.bibliography.pusher.Channel;
 
 import java.util.Collection;
 import java.util.HashMap;
