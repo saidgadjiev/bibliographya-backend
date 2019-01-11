@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Created by said on 06.01.2019.
  */
-@ConfigurationProperties
+//@ConfigurationProperties
 public class FirebaseProperties {
 
     @Value("${app.firebase.database.url}")

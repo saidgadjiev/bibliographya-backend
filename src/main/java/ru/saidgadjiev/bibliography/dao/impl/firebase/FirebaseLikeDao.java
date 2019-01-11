@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by said on 08.01.2019.
  */
-@Repository
+//@Repository
 @Qualifier("firebase")
 public class FirebaseLikeDao implements BiographyLikeDao {
 

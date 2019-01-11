@@ -265,8 +265,6 @@ public class BiographyDaoImpl implements BiographyDao {
             sql.append(" WHERE ").append(clause);
         }
 
-        sql.append(" RETURNING *");
-
         return jdbcTemplate.update(
                 sql.toString(),
                 ps -> {

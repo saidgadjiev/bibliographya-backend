@@ -23,15 +23,11 @@ public class BiographyLikeService {
 
     private final BiographyLikeDao biographyLikeDao;
 
-    private BiographyLikeDao firebaseLikeDao;
-
     @Autowired
     public BiographyLikeService(SecurityService securityService,
-                                @Qualifier("sql") BiographyLikeDao biographyLikeDao,
-                                @Qualifier("firebase") BiographyLikeDao firebaseLikeDao) {
+                                @Qualifier("sql") BiographyLikeDao biographyLikeDao) {
         this.securityService = securityService;
         this.biographyLikeDao = biographyLikeDao;
-        this.firebaseLikeDao = firebaseLikeDao;
     }
 
     public void like(int biographyId) {
@@ -43,8 +39,6 @@ public class BiographyLikeService {
         );
 
         biographyLikeDao.create(biographyLike);
-
-        firebaseLikeDao.create(biographyLike);
     }
 
     public void unlike(int biographyId) {
@@ -56,7 +50,6 @@ public class BiographyLikeService {
         );
 
         biographyLikeDao.delete(biographyLike);
-        firebaseLikeDao.delete(biographyLike);
     }
 
     public Map<Integer, Integer> getBiographiesLikesCount(Collection<Integer> biographiesIds) {

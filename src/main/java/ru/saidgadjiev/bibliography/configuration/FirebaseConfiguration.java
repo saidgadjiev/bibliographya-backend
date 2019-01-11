@@ -20,7 +20,7 @@ import java.io.InputStream;
 /**
  * Created by said on 06.01.2019.
  */
-@Configuration
+//@Configuration
 public class FirebaseConfiguration {
 
     private final FirebaseProperties firebaseProperties;

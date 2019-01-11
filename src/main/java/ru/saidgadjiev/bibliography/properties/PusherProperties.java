@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Created by said on 04.01.2019.
  */
-@ConfigurationProperties(prefix = "app.pusher")
+//@ConfigurationProperties(prefix = "app.pusher")
 public class PusherProperties {
 
     private String appId;

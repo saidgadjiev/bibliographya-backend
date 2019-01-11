@@ -7,18 +7,16 @@ import org.modelmapper.PropertyMap;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.saidgadjiev.bibliography.domain.Biography;
-import ru.saidgadjiev.bibliography.domain.BiographyComment;
-import ru.saidgadjiev.bibliography.domain.BiographyFix;
-import ru.saidgadjiev.bibliography.domain.BiographyReport;
-import ru.saidgadjiev.bibliography.model.BiographyCommentResponse;
-import ru.saidgadjiev.bibliography.model.BiographyComplaintResponse;
-import ru.saidgadjiev.bibliography.model.BiographyFixResponse;
-import ru.saidgadjiev.bibliography.model.BiographyResponse;
+import ru.saidgadjiev.bibliography.auth.common.ProviderType;
+import ru.saidgadjiev.bibliography.domain.*;
+import ru.saidgadjiev.bibliography.model.*;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by said on 16.11.2018.
@@ -55,6 +53,17 @@ public class BibliographyaConfiguration {
                         return null;
                     }
                 }).map(source.getModerationStatus(), destination.getModerationStatus());
+                using(new Converter<Biography.PublishStatus, Integer>() {
+                    @Override
+                    public Integer convert(MappingContext<Biography.PublishStatus, Integer> context) {
+                        if (context.getSource() != null) {
+                            return context.getSource().getCode();
+                        }
+
+                        return null;
+                    }
+                }).map(source.getPublishStatus(), destination.getPublishStatus());
+
                 Converter<Collection<BiographyReport>, Map<Integer, BiographyComplaintResponse>> converter = context -> {
                     if (context.getSource() != null) {
                         Map<Integer, BiographyComplaintResponse> result = new HashMap<>();
@@ -113,6 +122,51 @@ public class BibliographyaConfiguration {
                 using(converter).map(source.getCreatorBiography(), destination.getCreatorBiography());
                 using(converter).map(source.getFixerBiography(), destination.getFixerBiography());
                 using(converter).map(source.getBiography(), destination.getBiography());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<User, UserResponse>() {
+            @Override
+            protected void configure() {
+                map(source.getId(), destination.getId());
+                using(new Converter<ProviderType, String>() {
+                    @Override
+                    public String convert(MappingContext<ProviderType, String> context) {
+                        if (context.getSource() != null) {
+                            return context.getSource().getId();
+                        }
+
+                        return null;
+                    }
+                }).map(source.getProviderType(), destination.getProviderId());
+
+                using(new Converter<Biography, BiographyResponse>() {
+                    @Override
+                    public BiographyResponse convert(MappingContext<Biography, BiographyResponse> context) {
+                        if (context.getSource() != null) {
+                            BiographyResponse biographyResponse = new BiographyResponse();
+
+                            biographyResponse.setId(context.getSource().getId());
+                            biographyResponse.setFirstName(context.getSource().getFirstName());
+                            biographyResponse.setLastName(context.getSource().getLastName());
+                            biographyResponse.setMiddleName(context.getSource().getMiddleName());
+
+                            return biographyResponse;
+                        }
+
+                        return null;
+                    }
+                }).map(source.getBiography(), destination.getBiography());
+                using(new Converter<Set<Role>, Collection<String>>() {
+                    @Override
+                    public Collection<String> convert(MappingContext<Set<Role>, Collection<String>> context) {
+                        if (context.getSource() != null) {
+                            return context.getSource().stream().map(Role::getName).collect(Collectors.toList());
+                        }
+
+                        return null;
+                    }
+                }).map(source.getRoles(), destination.getRoles());
             }
         });
 

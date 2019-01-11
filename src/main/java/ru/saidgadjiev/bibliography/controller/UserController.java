@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliography.controller;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliography.model.UserResponse;
 import ru.saidgadjiev.bibliography.service.impl.UserService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -19,11 +21,14 @@ public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    private final ModelMapper modelMapper;
+
+    public UserController(UserService userService, ModelMapper modelMapper) {
         this.userService = userService;
+        this.modelMapper = modelMapper;
     }
 
-    @PostMapping("")
+    @GetMapping("")
     public ResponseEntity<?> getUsers(OffsetLimitPageRequest pageRequest) {
         Page<User> users = userService.getUsers(pageRequest);
 
@@ -43,12 +48,22 @@ public class UserController {
 
     @DeleteMapping("/{userId}/roles/{role}")
     public ResponseEntity<?> getRole(@PathVariable("userId") int userId, @PathVariable("role") String role) {
-        userService.deleteRole(userId, role);
+        int deleted = userService.deleteRole(userId, role);
+
+        if (deleted == 0) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok().build();
     }
 
     private List<UserResponse> convertToDto(Collection<User> users) {
-        return Collections.emptyList();
+        List<UserResponse> result = new ArrayList<>();
+
+        for (User user: users) {
+            result.add(modelMapper.map(user, UserResponse.class));
+        }
+
+        return result;
     }
 }

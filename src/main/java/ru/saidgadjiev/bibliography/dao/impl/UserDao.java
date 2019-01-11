@@ -26,7 +26,7 @@ public class UserDao {
     public List<User> getUsers(Integer limit, Long offset) {
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT ").append(selectList()).append(" FROM user u ");
+        sql.append("SELECT ").append(selectList()).append(" FROM \"user\" u ");
         sql.append("INNER JOIN biography ba ON u.id = ba.user_id ");
 
         if (limit != null) {

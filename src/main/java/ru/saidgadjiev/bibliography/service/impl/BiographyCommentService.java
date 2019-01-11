@@ -27,15 +27,11 @@ public class BiographyCommentService {
 
     private final BiographyCommentDao biographyCommentDao;
 
-    private final BiographyCommentDao firebaseCommentDao;
-
     @Autowired
     public BiographyCommentService(SecurityService securityService,
-                                   @Qualifier("sql") BiographyCommentDao biographyCommentDao,
-                                   @Qualifier("firebase") BiographyCommentDao firebaseCommentDao) {
+                                   @Qualifier("sql") BiographyCommentDao biographyCommentDao) {
         this.securityService = securityService;
         this.biographyCommentDao = biographyCommentDao;
-        this.firebaseCommentDao = firebaseCommentDao;
     }
 
     @Transactional
@@ -70,17 +66,12 @@ public class BiographyCommentService {
             biographyComment.setParent(parent);
         }
 
-        BiographyComment comment = biographyCommentDao.create(biographyComment);
-
-        firebaseCommentDao.create(comment);
-
-        return comment;
+        return biographyCommentDao.create(biographyComment);
     }
 
     @Transactional
     public void deleteComment(int biographyId, int commentId) {
         biographyCommentDao.delete(biographyId, commentId);
-        firebaseCommentDao.delete(biographyId, commentId);
     }
 
     public Page<BiographyComment> getComments(int biographyId, Pageable pageRequest) {

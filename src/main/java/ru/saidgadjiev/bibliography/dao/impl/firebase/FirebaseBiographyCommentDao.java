@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * Created by said on 07.01.2019.
  */
-@Repository
+//@Repository
 @Qualifier("firebase")
 public class FirebaseBiographyCommentDao implements BiographyCommentDao {
 
