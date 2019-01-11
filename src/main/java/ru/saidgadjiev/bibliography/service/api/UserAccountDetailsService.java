@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliography.service.api;
 
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
 
 import java.sql.SQLException;
@@ -9,7 +8,7 @@ import java.sql.SQLException;
 /**
  * Created by said on 22.10.2018.
  */
-public interface UserService {
+public interface UserAccountDetailsService {
 
     UserDetails save(SignUpRequest signUpRequest) throws SQLException;
 

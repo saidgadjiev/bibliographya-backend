@@ -74,6 +74,11 @@ public class FirebaseBiographyDao implements BiographyDao {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public int delete(int biographyId) {
+        return 0;
+    }
+
 
     public BiographyStats getBiographyStats(Integer biographyId) {
         DatabaseReference databaseReference = firebaseDatabase.getReference();

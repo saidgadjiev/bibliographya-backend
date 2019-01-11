@@ -224,6 +224,10 @@ public class BiographyService {
         return status;
     }
 
+    public int delete(int biographyId) {
+        return biographyDao.delete(biographyId);
+    }
+
     private void postProcess(Biography biography) {
         BiographyStats stats = ((FirebaseBiographyDao) firebaseBiographyDao).getBiographyStats(biography.getId());
 

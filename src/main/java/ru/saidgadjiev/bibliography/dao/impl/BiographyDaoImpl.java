@@ -238,6 +238,14 @@ public class BiographyDaoImpl implements BiographyDao {
         }
     }
 
+    @Override
+    public int delete(int biographyId) {
+        return jdbcTemplate.update(
+                "DELETE FROM biography WHERE id = ?",
+                preparedStatement -> preparedStatement.setInt(1, biographyId)
+        );
+    }
+
     private String getFullSelectList() {
         StringBuilder selectList = new StringBuilder();
 

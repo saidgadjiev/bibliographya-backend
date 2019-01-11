@@ -139,6 +139,16 @@ public class BiographyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @DeleteMapping("/{biographyId}")
+    public ResponseEntity<?> delete(@PathVariable("biographyId") int biographyId) {
+        int deleted = biographyService.delete(biographyId);
+
+        if (deleted == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/{biographyId}/comments")
     public ResponseEntity<Page<BiographyCommentResponse>> getComments(

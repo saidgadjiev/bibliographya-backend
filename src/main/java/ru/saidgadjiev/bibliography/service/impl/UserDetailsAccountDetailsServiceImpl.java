@@ -14,7 +14,7 @@ import ru.saidgadjiev.bibliography.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliography.domain.*;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.SignUpRequest;
-import ru.saidgadjiev.bibliography.service.api.UserService;
+import ru.saidgadjiev.bibliography.service.api.UserAccountDetailsService;
 import ru.saidgadjiev.bibliography.service.api.SocialUserDetailsService;
 
 import java.sql.SQLException;
@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * Created by said on 21.10.2018.
  */
 @Service("userDetailsService")
-public class UserDetailsServiceImpl implements UserDetailsService, UserService, SocialUserDetailsService {
+public class UserDetailsAccountDetailsServiceImpl implements UserDetailsService, UserAccountDetailsService, SocialUserDetailsService {
 
     private final UserAccountDao userAccountDao;
 
@@ -36,10 +36,10 @@ public class UserDetailsServiceImpl implements UserDetailsService, UserService, 
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserDetailsServiceImpl(UserAccountDao userAccountDao,
-                                  SocialAccountDao socialAccountDao,
-                                  BiographyService biographyService,
-                                  PasswordEncoder passwordEncoder) {
+    public UserDetailsAccountDetailsServiceImpl(UserAccountDao userAccountDao,
+                                                SocialAccountDao socialAccountDao,
+                                                BiographyService biographyService,
+                                                PasswordEncoder passwordEncoder) {
         this.userAccountDao = userAccountDao;
         this.socialAccountDao = socialAccountDao;
         this.biographyService = biographyService;

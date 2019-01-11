@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import ru.saidgadjiev.bibliography.service.api.UserService;
+import ru.saidgadjiev.bibliography.service.api.UserAccountDetailsService;
 
 import java.sql.SQLException;
 
@@ -14,18 +14,18 @@ import java.sql.SQLException;
  * Created by said on 02.01.2019.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user-accounts")
 public class UserAccountController {
 
-    private final UserService userService;
+    private final UserAccountDetailsService userAccountDetailsService;
 
-    public UserAccountController(UserService userService) {
-        this.userService = userService;
+    public UserAccountController(UserAccountDetailsService userAccountDetailsService) {
+        this.userAccountDetailsService = userAccountDetailsService;
     }
 
     @RequestMapping(value = "/{username}", method = RequestMethod.HEAD)
     public ResponseEntity existUserName(@PathVariable(value = "username") String username) throws SQLException {
-        if (userService.isExistUserName(username)) {
+        if (userAccountDetailsService.isExistUserName(username)) {
             return ResponseEntity.status(HttpStatus.FOUND).build();
         }
 
