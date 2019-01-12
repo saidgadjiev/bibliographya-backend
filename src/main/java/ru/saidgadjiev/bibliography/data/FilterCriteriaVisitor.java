@@ -46,20 +46,19 @@ public class FilterCriteriaVisitor<R, A> implements RSQLVisitor<R, A> {
                 return null;
             }
             String argument = arguments.iterator().next();
+            if (argument.equals("null")) {
+                FilterCriteria<String> criterion = new FilterCriteria<>(
+                        comparisonNode.getSelector(),
+                        FilterOperation.IS_NULL,
+                        null,
+                        null,
+                        false
+                );
 
-            switch (fieldsTypes.get(comparisonNode.getSelector())) {
-                case INTEGER:
-                    if (argument.equals("null")) {
-                        FilterCriteria<String> criterion = new FilterCriteria<>(
-                                comparisonNode.getSelector(),
-                                FilterOperation.IS_NULL,
-                                null,
-                                null,
-                                false
-                        );
-
-                        criteria.add(criterion);
-                    } else {
+                criteria.add(criterion);
+            } else {
+                switch (fieldsTypes.get(comparisonNode.getSelector())) {
+                    case INTEGER: {
                         FilterCriteria<Integer> criterion = new FilterCriteria<>(
                                 comparisonNode.getSelector(),
                                 FilterOperation.EQ,
@@ -69,9 +68,22 @@ public class FilterCriteriaVisitor<R, A> implements RSQLVisitor<R, A> {
                         );
 
                         criteria.add(criterion);
+                        break;
                     }
+                    case STRING: {
+                        FilterCriteria<String> criterion = new FilterCriteria<>(
+                                comparisonNode.getSelector(),
+                                FilterOperation.EQ,
+                                PreparedStatement::setString,
+                                argument,
+                                true
+                        );
 
-                    break;
+                        criteria.add(criterion);
+
+                        break;
+                    }
+                }
             }
         }
 
@@ -80,7 +92,9 @@ public class FilterCriteriaVisitor<R, A> implements RSQLVisitor<R, A> {
 
     public enum Type {
 
-        INTEGER
+        INTEGER,
+
+        STRING
 
     }
 }

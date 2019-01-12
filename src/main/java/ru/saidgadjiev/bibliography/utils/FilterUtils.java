@@ -33,6 +33,16 @@ public class FilterUtils {
                         }
 
                         break;
+                    case FIELDS_EQ:
+                        if (alias != null) {
+                            clause.append(alias).append(".").append(criterion.getPropertyName()).append("=").append(alias).append(".").append(criterion.getFilterValue());
+                        } else {
+                            clause.append(criterion.getPropertyName()).append("=").append(criterion.getFilterValue());
+                        }
+
+                        break;
+                    case NOT_EQ:
+                        break;
                     case IS_NULL:
                         if (alias != null) {
                             clause.append(alias).append(".").append(criterion.getPropertyName()).append(" IS NULL");

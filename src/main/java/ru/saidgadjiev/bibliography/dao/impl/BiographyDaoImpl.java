@@ -104,7 +104,7 @@ public class BiographyDaoImpl implements BiographyDao {
     ) {
         StringBuilder clause = new StringBuilder();
 
-        if (categoryName != null) {
+        if (StringUtils.isNotBlank(categoryName)) {
             clause
                     .append("b.id IN (SELECT biography_id FROM biography_category_biography WHERE category_name = '")
                     .append(categoryName)

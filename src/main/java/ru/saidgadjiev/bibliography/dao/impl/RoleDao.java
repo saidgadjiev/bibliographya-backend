@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliography.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -25,9 +26,17 @@ public class RoleDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<Role> getRoles() {
+    public List<Role> getRoles(Collection<FilterCriteria> criteria) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM role");
+
+        String clause = FilterUtils.toClause(criteria, null);
+
+        if (StringUtils.isNotBlank(clause)) {
+            sql.append(" WHERE ").append(clause);
+        }
+
         return jdbcTemplate.query(
-                "SELECT * FROM role",
+                sql.toString(),
                 (resultSet, i) -> map(resultSet)
         );
     }

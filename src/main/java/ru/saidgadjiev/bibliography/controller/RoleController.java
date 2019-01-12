@@ -18,8 +18,10 @@ public class RoleController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> get() {
-        return ResponseEntity.ok(roleService.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
+    public ResponseEntity<?> get(
+            @RequestParam(value = "q", required = false) String query
+    ) {
+        return ResponseEntity.ok(roleService.getRoles(query).stream().map(Role::getName).collect(Collectors.toList()));
     }
 
     @PostMapping("/{role}")

@@ -65,9 +65,10 @@ public class BiographyController {
 
     @GetMapping(value = "")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
-            OffsetLimitPageRequest pageRequest
+            OffsetLimitPageRequest pageRequest,
+            @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
     ) throws SQLException {
-        Page<Biography> page = biographyService.getBiographies(pageRequest, null);
+        Page<Biography> page = biographyService.getBiographies(pageRequest, null, autobiographies);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();

@@ -29,8 +29,11 @@ public class UserController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getUsers(OffsetLimitPageRequest pageRequest) {
-        Page<User> users = userService.getUsers(pageRequest);
+    public ResponseEntity<?> getUsers(
+            OffsetLimitPageRequest pageRequest,
+            @RequestParam(value = "roleQuery", required = false) String roleQuery
+    ) {
+        Page<User> users = userService.getUsers(pageRequest, roleQuery);
 
         if (users.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();

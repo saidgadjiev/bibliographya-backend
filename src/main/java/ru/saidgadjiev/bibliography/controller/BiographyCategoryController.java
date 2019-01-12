@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyCategory;
 import ru.saidgadjiev.bibliography.model.BiographyResponse;
@@ -68,9 +65,10 @@ public class BiographyCategoryController {
     @GetMapping("/{categoryName}/biographies")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
             @PathVariable("categoryName") String categoryName,
-            OffsetLimitPageRequest pageRequest
+            OffsetLimitPageRequest pageRequest,
+            @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
     ) {
-        Page<Biography> page = biographyService.getBiographies(pageRequest, categoryName);
+        Page<Biography> page = biographyService.getBiographies(pageRequest, categoryName, autobiographies);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();

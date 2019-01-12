@@ -1,5 +1,8 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.Node;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -133,8 +136,24 @@ public class BiographyService {
         return biography;
     }
 
-    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest, String categoryName) {
-        return getBiographies(pageRequest, Collections.emptyList(), categoryName);
+    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
+                                          String categoryName,
+                                          Boolean autobiographies) {
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        if (autobiographies != null) {
+            criteria.add(
+                    new FilterCriteria<>(
+                            "creator_id",
+                            FilterOperation.FIELDS_EQ,
+                            null,
+                            "user_id",
+                            false
+                    )
+            );
+        }
+
+        return getBiographies(pageRequest, criteria, categoryName);
     }
 
 
