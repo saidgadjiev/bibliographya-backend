@@ -76,10 +76,12 @@ public class BiographyService {
 
         Biography result = biographyDao.save(biography);
 
-        biographyCategoryBiographyService.addCategoriesToBiography(
-                biographyRequest.getAddCategories(),
-                result.getId()
-        );
+        if (biographyRequest.getAddCategories() != null && !biographyRequest.getAddCategories().isEmpty()) {
+            biographyCategoryBiographyService.addCategoriesToBiography(
+                    biographyRequest.getAddCategories(),
+                    result.getId()
+            );
+        }
 
         result.setCategories(biographyRequest.getAddCategories());
 
@@ -225,14 +227,18 @@ public class BiographyService {
         BiographyUpdateStatus status = biographyDao.update(biography);
 
         if (status.isUpdated()) {
-            biographyCategoryBiographyService.addCategoriesToBiography(
-                    updateBiographyRequest.getAddCategories(),
-                    id
-            );
-            biographyCategoryBiographyService.deleteCategoriesFromBiography(
-                    updateBiographyRequest.getDeleteCategories(),
-                    id
-            );
+            if (updateBiographyRequest.getAddCategories() != null && !updateBiographyRequest.getAddCategories().isEmpty()) {
+                biographyCategoryBiographyService.addCategoriesToBiography(
+                        updateBiographyRequest.getAddCategories(),
+                        id
+                );
+            }
+            if (updateBiographyRequest.getDeleteCategories() != null && !updateBiographyRequest.getDeleteCategories().isEmpty()) {
+                biographyCategoryBiographyService.deleteCategoriesFromBiography(
+                        updateBiographyRequest.getDeleteCategories(),
+                        id
+                );
+            }
         }
 
         return status;
