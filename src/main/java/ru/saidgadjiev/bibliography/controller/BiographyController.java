@@ -190,7 +190,7 @@ public class BiographyController {
         int updated = biographyService.publish(biographyId);
 
         if (updated == 0) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.ok().build();

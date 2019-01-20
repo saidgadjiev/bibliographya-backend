@@ -1,8 +1,5 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
-import cz.jirutka.rsql.parser.RSQLParser;
-import cz.jirutka.rsql.parser.ast.Node;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -154,6 +151,25 @@ public class BiographyService {
                     )
             );
         }
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName("publish_status")
+                        .filterOperation(FilterOperation.EQ)
+                        .valueSetter(PreparedStatement::setInt)
+                        .filterValue(Biography.PublishStatus.PUBLISHED.getCode())
+                        .needPreparedSet(true)
+                        .logicOperator(LogicOperator.OR)
+                        .build()
+        );
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName("moderation_status")
+                        .filterOperation(FilterOperation.EQ)
+                        .valueSetter(PreparedStatement::setInt)
+                        .filterValue(Biography.ModerationStatus.APPROVED.getCode())
+                        .needPreparedSet(true)
+                        .build()
+        );
 
         return getBiographies(pageRequest, criteria, categoryName);
     }
@@ -280,6 +296,25 @@ public class BiographyService {
                         true
                 )
         );
+
+        if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {
+            criteria.add(
+                    new FilterCriteria.Builder<String>()
+                            .propertyName("biography")
+                            .filterOperation(FilterOperation.IS_NOT_NULL)
+                            .needPreparedSet(false)
+                            .build()
+            );
+            criteria.add(
+                    new FilterCriteria.Builder<String>()
+                            .propertyName("biography")
+                            .filterOperation(FilterOperation.NOT_EQ)
+                            .filterValue("")
+                            .needPreparedSet(true)
+                            .valueSetter(PreparedStatement::setString)
+                            .build()
+            );
+        }
 
         return biographyDao.updateValues(updateValues, criteria);
     }

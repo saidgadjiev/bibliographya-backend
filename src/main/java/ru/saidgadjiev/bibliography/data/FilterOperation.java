@@ -8,6 +8,7 @@ public enum FilterOperation {
     EQ ("eq"),
     FIELDS_EQ("fields_eq"),
     NOT_EQ("not_eq"),
+    IS_NOT_NULL("is_not_null"),
     IS_NULL ("is_null");
 
     private final String desc;

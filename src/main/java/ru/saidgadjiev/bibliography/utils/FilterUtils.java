@@ -42,6 +42,12 @@ public class FilterUtils {
 
                         break;
                     case NOT_EQ:
+                        if (alias != null) {
+                            clause.append(alias).append(".").append(criterion.getPropertyName()).append("<>").append("?");
+                        } else {
+                            clause.append(criterion.getPropertyName()).append("<>").append("?");
+                        }
+
                         break;
                     case IS_NULL:
                         if (alias != null) {
@@ -49,9 +55,24 @@ public class FilterUtils {
                         } else {
                             clause.append(criterion.getPropertyName()).append(" IS NULL");
                         }
+                        break;
+                    case IS_NOT_NULL:
+                        if (alias != null) {
+                            clause.append(alias).append(".").append(criterion.getPropertyName()).append(" IS NOT NULL");
+                        } else {
+                            clause.append(criterion.getPropertyName()).append(" IS NOT NULL");
+                        }
+                        break;
                 }
                 if (iterator.hasNext()) {
-                    clause.append(" AND ");
+                    switch (criterion.getLogicOperator()) {
+                        case OR:
+                            clause.append(" OR ");
+                            break;
+                        case AND:
+                            clause.append(" AND ");
+                            break;
+                    }
                 }
             }
         }
