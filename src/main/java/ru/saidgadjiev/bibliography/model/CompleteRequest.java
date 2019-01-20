@@ -9,7 +9,7 @@ public class CompleteRequest {
 
     private int status;
 
-    private String rejectText;
+    private String info;
 
     public String getSignal() {
         return signal;
@@ -27,11 +27,11 @@ public class CompleteRequest {
         this.status = status;
     }
 
-    public String getRejectText() {
-        return rejectText;
+    public String getInfo() {
+        return info;
     }
 
-    public void setRejectText(String rejectText) {
-        this.rejectText = rejectText;
+    public void setInfo(String info) {
+        this.info = info;
     }
 }

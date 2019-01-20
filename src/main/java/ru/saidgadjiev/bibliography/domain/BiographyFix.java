@@ -23,6 +23,8 @@ public class BiographyFix {
 
     private FixStatus status;
 
+    private String info;
+
     public Integer getId() {
         return id;
     }
@@ -95,11 +97,21 @@ public class BiographyFix {
         this.creatorBiography = creatorBiography;
     }
 
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
     public enum FixStatus {
 
         PENDING(0),
 
-        CLOSED(1);
+        CLOSED(1),
+
+        IGNORED(2);
 
         private int code;
 

@@ -111,10 +111,13 @@ public class BiographyFixService {
     }
 
     public Collection<FixAction> getActions(BiographyFix fix) {
+        User user = (User) securityService.findLoggedInUser();
+
         return handlerMap.get(fix.getStatus()).getActions(
                 new HashMap<String, Object>() {{
-                    put("fixerName", fix.getFixerId());
+                    put("fixerId", fix.getFixerId());
                     put("status", fix.getStatus());
+                    put("user", user);
                 }}
         );
     }
@@ -134,7 +137,8 @@ public class BiographyFixService {
         Map<String, Object> processValues = new HashMap<>();
 
         processValues.put("fixId", fixId);
-        processValues.put("fixerName", userDetails.getUsername());
+        processValues.put("fixerId", userDetails.getId());
+        processValues.put("fixInfo", completeRequest.getInfo());
 
         Handler handler = handlerMap.get(
                 BiographyFix.FixStatus.fromCode(completeRequest.getStatus())

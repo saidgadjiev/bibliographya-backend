@@ -1,15 +1,17 @@
 package ru.saidgadjiev.bibliography.bussiness.fix;
 
-import org.apache.commons.lang.StringUtils;
 import ru.saidgadjiev.bibliography.bussiness.fix.operation.AssignMeOperation;
 import ru.saidgadjiev.bibliography.bussiness.fix.operation.CloseOperation;
+import ru.saidgadjiev.bibliography.bussiness.fix.operation.IgnoreOperation;
 import ru.saidgadjiev.bibliography.bussiness.fix.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliography.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliography.domain.BiographyFix;
+import ru.saidgadjiev.bibliography.domain.User;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -28,6 +30,8 @@ public class PendingHandler implements Handler {
         switch (signal) {
             case ASSIGN_ME:
                 return new AssignMeOperation(biographyFixDao).execute(args);
+            case IGNORE:
+                return new IgnoreOperation(biographyFixDao).execute(args);
             case CLOSE:
                 return new CloseOperation(biographyFixDao).execute(args);
             case RELEASE:
@@ -39,17 +43,24 @@ public class PendingHandler implements Handler {
 
     @Override
     public Collection<FixAction> getActions(Map<String, Object> args) {
-        String fixerName = (String) args.get("fixerName");
+        Integer fixerId = (Integer) args.get("fixerId");
 
-        if (StringUtils.isBlank(fixerName)) {
+        if (fixerId == null) {
             return new ArrayList<FixAction>() {{
                 add(FixAction.assignMe());
             }};
         }
 
-        return new ArrayList<FixAction>() {{
-            add(FixAction.close());
-            add(FixAction.release());
-        }};
+        User user = (User) args.get("user");
+
+        if (user.getId() == fixerId) {
+            return new ArrayList<FixAction>() {{
+                add(FixAction.close());
+                add(FixAction.release());
+                add(FixAction.ignore());
+            }};
+        }
+
+        return Collections.emptyList();
     }
 }

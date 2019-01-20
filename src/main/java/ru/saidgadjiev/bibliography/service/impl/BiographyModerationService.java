@@ -86,7 +86,7 @@ public class BiographyModerationService {
 
         processValues.put("biographyId", biographyId);
         processValues.put("moderatorId", userDetails.getId());
-        processValues.put("rejectText", completeRequest.getRejectText());
+        processValues.put("rejectText", completeRequest.getInfo());
 
         Handler handler = handlerMap.get(
                 Biography.ModerationStatus.fromCode(completeRequest.getStatus())

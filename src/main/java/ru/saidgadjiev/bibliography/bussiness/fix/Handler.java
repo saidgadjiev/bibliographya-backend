@@ -19,6 +19,7 @@ public interface Handler {
 
         ASSIGN_ME("assign-me"),
         RELEASE("release"),
+        IGNORE("ignore"),
         CLOSE("close");
 
         private String desc;

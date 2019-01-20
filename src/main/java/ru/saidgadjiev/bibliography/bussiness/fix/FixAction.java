@@ -37,6 +37,10 @@ public class FixAction {
         return new FixAction("Close", "Закрыть", Handler.Signal.CLOSE.getDesc());
     }
 
+    public static FixAction ignore() {
+        return new FixAction("Ignore", "Не будет исправлено", Handler.Signal.IGNORE.getDesc());
+    }
+
     public static FixAction release() {
         return new FixAction("Release", "Вернуть", Handler.Signal.RELEASE.getDesc());
     }

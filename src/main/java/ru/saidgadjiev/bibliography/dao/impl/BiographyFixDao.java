@@ -110,7 +110,7 @@ public class BiographyFixDao {
             sql.append(" WHERE ").append(clause);
         }
 
-        sql.append(" RETURNING status, fixer_id");
+        sql.append(" RETURNING status, fixer_id, info");
 
         return jdbcTemplate.execute(
                 sql.toString(),
@@ -136,6 +136,7 @@ public class BiographyFixDao {
 
                             biographyFix.setStatus(BiographyFix.FixStatus.fromCode(resultSet.getInt("status")));
                             biographyFix.setFixerId(ResultSetUtils.intOrNull(resultSet, "fixer_id"));
+                            biographyFix.setInfo(resultSet.getString("info"));
 
                             return biographyFix;
                         }
@@ -150,6 +151,8 @@ public class BiographyFixDao {
         BiographyFix fix = new BiographyFix();
 
         fix.setId(rs.getInt("id"));
+        fix.setInfo(rs.getString("info"));
+        fix.setCreatorId(rs.getInt("creator_id"));
         fix.setFixText(rs.getString("fix_text"));
         fix.setBiographyId(rs.getInt("biography_id"));
         fix.setFixerId(ResultSetUtils.intOrNull(rs, "fixer_id"));
@@ -169,7 +172,7 @@ public class BiographyFixDao {
 
         creatorBiography.setId(rs.getInt("cb_id"));
         creatorBiography.setFirstName(rs.getString("cb_first_name"));
-        creatorBiography.setLastName(rs.getString("cb_first_name"));
+        creatorBiography.setLastName(rs.getString("cb_last_name"));
         creatorBiography.setMiddleName(rs.getString("cb_middle_name"));
 
         fix.setCreatorBiography(creatorBiography);
@@ -200,7 +203,7 @@ public class BiographyFixDao {
 
         fixerBiography.setId(rs.getInt("fb_id"));
         fixerBiography.setFirstName(rs.getString("fb_first_name"));
-        fixerBiography.setLastName(rs.getString("fb_first_name"));
+        fixerBiography.setLastName(rs.getString("fb_last_name"));
         fixerBiography.setMiddleName(rs.getString("fb_middle_name"));
         fixerBiography.setUserId(rs.getInt("fb_user_id"));
 
@@ -230,6 +233,8 @@ public class BiographyFixDao {
                 .append("bf.biography_id,")
                 .append("bf.fixer_id,")
                 .append("bf.status,")
+                .append("bf.creator_id,")
+                .append("bf.info,")
                 .append("b.id as b_id,")
                 .append("b.first_name as b_first_name,")
                 .append("b.last_name as b_last_name,")
