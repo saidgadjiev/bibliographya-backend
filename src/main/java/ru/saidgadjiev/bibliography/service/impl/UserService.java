@@ -11,6 +11,7 @@ import ru.saidgadjiev.bibliography.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.data.FilterCriteriaVisitor;
 import ru.saidgadjiev.bibliography.domain.User;
+import ru.saidgadjiev.bibliography.domain.UsersStats;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 
 import java.util.ArrayList;
@@ -51,5 +52,9 @@ public class UserService {
 
     public int deleteRole(int userId, String role) {
         return userRoleDao.deleteRole(userId, role);
+    }
+
+    public UsersStats getStats() {
+        return userDao.getStats();
     }
 }

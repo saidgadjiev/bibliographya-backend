@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS "user" (
   id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP DEFAULT NOW(),
   provider_id VARCHAR(30) NOT NULL
 );
 

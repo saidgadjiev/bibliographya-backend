@@ -2,15 +2,18 @@ package ru.saidgadjiev.bibliography.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.auth.common.ProviderType;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.domain.User;
+import ru.saidgadjiev.bibliography.domain.UsersStats;
 import ru.saidgadjiev.bibliography.utils.FilterUtils;
 import ru.saidgadjiev.bibliography.utils.SortUtils;
 
@@ -69,6 +72,28 @@ public class UserDao {
         }
 
         return users;
+    }
+
+    public UsersStats getStats() {
+        UsersStats usersStats = new UsersStats();
+
+        Map<ProviderType, Integer> countByProviderType = jdbcTemplate.query(
+                "SELECT provider_id, COUNT(provider_id) as cnt FROM user GROUP BY provider_id",
+                resultSet -> {
+                    Map<ProviderType, Integer> stats = new LinkedHashMap<>();
+
+                    while (resultSet.next()) {
+                        stats.put(ProviderType.fromId(resultSet.getString("provider_id")), resultSet.getInt("cnt"));
+                    }
+
+                    return stats;
+                }
+        );
+
+        usersStats.setUsersByProvider(countByProviderType);
+        usersStats.setCount(countByProviderType.values().stream().count());
+
+        return usersStats;
     }
 
     private User map(ResultSet rs) throws SQLException {
