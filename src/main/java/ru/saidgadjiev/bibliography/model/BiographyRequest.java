@@ -17,8 +17,6 @@ public class BiographyRequest {
     @Size(min = 1)
     private String lastName;
 
-    @NotNull
-    @Size(min = 1)
     private String middleName;
 
     private String biography;

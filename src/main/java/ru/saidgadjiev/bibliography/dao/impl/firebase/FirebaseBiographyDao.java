@@ -71,13 +71,8 @@ public class FirebaseBiographyDao implements BiographyDao {
     }
 
     @Override
-    public BiographyUpdateStatus update(Biography biography) throws SQLException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
-        return 0;
+    public BiographyUpdateStatus updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
+        return null;
     }
 
     @Override

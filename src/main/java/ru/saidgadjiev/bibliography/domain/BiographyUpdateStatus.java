@@ -9,16 +9,16 @@ import java.sql.Timestamp;
  */
 public class BiographyUpdateStatus {
     
-    private final boolean updated;
+    private final int updated;
     
     private final Timestamp updatedAt;
 
-    public BiographyUpdateStatus(boolean updated, Timestamp updatedAt) {
+    public BiographyUpdateStatus(int updated, Timestamp updatedAt) {
         this.updated = updated;
         this.updatedAt = updatedAt;
     }
 
-    public boolean isUpdated() {
+    public int getUpdated() {
         return updated;
     }
 

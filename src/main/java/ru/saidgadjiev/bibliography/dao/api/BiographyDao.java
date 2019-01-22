@@ -29,9 +29,7 @@ public interface BiographyDao {
 
     Biography getById(int id);
 
-    BiographyUpdateStatus update(Biography biography) throws SQLException;
-
-    int updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria);
+    BiographyUpdateStatus updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria);
 
     int delete(int biographyId);
 }

@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliography.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -223,26 +224,82 @@ public class BiographyService {
         return new PageImpl<>(biographies, pageRequest, total);
     }
 
+    //TODO: переделать обновление с UpdateValue
     @Transactional
     public BiographyUpdateStatus update(Integer id, BiographyRequest updateBiographyRequest) throws SQLException {
-        Biography biography = new Biography();
+        List<UpdateValue> updateValues = new ArrayList<>();
 
-        biography.setFirstName(updateBiographyRequest.getFirstName());
-        biography.setLastName(updateBiographyRequest.getLastName());
-        biography.setMiddleName(updateBiographyRequest.getMiddleName());
+        updateValues.add(
+                new UpdateValue<>(
+                        "first_name",
+                        updateBiographyRequest.getFirstName(),
+                        true,
+                        PreparedStatement::setString
+                )
+        );
+        updateValues.add(
+                new UpdateValue<>(
+                        "last_name",
+                        updateBiographyRequest.getLastName(),
+                        true,
+                        PreparedStatement::setString
+                )
+        );
+        updateValues.add(
+                new UpdateValue<>(
+                        "middle_name",
+                        updateBiographyRequest.getMiddleName(),
+                        true,
+                        PreparedStatement::setString
+                )
+        );
+        updateValues.add(
+                new UpdateValue<>(
+                        "biography",
+                        updateBiographyRequest.getBiography(),
+                        true,
+                        PreparedStatement::setString
+                )
+        );
 
-        biography.setId(id);
-        biography.setBiography(updateBiographyRequest.getBiography());
+        if (StringUtils.isBlank(updateBiographyRequest.getBiography())) {
+            updateValues.add(
+                    new UpdateValue<>(
+                            "publish_status",
+                            Biography.PublishStatus.NOT_PUBLISHED.getCode(),
+                            true,
+                            PreparedStatement::setInt
+                    )
+            );
+        }
+        List<FilterCriteria> criteria = new ArrayList<>();
 
         Timestamp timestamp = new Timestamp(updateBiographyRequest.getLastModified().getTime());
 
         timestamp.setNanos(updateBiographyRequest.getLastModified().getNanos());
 
-        biography.setUpdatedAt(timestamp);
+        criteria.add(
+                new FilterCriteria.Builder<Timestamp>()
+                        .propertyName("updated_at")
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(timestamp)
+                        .needPreparedSet(true)
+                        .valueSetter(PreparedStatement::setTimestamp)
+                        .build()
+        );
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName("id")
+                        .filterValue(id)
+                        .filterOperation(FilterOperation.EQ)
+                        .needPreparedSet(true)
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
+        );
 
-        BiographyUpdateStatus status = biographyDao.update(biography);
+        BiographyUpdateStatus status = biographyDao.updateValues(updateValues, criteria);
 
-        if (status.isUpdated()) {
+        if (status.getUpdated() > 0) {
             if (updateBiographyRequest.getAddCategories() != null && !updateBiographyRequest.getAddCategories().isEmpty()) {
                 biographyCategoryBiographyService.addCategoriesToBiography(
                         updateBiographyRequest.getAddCategories(),
@@ -316,7 +373,7 @@ public class BiographyService {
             );
         }
 
-        return biographyDao.updateValues(updateValues, criteria);
+        return biographyDao.updateValues(updateValues, criteria).getUpdated();
     }
 
     private void postProcess(Biography biography) {

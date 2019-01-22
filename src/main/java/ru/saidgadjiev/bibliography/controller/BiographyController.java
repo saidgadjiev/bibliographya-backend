@@ -102,7 +102,7 @@ public class BiographyController {
 
         BiographyUpdateStatus updateResult = biographyService.update(id, biographyRequest);
 
-        if (updateResult.isUpdated()) {
+        if (updateResult.getUpdated() > 0) {
             UpdateBiographyResponse response = new UpdateBiographyResponse();
 
             response.setLastModified(

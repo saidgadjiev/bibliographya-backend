@@ -3,9 +3,11 @@ package ru.saidgadjiev.bibliography.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
@@ -219,34 +221,7 @@ public class BiographyDaoImpl implements BiographyDao {
     }
 
     @Override
-    public BiographyUpdateStatus update(Biography biography) throws SQLException {
-        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement(
-                    "UPDATE biography " +
-                            "SET first_name=?, last_name=?, middle_name=?, biography=? " +
-                            "WHERE id=? AND updated_at=? RETURNING updated_at")) {
-                ps.setString(1, biography.getFirstName());
-                ps.setString(2, biography.getLastName());
-                ps.setString(3, biography.getMiddleName());
-                ps.setString(4, biography.getBiography());
-                ps.setInt(5, biography.getId());
-                ps.setTimestamp(6, biography.getUpdatedAt());
-
-                ps.execute();
-
-                try (ResultSet resultSet = ps.getResultSet()) {
-                    if (resultSet.next()) {
-                        return new BiographyUpdateStatus(true, resultSet.getTimestamp("updated_at"));
-                    } else {
-                        return new BiographyUpdateStatus(false, null);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public int updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
+    public BiographyUpdateStatus updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
         String clause = toClause(criteria, null);
 
         StringBuilder sql = new StringBuilder();
@@ -262,22 +237,34 @@ public class BiographyDaoImpl implements BiographyDao {
         }
 
         if (StringUtils.isNotBlank(clause)) {
-            sql.append(" WHERE ").append(clause);
+            sql.append(" WHERE ").append(clause).append(" ");
         }
 
-        return jdbcTemplate.update(
+        sql.append("RETURNING updated_at");
+
+        return jdbcTemplate.execute(
                 sql.toString(),
-                ps -> {
+                (PreparedStatementCallback<BiographyUpdateStatus>) ps -> {
                     int i = 0;
 
-                    for (UpdateValue updateValue: updateValues) {
+                    for (UpdateValue updateValue : updateValues) {
                         if (updateValue.isNeedPreparedSet()) {
                             updateValue.getSetter().set(ps, ++i, updateValue.getValue());
                         }
                     }
-                    for (FilterCriteria criterion: criteria) {
+                    for (FilterCriteria criterion : criteria) {
                         if (criterion.isNeedPreparedSet()) {
                             criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
+
+                    ps.execute();
+
+                    try (ResultSet resultSet = ps.getResultSet()) {
+                        if (resultSet.next()) {
+                            return new BiographyUpdateStatus(1, resultSet.getTimestamp("updated_at"));
+                        } else {
+                            return new BiographyUpdateStatus(0, null);
                         }
                     }
                 }
