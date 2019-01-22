@@ -7,6 +7,7 @@ public enum FilterOperation {
 
     EQ ("eq"),
     FIELDS_EQ("fields_eq"),
+    FIELDS_NOT_EQ("fields_not_eq"),
     NOT_EQ("not_eq"),
     IS_NOT_NULL("is_not_null"),
     IS_NULL ("is_null");

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS biography (
   middle_name VARCHAR(512),
   creator_id INTEGER NOT NULL REFERENCES "user"(id),
   user_id INTEGER UNIQUE REFERENCES "user"(id),
+  is_autobiography BOOLEAN DEFAULT FALSE,
   biography TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL,

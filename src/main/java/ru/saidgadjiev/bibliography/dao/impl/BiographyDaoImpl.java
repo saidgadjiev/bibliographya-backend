@@ -3,11 +3,9 @@ package ru.saidgadjiev.bibliography.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliography.data.FilterCriteria;
@@ -17,10 +15,7 @@ import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliography.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliography.utils.SortUtils;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -46,20 +41,38 @@ public class BiographyDaoImpl implements BiographyDao {
     public Biography save(Biography biography) throws SQLException {
         return jdbcTemplate.execute(
                 "INSERT INTO biography" +
-                        "(first_name, last_name, middle_name, biography, creator_id, user_id, publish_status) " +
-                        "VALUES(?, ?, ?, ?, ?, ?, ?) " +
+                        "(first_name, last_name, middle_name, biography, creator_id, user_id, publish_status, is_autobiography) " +
+                        "VALUES(?, ?, ?, ?, ?, ?, ?, ?) " +
                         "RETURNING *",
                 (PreparedStatementCallback<Biography>) ps -> {
                     ps.setString(1, biography.getFirstName());
                     ps.setString(2, biography.getLastName());
-                    ps.setString(3, biography.getMiddleName());
-                    ps.setString(4, biography.getBiography());
-                    ps.setInt(5, biography.getCreatorId());
-                    ps.setInt(6, biography.getUserId());
 
-                    if (biography.getPublishStatus() != null) {
+                    if (StringUtils.isBlank(biography.getMiddleName())) {
+                        ps.setNull(3, Types.VARCHAR);
+                    } else {
+                        ps.setString(3, biography.getMiddleName());
+                    }
+                    if (StringUtils.isBlank(biography.getBiography())) {
+                        ps.setNull(4, Types.VARCHAR);
+                    } else {
+                        ps.setString(4, biography.getBiography());
+                    }
+
+                    ps.setInt(5, biography.getCreatorId());
+
+                    if (biography.getUserId() == null) {
+                        ps.setNull(6, Types.INTEGER);
+                    } else {
+                        ps.setInt(6, biography.getUserId());
+                    }
+
+                    if (biography.getPublishStatus() == null) {
+                        ps.setNull(7, Types.INTEGER);
+                    } else {
                         ps.setInt(7, biography.getPublishStatus().getCode());
                     }
+                    ps.setBoolean(8, biography.getIsAutobiography());
 
                     ps.execute();
 
@@ -180,6 +193,7 @@ public class BiographyDaoImpl implements BiographyDao {
         biography.setFirstName(rs.getString("first_name"));
         biography.setLastName(rs.getString("last_name"));
         biography.setMiddleName(rs.getString("middle_name"));
+        biography.setIsAutobiography(rs.getBoolean("is_autobiography"));
 
         biography.setCreatorId(ResultSetUtils.intOrNull(rs,"creator_id"));
         biography.setUserId(ResultSetUtils.intOrNull(rs,"user_id"));
@@ -295,6 +309,7 @@ public class BiographyDaoImpl implements BiographyDao {
         selectList.append("b.moderation_info,");
         selectList.append("b.biography,");
         selectList.append("b.publish_status,");
+        selectList.append("b.is_autobiography,");
         selectList.append("bm.first_name as m_first_name,");
         selectList.append("bm.last_name as m_last_name,");
         selectList.append("bm.id as m_id");

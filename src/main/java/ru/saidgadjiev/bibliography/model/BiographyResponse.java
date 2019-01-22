@@ -50,6 +50,8 @@ public class BiographyResponse {
 
     private int publishStatus;
 
+    private Boolean isAutobiography;
+
     public Integer getId() {
         return id;
     }
@@ -207,5 +209,13 @@ public class BiographyResponse {
 
     public void setPublishStatus(int publishStatus) {
         this.publishStatus = publishStatus;
+    }
+
+    public Boolean getIsAutobiography() {
+        return isAutobiography;
+    }
+
+    public void setIsAutobiography(Boolean autobiography) {
+        isAutobiography = autobiography;
     }
 }

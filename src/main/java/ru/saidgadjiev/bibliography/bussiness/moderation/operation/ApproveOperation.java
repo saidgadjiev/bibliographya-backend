@@ -35,6 +35,14 @@ public class ApproveOperation {
                         PreparedStatement::setInt
                 )
         );
+        values.add(
+                new UpdateValue<>(
+                        "publish_status",
+                        Biography.PublishStatus.PUBLISHED.getCode(),
+                        true,
+                        PreparedStatement::setInt
+                )
+        );
 
         values.add(
                 new UpdateValue<>(

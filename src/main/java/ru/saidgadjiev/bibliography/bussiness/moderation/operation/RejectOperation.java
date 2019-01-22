@@ -34,6 +34,14 @@ public class RejectOperation {
                         PreparedStatement::setInt
                 )
         );
+        values.add(
+                new UpdateValue<>(
+                        "publish_status",
+                        Biography.PublishStatus.NOT_PUBLISHED.getCode(),
+                        true,
+                        PreparedStatement::setInt
+                )
+        );
 
         String rejectText = (String) args.get("rejectText");
 

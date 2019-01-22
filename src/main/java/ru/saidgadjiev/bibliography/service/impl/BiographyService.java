@@ -65,12 +65,6 @@ public class BiographyService {
         biography.setMiddleName(biographyRequest.getMiddleName());
         biography.setBiography(biographyRequest.getBiography());
         biography.setCreatorId(userDetails.getId());
-        biography.setUserId(biographyRequest.getUserId());
-
-        if (Objects.equals(biography.getCreatorId(), biography.getUserId())) {
-            biography.setPublishStatus(Biography.PublishStatus.PUBLISHED);
-            biography.setModerationStatus(Biography.ModerationStatus.APPROVED);
-        }
 
         Biography result = biographyDao.save(biography);
 
@@ -92,9 +86,10 @@ public class BiographyService {
         biography.setFirstName(biographyRequest.getFirstName());
         biography.setLastName(biographyRequest.getLastName());
         biography.setMiddleName(biographyRequest.getMiddleName());
-        biography.setBiography(biographyRequest.getBiography());
         biography.setCreatorId(user.getId());
         biography.setUserId(user.getId());
+        biography.setIsAutobiography(true);
+        biography.setModerationStatus(Biography.ModerationStatus.APPROVED);
 
         return biographyDao.save(biography);
     }
@@ -144,11 +139,11 @@ public class BiographyService {
         if (autobiographies != null) {
             criteria.add(
                     new FilterCriteria<>(
-                            "creator_id",
-                            FilterOperation.FIELDS_EQ,
-                            null,
-                            "user_id",
-                            false
+                            "is_autobiography",
+                            FilterOperation.EQ,
+                            PreparedStatement::setBoolean,
+                            true,
+                            true
                     )
             );
         }
@@ -158,16 +153,6 @@ public class BiographyService {
                         .filterOperation(FilterOperation.EQ)
                         .valueSetter(PreparedStatement::setInt)
                         .filterValue(Biography.PublishStatus.PUBLISHED.getCode())
-                        .needPreparedSet(true)
-                        .logicOperator(LogicOperator.OR)
-                        .build()
-        );
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName("moderation_status")
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setInt)
-                        .filterValue(Biography.ModerationStatus.APPROVED.getCode())
                         .needPreparedSet(true)
                         .build()
         );
@@ -200,13 +185,22 @@ public class BiographyService {
         List<FilterCriteria> criteria = new ArrayList<>();
 
         criteria.add(
-                new FilterCriteria<Integer>(
+                new FilterCriteria<>(
                         "creator_id",
                         FilterOperation.EQ,
                         PreparedStatement::setInt,
                         user.getId(),
                         true
                 )
+        );
+        criteria.add(
+                new FilterCriteria.Builder<Boolean>()
+                        .propertyName("is_autobiography")
+                        .filterOperation(FilterOperation.EQ)
+                        .valueSetter(PreparedStatement::setBoolean)
+                        .filterValue(false)
+                        .needPreparedSet(true)
+                        .build()
         );
 
         List<Biography> biographies = biographyDao.getBiographiesList(
@@ -262,7 +256,8 @@ public class BiographyService {
                 )
         );
 
-        if (StringUtils.isBlank(updateBiographyRequest.getBiography())) {
+        if (isMyBiography(updateBiographyRequest.getUserId()) &&
+                StringUtils.isBlank(updateBiographyRequest.getBiography())) {
             updateValues.add(
                     new UpdateValue<>(
                             "publish_status",
@@ -396,5 +391,11 @@ public class BiographyService {
             biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
             biography.setCategories(biographiesCategories.get(biography.getId()));
         }
+    }
+
+    private boolean isMyBiography(Integer userId) {
+        User user = (User) securityService.findLoggedInUser();
+
+        return Objects.equals(user.getId(), userId);
     }
 }
