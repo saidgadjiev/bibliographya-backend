@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class UserController {
 
     private final UserService userService;

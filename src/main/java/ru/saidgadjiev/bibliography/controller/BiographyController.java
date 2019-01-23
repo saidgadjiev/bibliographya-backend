@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
@@ -77,6 +78,7 @@ public class BiographyController {
         return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/my")
     public ResponseEntity<Page<BiographyResponse>> getMyBiographies(
             OffsetLimitPageRequest pageRequest
@@ -90,6 +92,7 @@ public class BiographyController {
         return ResponseEntity.ok(new PageImpl<>(convertMyBiographiesToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
+    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#id) or hasAnyRole('ROLE_MODERATOR'))")
     @PutMapping(value = "/{id:[\\d]+}")
     public ResponseEntity<?> update(
             @PathVariable("id") Integer id,
@@ -122,6 +125,7 @@ public class BiographyController {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "")
     public ResponseEntity<?> create(
             @Valid @RequestBody BiographyRequest biographyRequest,
@@ -142,6 +146,7 @@ public class BiographyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(biographyId) or hasRole('ROLE_MODERATOR'))")
     @DeleteMapping("/{biographyId}")
     public ResponseEntity<?> delete(@PathVariable("biographyId") int biographyId) {
         int deleted = biographyService.delete(biographyId);
@@ -167,6 +172,7 @@ public class BiographyController {
         return ResponseEntity.ok(new PageImpl<>(convertCommentsToDto(page.getContent()), pageRequest, page.getTotalElements()));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{biographyId}/comments")
     public ResponseEntity<BiographyCommentResponse> addComment(@PathVariable("biographyId") Integer biographyId,
                                                                @RequestBody BiographyCommentRequest commentRequest) {
@@ -175,6 +181,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertCommentToDto(biographyComment));
     }
 
+    @PreAuthorize("isAuthenticated() and (comment.isIAuthor(#commentId) or biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @DeleteMapping("/{biographyId}/comments/{commentId}")
     public ResponseEntity<?> deleteComment(
             @PathVariable("commentId") Integer commentId,
@@ -185,6 +192,7 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/publish")
     public ResponseEntity<?> publish(@PathVariable("biographyId") Integer biographyId) {
         int updated = biographyService.publish(biographyId);
@@ -196,6 +204,7 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/unpublish")
     public ResponseEntity<?> unpublish(@PathVariable("biographyId") Integer biographyId) {
         int updated = biographyService.unpublish(biographyId);
@@ -207,6 +216,7 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{biographyId}/fixes")
     public ResponseEntity<?> suggest(
             @PathVariable("biographyId") int biographyId,
@@ -217,7 +227,7 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
-
+    @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @PatchMapping("/{biographyId}/moderation/assign-me")
     public ResponseEntity<?> assignMe(@PathVariable("biographyId") int biographyId,
                                       @RequestBody CompleteRequest completeRequest) throws SQLException {
@@ -238,6 +248,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertModerationToDto(biography, updated.getActions()));
     }
 
+    @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @PatchMapping("/{biographyId}/moderation/complete")
     public ResponseEntity<?> complete(
             @PathVariable("biographyId") int biographyId,
@@ -255,6 +266,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
     }
 
+    @PreAuthorize("isAuthenticated() and biography.isIAuthor(#biographyId)")
     @PatchMapping("/{biographyId}/moderation/user-complete")
     public ResponseEntity<?> userComplete(
             @PathVariable("biographyId") int biographyId,
@@ -272,6 +284,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
     }
 
+    @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @GetMapping(value = "/moderation")
     public ResponseEntity<Page<BiographyResponse>> getModeration(
             OffsetLimitPageRequest pageRequest,
@@ -284,6 +297,12 @@ public class BiographyController {
         }
 
         return ResponseEntity.ok(new PageImpl<>(convertModerationToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+    }
+
+    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @RequestMapping(value = "/{biographyId}", method = RequestMethod.HEAD)
+    public ResponseEntity<?> canEdit(@PathVariable("biographyId") int biographyId) {
+        return ResponseEntity.ok().build();
     }
 
     private List<BiographyResponse> convertToDto(List<Biography> biographies) {

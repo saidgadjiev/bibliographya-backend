@@ -11,6 +11,7 @@ import ru.saidgadjiev.bibliography.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliography.data.*;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyRequest;
 import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
@@ -323,6 +324,25 @@ public class BiographyService {
 
     public int unpublish(Integer biographyId) {
         return publishUpdate(biographyId, Biography.PublishStatus.NOT_PUBLISHED);
+    }
+
+    public boolean isIAuthor(int biographyId) {
+        List<Map<String, Object>> result = biographyDao.getFields(Collections.singletonList("creator_id"), Collections.singletonList(
+                new FilterCriteria.Builder<Integer>()
+                .propertyName("id")
+                .filterOperation(FilterOperation.EQ)
+                .valueSetter(PreparedStatement::setInt)
+                .filterValue(biographyId)
+                .build()
+        ));
+
+        if (result.isEmpty()) {
+            return false;
+        }
+        Integer creatorId = (Integer) result.iterator().next().get("creator_id");
+        User user = (User) securityService.findLoggedInUser();
+
+        return Objects.equals(creatorId, user.getId());
     }
 
     private int publishUpdate(int biographyId, Biography.PublishStatus publishStatus) {

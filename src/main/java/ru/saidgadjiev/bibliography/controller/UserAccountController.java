@@ -13,8 +13,8 @@ import java.sql.SQLException;
 /**
  * Created by said on 02.01.2019.
  */
-@RestController
-@RequestMapping("/api/user-accounts")
+//@RestController
+//@RequestMapping("/api/user-accounts")
 public class UserAccountController {
 
     private final UserAccountDetailsService userAccountDetailsService;

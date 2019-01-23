@@ -1,21 +1,11 @@
 package ru.saidgadjiev.bibliography.controller;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliography.domain.BiographyComment;
-import ru.saidgadjiev.bibliography.model.BiographyCommentRequest;
-import ru.saidgadjiev.bibliography.model.BiographyCommentResponse;
-import ru.saidgadjiev.bibliography.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliography.service.impl.BiographyCommentService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by said on 16.11.2018.
@@ -31,6 +21,7 @@ public class BiographyCommentController {
         this.biographyCommentService = biographyCommentService;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") Integer commentId,
                                     @RequestBody ObjectNode comment) {

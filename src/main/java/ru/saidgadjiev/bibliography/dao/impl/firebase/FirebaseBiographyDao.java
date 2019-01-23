@@ -80,6 +80,11 @@ public class FirebaseBiographyDao implements BiographyDao {
         return 0;
     }
 
+    @Override
+    public List<Map<String, Object>> getFields(Collection<String> fields, Collection<FilterCriteria> criteria) {
+        return null;
+    }
+
 
     public BiographyStats getBiographyStats(Integer biographyId) {
         DatabaseReference databaseReference = firebaseDatabase.getReference();

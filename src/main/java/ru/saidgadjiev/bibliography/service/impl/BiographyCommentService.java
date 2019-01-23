@@ -8,14 +8,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliography.dao.api.BiographyCommentDao;
+import ru.saidgadjiev.bibliography.data.FilterCriteria;
+import ru.saidgadjiev.bibliography.data.FilterOperation;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 import ru.saidgadjiev.bibliography.domain.User;
 import ru.saidgadjiev.bibliography.model.BiographyCommentRequest;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.sql.PreparedStatement;
+import java.util.*;
 
 /**
  * Created by said on 18.11.2018.
@@ -102,5 +103,24 @@ public class BiographyCommentService {
         //firebaseCommentDao.updateContent(commentId, content);
 
         return updated;
+    }
+
+    public boolean isIAuthor(int commentId) {
+        List<Map<String, Object>> result = biographyCommentDao.getFields(Collections.singletonList("user_id"), Collections.singletonList(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName("id")
+                        .filterOperation(FilterOperation.EQ)
+                        .valueSetter(PreparedStatement::setInt)
+                        .filterValue(commentId)
+                        .build()
+        ));
+
+        if (result.isEmpty()) {
+            return false;
+        }
+        Integer creatorId = (Integer) result.iterator().next().get("user_id");
+        User user = (User) securityService.findLoggedInUser();
+
+        return Objects.equals(creatorId, user.getId());
     }
 }

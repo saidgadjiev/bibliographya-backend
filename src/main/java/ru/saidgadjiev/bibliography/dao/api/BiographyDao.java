@@ -9,6 +9,7 @@ import ru.saidgadjiev.bibliography.domain.BiographyUpdateStatus;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by said on 08.01.2019.
@@ -32,4 +33,6 @@ public interface BiographyDao {
     BiographyUpdateStatus updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria);
 
     int delete(int biographyId);
+
+    List<Map<String, Object>> getFields(Collection<String> fields, Collection<FilterCriteria> criteria);
 }

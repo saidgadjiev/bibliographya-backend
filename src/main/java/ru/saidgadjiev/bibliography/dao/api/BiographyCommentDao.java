@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliography.dao.api;
 
 import org.springframework.data.domain.Sort;
+import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 
 import java.util.Collection;
@@ -24,6 +25,8 @@ public interface BiographyCommentDao {
     Map<Integer, Long> countOffByBiographiesIds(Collection<Integer> biographiesIds);
 
     BiographyComment getById(int id);
+
+    List<Map<String, Object>> getFields(Collection<String> fields, Collection<FilterCriteria> criteria);
 
     int updateContent(Integer commentId, String content);
 }

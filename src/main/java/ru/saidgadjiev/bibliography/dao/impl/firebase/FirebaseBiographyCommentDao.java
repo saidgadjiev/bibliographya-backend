@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliography.dao.api.BiographyCommentDao;
+import ru.saidgadjiev.bibliography.data.FilterCriteria;
 import ru.saidgadjiev.bibliography.domain.Biography;
 import ru.saidgadjiev.bibliography.domain.BiographyComment;
 
@@ -324,6 +325,11 @@ public class FirebaseBiographyCommentDao implements BiographyCommentDao {
         }*/
 
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Map<String, Object>> getFields(Collection<String> fields, Collection<FilterCriteria> criteria) {
+        return null;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliography.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.domain.Role;
 import ru.saidgadjiev.bibliography.service.impl.RoleService;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/roles")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class RoleController {
 
     private final RoleService roleService;

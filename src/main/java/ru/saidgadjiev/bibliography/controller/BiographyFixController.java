@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliography.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliography.bussiness.moderation.ModerationAction;
@@ -26,6 +27,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/fixes")
+@PreAuthorize("hasRole('ROLE_MODERATOR')")
 public class BiographyFixController {
 
     private final BiographyFixService fixService;
@@ -72,7 +74,7 @@ public class BiographyFixController {
     }
 
     @PatchMapping("/{fixId}/complete")
-    public ResponseEntity<?> close(@PathVariable("fixId") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+    public ResponseEntity<?> complete(@PathVariable("fixId") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
         CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
                 fixId,
                 completeRequest
