@@ -89,3 +89,7 @@ target/
 #Mac OS
 .DS_Store
 *.json
+
+#Bibliographya
+.env
+postgres-data/
