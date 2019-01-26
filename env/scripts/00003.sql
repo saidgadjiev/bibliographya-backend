@@ -6,4 +6,5 @@ CREATE TABLE IF NOT EXISTS user_role (
 );
 
 INSERT INTO user_role("user_id", "role_name") VALUES(1, 'ROLE_ADMIN');
-INSERT INTO user_role("user_id", "role_name") VALUES(2, 'ROLE_USER');
+INSERT INTO user_role("user_id", "role_name") VALUES(1, 'ROLE_MODERATOR');
+INSERT INTO user_role("user_id", "role_name") VALUES(1, 'ROLE_USER');
