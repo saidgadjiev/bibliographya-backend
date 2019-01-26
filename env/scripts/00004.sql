@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS biography (
   is_autobiography BOOLEAN DEFAULT FALSE,
   biography TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   moderation_status INTEGER NOT NULL DEFAULT 0,
   moderation_info TEXT,
   moderated_at TIMESTAMP,

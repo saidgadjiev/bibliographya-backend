@@ -18,8 +18,6 @@ CREATE TABLE IF NOT EXISTS "social_account" (
 );
 
 INSERT INTO "user"(provider_id) VALUES ('username_password');
-INSERT INTO "user"(provider_id) VALUES ('username_password');
 
 INSERT INTO "user_account"("name", "password", user_id) VALUES('admin', '$2a$10$MItPOf2gYp7D5MOTw.Jl7O8.NTOtxvpQiR65apQ04QRonrMjQdTKe', 1);
-INSERT INTO "user_account"("name", "password", "user_id") VALUES('test', '$2a$10$mXyMQeOzYCyBWdCwi42NGeVegfdl2H7uBIXRSFMkG02t5FEeGo8X6', 2);
 
