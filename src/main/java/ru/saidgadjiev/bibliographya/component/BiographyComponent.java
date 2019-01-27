@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.component;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
@@ -9,9 +10,10 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 @Component("biography")
 public class BiographyComponent {
 
-    private final BiographyService biographyService;
+    private BiographyService biographyService;
 
-    public BiographyComponent(BiographyService biographyService) {
+    @Autowired
+    public void setBiographyService(BiographyService biographyService) {
         this.biographyService = biographyService;
     }
 

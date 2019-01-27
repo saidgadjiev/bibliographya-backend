@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -19,8 +18,7 @@ import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
-import ru.saidgadjiev.bibliographya.service.api.SocialUserDetailsService;
-import ru.saidgadjiev.bibliographya.service.api.UserAccountDetailsService;
+import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenCookieService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
@@ -42,7 +40,7 @@ public class AuthService {
 
     private VKService vkService;
 
-    private UserAccountDetailsService userAccountDetailsService;
+    private BibliographyaUserDetailsService userAccountDetailsService;
 
     private TokenService tokenService;
 
@@ -69,7 +67,7 @@ public class AuthService {
     }
 
     @Autowired
-    public void setUserAccountDetailsService(UserAccountDetailsService userAccountDetailsService) {
+    public void setUserAccountDetailsService(BibliographyaUserDetailsService userAccountDetailsService) {
         this.userAccountDetailsService = userAccountDetailsService;
     }
 
@@ -109,7 +107,6 @@ public class AuthService {
     public User auth(AuthContext authContext) throws SQLException {
         User user = null;
         AccessGrant accessGrant = null;
-        SocialUserDetailsService socialUserDetailsService = (SocialUserDetailsService) userAccountDetailsService;
 
         switch (authContext.getProviderType()) {
             case FACEBOOK: {
@@ -117,10 +114,12 @@ public class AuthService {
 
                 SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant.getAccessToken());
 
-                user = (User) socialUserDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
+                user = (User) userAccountDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
 
                 if (user == null) {
-                    user = (User) socialUserDetailsService.saveSocialUser(userInfo);
+                    user = (User) userAccountDetailsService.saveSocialUser(userInfo);
+
+                    user.setIsNew(true);
                 }
 
                 break;
@@ -130,10 +129,12 @@ public class AuthService {
 
                 SocialUserInfo userInfo = vkService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 
-                user = (User) socialUserDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
+                user = (User) userAccountDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
 
                 if (user == null) {
-                    user = (User) socialUserDetailsService.saveSocialUser(userInfo);
+                    user = (User) userAccountDetailsService.saveSocialUser(userInfo);
+
+                    user.setIsNew(true);
                 }
 
                 break;
@@ -191,12 +192,11 @@ public class AuthService {
             ProviderType providerType = ProviderType.fromId((String) details.get("providerId"));
             Integer userId = (Integer) details.get("userId");
             UserDetails userDetails = null;
-            SocialUserDetailsService socialUserDetailsService = (SocialUserDetailsService) userAccountDetailsService;
 
             switch (providerType) {
                 case VK:
                 case FACEBOOK:
-                    userDetails = socialUserDetailsService.loadSocialUserById(userId);
+                    userDetails = userAccountDetailsService.loadSocialUserById(userId);
                     break;
                 case USERNAME_PASSWORD:
                     userDetails = userAccountDetailsService.loadUserById(userId);

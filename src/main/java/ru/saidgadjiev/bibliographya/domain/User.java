@@ -25,6 +25,8 @@ public class User implements UserDetails, CredentialsContainer {
 
     private Set<Role> roles;
 
+    private Boolean isNew = false;
+
     public User() {
     }
 
@@ -127,5 +129,13 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setSocialAccount(SocialAccount socialAccount) {
         this.socialAccount = socialAccount;
+    }
+
+    public Boolean getIsNew() {
+        return isNew;
+    }
+
+    public void setIsNew(Boolean aNew) {
+        isNew = aNew;
     }
 }

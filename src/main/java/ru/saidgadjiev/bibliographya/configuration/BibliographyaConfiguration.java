@@ -7,6 +7,8 @@ import org.modelmapper.PropertyMap;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.*;
@@ -170,5 +172,10 @@ public class BibliographyaConfiguration {
         });
 
         return modelMapper;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

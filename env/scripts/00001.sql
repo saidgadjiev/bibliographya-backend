@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS "social_account" (
 
 INSERT INTO "user"(provider_id) VALUES ('username_password');
 
-INSERT INTO "user_account"("name", "password", user_id) VALUES('admin', '$2a$10$MItPOf2gYp7D5MOTw.Jl7O8.NTOtxvpQiR65apQ04QRonrMjQdTKe', 1);
+INSERT INTO "user_account"("name", "password", user_id) VALUES('admin', '$2a$10$V.hNtSdrn5Jmhxd1wMDZ6eo.q2EY0gO/v4pm7HqRoPx7vc8NBZyIO', 1);
 

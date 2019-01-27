@@ -14,8 +14,7 @@ import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
-import ru.saidgadjiev.bibliographya.service.api.UserAccountDetailsService;
-import ru.saidgadjiev.bibliographya.service.api.SocialUserDetailsService;
+import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import java.sql.SQLException;
 import java.util.stream.Collectors;
@@ -25,7 +24,7 @@ import java.util.stream.Stream;
  * Created by said on 21.10.2018.
  */
 @Service("userDetailsService")
-public class UserDetailsServiceImpl implements UserDetailsService, UserAccountDetailsService, SocialUserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService, BibliographyaUserDetailsService {
 
     private final UserAccountDao userAccountDao;
 

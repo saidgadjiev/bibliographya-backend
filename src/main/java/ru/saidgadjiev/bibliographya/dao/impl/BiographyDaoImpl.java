@@ -43,8 +43,8 @@ public class BiographyDaoImpl implements BiographyDao {
     public Biography save(Biography biography) throws SQLException {
         return jdbcTemplate.execute(
                 "INSERT INTO biography" +
-                        "(first_name, last_name, middle_name, biography, creator_id, user_id, publish_status, is_autobiography) " +
-                        "VALUES(?, ?, ?, ?, ?, ?, ?, ?) " +
+                        "(first_name, last_name, middle_name, biography, creator_id, user_id) " +
+                        "VALUES(?, ?, ?, ?, ?, ?) " +
                         "RETURNING *",
                 (PreparedStatementCallback<Biography>) ps -> {
                     ps.setString(1, biography.getFirstName());
@@ -68,13 +68,6 @@ public class BiographyDaoImpl implements BiographyDao {
                     } else {
                         ps.setInt(6, biography.getUserId());
                     }
-
-                    if (biography.getPublishStatus() == null) {
-                        ps.setNull(7, Types.INTEGER);
-                    } else {
-                        ps.setInt(7, biography.getPublishStatus().getCode());
-                    }
-                    ps.setBoolean(8, biography.getIsAutobiography());
 
                     ps.execute();
 

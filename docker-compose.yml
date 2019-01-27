@@ -5,6 +5,7 @@ services:
     build: .
     ports:
     - "${PORT}:${PORT}"
+    - "5005:5005"
     environment:
     - PORT=${PORT}
     - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}

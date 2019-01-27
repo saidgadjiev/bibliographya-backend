@@ -8,7 +8,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyDao;
-import ru.saidgadjiev.bibliographya.data.*;
+import ru.saidgadjiev.bibliographya.data.FilterArgumentResolver;
+import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -100,8 +103,6 @@ public class BiographyService {
         biography.setMiddleName(biographyRequest.getMiddleName());
         biography.setCreatorId(user.getId());
         biography.setUserId(user.getId());
-        biography.setIsAutobiography(true);
-        biography.setModerationStatus(Biography.ModerationStatus.APPROVED);
 
         return biographyDao.save(biography);
     }
@@ -230,7 +231,6 @@ public class BiographyService {
         return new PageImpl<>(biographies, pageRequest, total);
     }
 
-    //TODO: переделать обновление с UpdateValue
     @Transactional
     public BiographyUpdateStatus update(Integer id, BiographyRequest updateBiographyRequest) throws SQLException {
         List<UpdateValue> updateValues = new ArrayList<>();
@@ -268,8 +268,7 @@ public class BiographyService {
                 )
         );
 
-        if (isMyBiography(updateBiographyRequest.getUserId()) &&
-                StringUtils.isBlank(updateBiographyRequest.getBiography())) {
+        if (StringUtils.isBlank(updateBiographyRequest.getBiography())) {
             updateValues.add(
                     new UpdateValue<>(
                             "publish_status",
@@ -422,11 +421,5 @@ public class BiographyService {
             biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
             biography.setCategories(biographiesCategories.get(biography.getId()));
         }
-    }
-
-    private boolean isMyBiography(Integer userId) {
-        User user = (User) securityService.findLoggedInUser();
-
-        return Objects.equals(user.getId(), userId);
     }
 }

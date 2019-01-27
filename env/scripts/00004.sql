@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS biography (
   moderation_info   TEXT,
   moderated_at      TIMESTAMP,
   moderator_id      INTEGER REFERENCES "user" (id),
-  publish_status    INTEGER
+  publish_status    INTEGER      NOT NULL DEFAULT 0
 );
 
-CREATE OR REPLACE FUNCTION biography_updated()
+CREATE OR REPLACE FUNCTION biography_update()
   RETURNS TRIGGER
 AS '
 BEGIN
@@ -25,10 +25,24 @@ BEGIN
 END;'
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_biography_updated
+CREATE TRIGGER trigger_biography_update
 BEFORE UPDATE ON biography
 FOR EACH ROW
-EXECUTE PROCEDURE biography_updated();
+EXECUTE PROCEDURE biography_update();
 
-INSERT INTO biography (first_name, last_name, middle_name, creator_id, user_id, is_autobiography, moderation_status, moderated_at, moderator_id, publish_status)
-VALUES ('Саид', 'Гаджиев', 'Алиевич', 1, 1, TRUE, 1, now(), 1, 0);
+CREATE OR REPLACE FUNCTION biography_insert()
+  RETURNS TRIGGER
+AS '
+BEGIN
+  NEW.is_autobiography := NEW.user_id = NEW.creator_id;
+  RETURN NEW;
+END;'
+LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_biography_insert
+BEFORE INSERT ON biography
+FOR EACH ROW
+EXECUTE PROCEDURE biography_insert();
+
+INSERT INTO biography (first_name, last_name, middle_name, creator_id, user_id, is_autobiography, moderation_status, moderated_at, moderator_id)
+VALUES ('Саид', 'Гаджиев', 'Алиевич', 1, 1, TRUE, 1, now(), 1);

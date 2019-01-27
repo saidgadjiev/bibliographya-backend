@@ -58,7 +58,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/signIn/{providerId}")
+    @PostMapping(value = "/signIn/{providerId}", params = "code")
     public ResponseEntity<?> singInSocial(
             HttpServletResponse response,
             @PathVariable("providerId") String providerId,
@@ -80,6 +80,14 @@ public class AuthController {
         } catch (BadCredentialsException ex) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping(value = "/signIn/{providerId}", params = "error")
+    public ResponseEntity<?> errorSignInSocial(
+            @RequestParam("error") String error,
+            @RequestParam(value = "error_description", required = false) String errorDescription
+    ) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @PostMapping("/signIn")

@@ -92,7 +92,7 @@ public class BiographyController {
         return ResponseEntity.ok(new PageImpl<>(convertMyBiographiesToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
-    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#id) or hasAnyRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#id) or hasAnyRole('ROLE_MODERATOR'))")
     @PutMapping(value = "/{id:[\\d]+}")
     public ResponseEntity<?> update(
             @PathVariable("id") Integer id,
@@ -146,7 +146,7 @@ public class BiographyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(biographyId) or hasRole('ROLE_MODERATOR'))")
     @DeleteMapping("/{biographyId}")
     public ResponseEntity<?> delete(@PathVariable("biographyId") int biographyId) {
         int deleted = biographyService.delete(biographyId);
@@ -181,7 +181,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertCommentToDto(biographyComment));
     }
 
-    @PreAuthorize("isAuthenticated() and (comment.isIAuthor(#commentId) or biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@comment.isIAuthor(#commentId) or @biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @DeleteMapping("/{biographyId}/comments/{commentId}")
     public ResponseEntity<?> deleteComment(
             @PathVariable("commentId") Integer commentId,
@@ -192,7 +192,7 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/publish")
     public ResponseEntity<?> publish(@PathVariable("biographyId") Integer biographyId) {
         int updated = biographyService.publish(biographyId);
@@ -204,7 +204,7 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/unpublish")
     public ResponseEntity<?> unpublish(@PathVariable("biographyId") Integer biographyId) {
         int updated = biographyService.unpublish(biographyId);
@@ -266,7 +266,7 @@ public class BiographyController {
         return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
     }
 
-    @PreAuthorize("isAuthenticated() and biography.isIAuthor(#biographyId)")
+    @PreAuthorize("isAuthenticated() and @biography.isIAuthor(#biographyId)")
     @PatchMapping("/{biographyId}/moderation/user-complete")
     public ResponseEntity<?> userComplete(
             @PathVariable("biographyId") int biographyId,
@@ -299,7 +299,7 @@ public class BiographyController {
         return ResponseEntity.ok(new PageImpl<>(convertModerationToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
     }
 
-    @PreAuthorize("isAuthenticated() and (biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @RequestMapping(value = "/{biographyId}", method = RequestMethod.HEAD)
     public ResponseEntity<?> canEdit(@PathVariable("biographyId") int biographyId) {
         return ResponseEntity.ok().build();

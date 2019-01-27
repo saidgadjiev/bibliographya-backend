@@ -273,9 +273,9 @@ public class Biography {
 
     public enum PublishStatus {
 
-        PUBLISHED(0),
+        NOT_PUBLISHED(0),
 
-        NOT_PUBLISHED(1);
+        PUBLISHED(1);
 
         private final int code;
 

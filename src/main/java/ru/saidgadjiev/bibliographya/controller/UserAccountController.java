@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import ru.saidgadjiev.bibliographya.service.api.UserAccountDetailsService;
+import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import java.sql.SQLException;
 
@@ -16,9 +16,9 @@ import java.sql.SQLException;
 //@RequestMapping("/api/user-accounts")
 public class UserAccountController {
 
-    private final UserAccountDetailsService userAccountDetailsService;
+    private final BibliographyaUserDetailsService userAccountDetailsService;
 
-    public UserAccountController(UserAccountDetailsService userAccountDetailsService) {
+    public UserAccountController(BibliographyaUserDetailsService userAccountDetailsService) {
         this.userAccountDetailsService = userAccountDetailsService;
     }
 
