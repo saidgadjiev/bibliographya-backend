@@ -38,3 +38,5 @@ management:
   endpoint:
     shutdown:
       enabled: true
+logging:
+  file: logs/bibliographya.log
