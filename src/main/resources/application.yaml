@@ -30,3 +30,11 @@ app:
     secret: ${JWT_SECRET}
   upload:
     dir: ${UPLOAD_DIR}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    shutdown:
+      enabled: true

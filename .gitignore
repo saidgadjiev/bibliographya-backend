@@ -93,3 +93,5 @@ target/
 #Bibliographya
 .env
 postgres-data/
+prometheus-grafana/prometheus
+prometheus-grafana/grafana
