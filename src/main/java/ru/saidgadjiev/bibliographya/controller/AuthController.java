@@ -7,6 +7,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.NativeWebRequest;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -34,7 +35,8 @@ public class AuthController {
     }
 
     @PostMapping("/oauth/{providerId}")
-    public ResponseEntity<String> signIn(@PathVariable("providerId") String providerId) {
+    public ResponseEntity<String> signIn(@PathVariable("providerId") String providerId,
+                                         @RequestParam("redirectUri") String redirectUri) {
         ProviderType providerType = ProviderType.fromId(providerId);
 
         if (providerType == null) {
@@ -45,7 +47,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(authService.getOauthUrl(providerType));
+        return ResponseEntity.ok(authService.getOauthUrl(providerType, redirectUri));
     }
 
     @PostMapping("/signUp")
@@ -62,7 +64,8 @@ public class AuthController {
     public ResponseEntity<?> singInSocial(
             HttpServletResponse response,
             @PathVariable("providerId") String providerId,
-            @RequestParam("code") String code
+            @RequestParam("code") String code,
+            @RequestParam("redirectUri") String redirectUri
     ) throws SQLException {
         ProviderType providerType = ProviderType.fromId(providerId);
 
@@ -76,7 +79,7 @@ public class AuthController {
                     .setCode(code)
                     .setResponse(response);
 
-            return ResponseEntity.ok(authService.auth(authContext));
+            return ResponseEntity.ok(authService.auth(authContext, redirectUri));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.badRequest().build();
         }
@@ -106,7 +109,7 @@ public class AuthController {
                     .setResponse(response)
                     .setSignInRequest(signInRequest);
 
-            return ResponseEntity.ok(authService.auth(authContext));
+            return ResponseEntity.ok(authService.auth(authContext, null));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.badRequest().build();
         }

@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.NativeWebRequest;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
@@ -91,12 +92,12 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
     }
 
-    public String getOauthUrl(ProviderType providerType) {
+    public String getOauthUrl(ProviderType providerType, String redirectUri) {
         switch (providerType) {
             case FACEBOOK:
-                return facebookService.createFacebookAuthorizationUrl();
+                return facebookService.createFacebookAuthorizationUrl(redirectUri);
             case VK:
-                return vkService.createVKAuthorizationUrl();
+                return vkService.createVKAuthorizationUrl(redirectUri);
             case USERNAME_PASSWORD:
                 break;
         }
@@ -104,13 +105,13 @@ public class AuthService {
         return null;
     }
 
-    public User auth(AuthContext authContext) throws SQLException {
+    public User auth(AuthContext authContext, String redirectUri) throws SQLException {
         User user = null;
         AccessGrant accessGrant = null;
 
         switch (authContext.getProviderType()) {
             case FACEBOOK: {
-                accessGrant = facebookService.createFacebookAccessToken(authContext.getCode());
+                accessGrant = facebookService.createFacebookAccessToken(authContext.getCode(), redirectUri);
 
                 SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant.getAccessToken());
 
@@ -125,7 +126,7 @@ public class AuthService {
                 break;
             }
             case VK: {
-                accessGrant = vkService.createFacebookAccessToken(authContext.getCode());
+                accessGrant = vkService.createAccessToken(authContext.getCode(), redirectUri);
 
                 SocialUserInfo userInfo = vkService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 

@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.auth.social.TokenInfo;
-import ru.saidgadjiev.bibliographya.properties.VKProperties;
-import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.vk.OAuthVKTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.vk.UserProfileOperations;
 import ru.saidgadjiev.bibliographya.auth.social.vk.VK;
+import ru.saidgadjiev.bibliographya.properties.VKProperties;
 
 /**
  * Created by said on 29.12.2018.
@@ -28,14 +28,14 @@ public class VKService {
         );
     }
 
-    public String createVKAuthorizationUrl() {
-        return oAuthTemplate.buildOAuthUrl("http://localhost:8080/vk/callback", null);
+    public String createVKAuthorizationUrl(String redirectUri) {
+        return oAuthTemplate.buildOAuthUrl(redirectUri, null);
     }
 
-    public AccessGrant createFacebookAccessToken(String code) {
+    public AccessGrant createAccessToken(String code, String redirectUri) {
         return oAuthTemplate.exchangeForAccess(
                 code,
-                "http://localhost:8080/vk/callback",
+                redirectUri,
                 null
         );
     }

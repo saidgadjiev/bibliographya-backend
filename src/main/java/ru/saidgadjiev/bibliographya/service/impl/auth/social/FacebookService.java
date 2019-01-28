@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.auth.social.TokenInfo;
-import ru.saidgadjiev.bibliographya.properties.FacebookProperties;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.Facebook;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.OAuthFacebookTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.PermissionOperations;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.UserProfileOperations;
-import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
+import ru.saidgadjiev.bibliographya.properties.FacebookProperties;
 
 
 /**
@@ -31,14 +31,14 @@ public class FacebookService {
         );
     }
 
-    public String createFacebookAuthorizationUrl() {
-        return oAuthTemplate.buildOAuthUrl("http://localhost:8080/facebook/callback", null);
+    public String createFacebookAuthorizationUrl(String redirectUri) {
+        return oAuthTemplate.buildOAuthUrl(redirectUri, null);
     }
 
-    public AccessGrant createFacebookAccessToken(String code) {
+    public AccessGrant createFacebookAccessToken(String code, String redirectUri) {
         return oAuthTemplate.exchangeForAccess(
                 code,
-                "http://localhost:8080/facebook/callback",
+                redirectUri,
                 null
         );
     }
