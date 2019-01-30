@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyResponse;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
@@ -81,6 +82,13 @@ public class BiographyCategoryController {
                         page.getTotalElements()
                 )
         );
+    }
+
+    @PostMapping("")
+    public ResponseEntity<?> create(@RequestBody BiographyCategoryRequest categoryRequest) {
+        biographyCategoryService.create(categoryRequest);
+
+        return ResponseEntity.ok().build();
     }
 
 }

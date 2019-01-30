@@ -56,6 +56,10 @@ public class BiographyCategoryDao {
         );
     }
 
+    public void create(BiographyCategory category) {
+
+    }
+
     private BiographyCategory map(ResultSet rs) throws SQLException {
         BiographyCategory biographyCategory = new BiographyCategory();
 

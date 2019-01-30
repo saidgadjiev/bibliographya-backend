@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCategoryDao;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 
 import java.util.List;
 
@@ -33,5 +34,14 @@ public class BiographyCategoryService {
     @Nullable
     public BiographyCategory getByName(String categoryName) {
         return dao.getByName(categoryName);
+    }
+
+    public void create(BiographyCategoryRequest categoryRequest) {
+        BiographyCategory category = new BiographyCategory();
+
+        category.setName(categoryRequest.getName());
+        category.setImagePath(categoryRequest.getImagePath());
+
+        dao.create(category);
     }
 }
