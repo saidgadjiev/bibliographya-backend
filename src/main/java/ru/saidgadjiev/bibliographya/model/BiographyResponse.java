@@ -40,7 +40,9 @@ public class BiographyResponse {
 
     private String moderatorId;
 
-    private BiographyResponse moderatorBiography;
+    private ShortBiographyResponse moderatorBiography;
+
+    private ShortBiographyResponse creatorBiography;
 
     private Collection<String> categories;
 
@@ -49,8 +51,6 @@ public class BiographyResponse {
     private String moderationInfo;
 
     private int publishStatus;
-
-    private Boolean isAutobiography;
 
     public Integer getId() {
         return id;
@@ -179,12 +179,20 @@ public class BiographyResponse {
         this.categories = categories;
     }
 
-    public BiographyResponse getModeratorBiography() {
+    public ShortBiographyResponse getModeratorBiography() {
         return moderatorBiography;
     }
 
-    public void setModeratorBiography(BiographyResponse moderatorBiography) {
+    public void setModeratorBiography(ShortBiographyResponse moderatorBiography) {
         this.moderatorBiography = moderatorBiography;
+    }
+
+    public ShortBiographyResponse getCreatorBiography() {
+        return creatorBiography;
+    }
+
+    public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
+        this.creatorBiography = creatorBiography;
     }
 
     public Collection<ModerationAction> getActions() {
@@ -209,13 +217,5 @@ public class BiographyResponse {
 
     public void setPublishStatus(int publishStatus) {
         this.publishStatus = publishStatus;
-    }
-
-    public Boolean getIsAutobiography() {
-        return isAutobiography;
-    }
-
-    public void setIsAutobiography(Boolean autobiography) {
-        isAutobiography = autobiography;
     }
 }

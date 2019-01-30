@@ -49,11 +49,11 @@ public class Biography {
 
     private Biography moderatorBiography;
 
+    private Biography creatorBiography;
+
     private String moderationInfo;
 
     private PublishStatus publishStatus;
-
-    private Boolean isAutobiography = false;
 
     public Integer getId() {
         return id;
@@ -231,12 +231,12 @@ public class Biography {
         this.publishStatus = publishStatus;
     }
 
-    public Boolean getIsAutobiography() {
-        return isAutobiography;
+    public Biography getCreatorBiography() {
+        return creatorBiography;
     }
 
-    public void setIsAutobiography(Boolean autobiography) {
-        isAutobiography = autobiography;
+    public void setCreatorBiography(Biography creatorBiography) {
+        this.creatorBiography = creatorBiography;
     }
 
     /**

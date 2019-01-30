@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS biography (
   middle_name       VARCHAR(512),
   creator_id        INTEGER      NOT NULL REFERENCES "user" (id),
   user_id           INTEGER UNIQUE REFERENCES "user" (id),
-  is_autobiography  BOOLEAN               DEFAULT FALSE,
   biography         TEXT,
   created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
   updated_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
@@ -30,19 +29,5 @@ BEFORE UPDATE ON biography
 FOR EACH ROW
 EXECUTE PROCEDURE biography_update();
 
-CREATE OR REPLACE FUNCTION biography_insert()
-  RETURNS TRIGGER
-AS '
-BEGIN
-  NEW.is_autobiography := NEW.user_id = NEW.creator_id;
-  RETURN NEW;
-END;'
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_biography_insert
-BEFORE INSERT ON biography
-FOR EACH ROW
-EXECUTE PROCEDURE biography_insert();
-
-INSERT INTO biography (first_name, last_name, middle_name, creator_id, user_id, is_autobiography, moderation_status, moderated_at, moderator_id)
-VALUES ('Саид', 'Гаджиев', 'Алиевич', 1, 1, TRUE, 1, now(), 1);
+INSERT INTO biography (first_name, last_name, middle_name, creator_id, user_id,  moderation_status, moderated_at, moderator_id)
+VALUES ('Саид', 'Гаджиев', 'Алиевич', 1, 1, 1, now(), 1);

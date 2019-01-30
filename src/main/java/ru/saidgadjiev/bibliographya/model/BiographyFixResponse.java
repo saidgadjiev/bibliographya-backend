@@ -15,9 +15,9 @@ public class BiographyFixResponse {
 
     private BiographyResponse biography;
 
-    private BiographyResponse fixerBiography;
+    private ShortBiographyResponse fixerBiography;
 
-    private BiographyResponse creatorBiography;
+    private ShortBiographyResponse creatorBiography;
 
     private Collection<FixAction> actions;
 
@@ -39,19 +39,19 @@ public class BiographyFixResponse {
         this.biography = biography;
     }
 
-    public BiographyResponse getFixerBiography() {
+    public ShortBiographyResponse getFixerBiography() {
         return fixerBiography;
     }
 
-    public void setFixerBiography(BiographyResponse fixerBiography) {
+    public void setFixerBiography(ShortBiographyResponse fixerBiography) {
         this.fixerBiography = fixerBiography;
     }
 
-    public BiographyResponse getCreatorBiography() {
+    public ShortBiographyResponse getCreatorBiography() {
         return creatorBiography;
     }
 
-    public void setCreatorBiography(BiographyResponse creatorBiography) {
+    public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
         this.creatorBiography = creatorBiography;
     }
 

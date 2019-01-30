@@ -103,6 +103,7 @@ public class BiographyService {
         biography.setMiddleName(biographyRequest.getMiddleName());
         biography.setCreatorId(user.getId());
         biography.setUserId(user.getId());
+        biography.setModerationStatus(Biography.ModerationStatus.APPROVED);
 
         return biographyDao.save(biography);
     }
@@ -152,11 +153,11 @@ public class BiographyService {
         if (autobiographies != null) {
             criteria.add(
                     new FilterCriteria<>(
-                            "is_autobiography",
-                            FilterOperation.EQ,
-                            PreparedStatement::setBoolean,
-                            true,
-                            true
+                            "user_id",
+                            FilterOperation.IS_NOT_NULL,
+                            null,
+                            null,
+                            false
                     )
             );
         }
@@ -208,11 +209,9 @@ public class BiographyService {
         );
         criteria.add(
                 new FilterCriteria.Builder<Boolean>()
-                        .propertyName("is_autobiography")
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .filterValue(false)
-                        .needPreparedSet(true)
+                        .propertyName("user_id")
+                        .filterOperation(FilterOperation.IS_NULL)
+                        .needPreparedSet(false)
                         .build()
         );
 
@@ -339,11 +338,11 @@ public class BiographyService {
     public boolean isIAuthor(int biographyId) {
         List<Map<String, Object>> result = biographyDao.getFields(Collections.singletonList("creator_id"), Collections.singletonList(
                 new FilterCriteria.Builder<Integer>()
-                .propertyName("id")
-                .filterOperation(FilterOperation.EQ)
-                .valueSetter(PreparedStatement::setInt)
-                .filterValue(biographyId)
-                .build()
+                        .propertyName("id")
+                        .filterOperation(FilterOperation.EQ)
+                        .valueSetter(PreparedStatement::setInt)
+                        .filterValue(biographyId)
+                        .build()
         ));
 
         if (result.isEmpty()) {
@@ -377,6 +376,14 @@ public class BiographyService {
                         biographyId,
                         true
                 )
+        );
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName("moderation_status")
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(Biography.ModerationStatus.APPROVED.getCode())
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
         );
 
         if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {

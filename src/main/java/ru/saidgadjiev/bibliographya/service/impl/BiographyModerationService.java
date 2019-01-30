@@ -69,11 +69,9 @@ public class BiographyModerationService {
         }
         criteria.add(
                 new FilterCriteria.Builder<Boolean>()
-                        .propertyName("is_autobiography")
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .filterValue(false)
-                        .needPreparedSet(true)
+                        .propertyName("user_id")
+                        .filterOperation(FilterOperation.IS_NULL)
+                        .needPreparedSet(false)
                         .build()
         );
 

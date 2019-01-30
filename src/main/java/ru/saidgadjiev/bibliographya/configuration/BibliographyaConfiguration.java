@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.configuration;
 
-import org.apache.commons.lang.StringUtils;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -14,8 +13,6 @@ import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.*;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,28 +61,6 @@ public class BibliographyaConfiguration {
                         return null;
                     }
                 }).map(source.getPublishStatus(), destination.getPublishStatus());
-
-                Converter<Collection<BiographyReport>, Map<Integer, BiographyComplaintResponse>> converter = context -> {
-                    if (context.getSource() != null) {
-                        Map<Integer, BiographyComplaintResponse> result = new HashMap<>();
-
-                        for (BiographyReport complaint: context.getSource()) {
-                            result.putIfAbsent(complaint.getReason().getCode(), new BiographyComplaintResponse());
-
-                            BiographyComplaintResponse complaintResponse = result.get(complaint.getReason().getCode());
-
-                            complaintResponse.setCount(complaintResponse.getCount() + 1);
-                            complaintResponse.setReason(complaint.getReason().getCode());
-                            if (StringUtils.isNotBlank(complaint.getReasonText())) {
-                                complaintResponse.addComplainText(complaint.getReasonText());
-                            }
-                        }
-
-                        return result;
-                    }
-
-                    return null;
-                };
             }
         });
 
@@ -120,8 +95,6 @@ public class BibliographyaConfiguration {
                     return null;
                 };
 
-                using(converter).map(source.getCreatorBiography(), destination.getCreatorBiography());
-                using(converter).map(source.getFixerBiography(), destination.getFixerBiography());
                 using(converter).map(source.getBiography(), destination.getBiography());
             }
         });
@@ -168,6 +141,12 @@ public class BibliographyaConfiguration {
                         return null;
                     }
                 }).map(source.getRoles(), destination.getRoles());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<Biography, ShortBiographyResponse>() {
+            @Override
+            protected void configure() {
             }
         });
 

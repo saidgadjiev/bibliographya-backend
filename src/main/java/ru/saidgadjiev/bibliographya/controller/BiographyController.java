@@ -146,7 +146,7 @@ public class BiographyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @DeleteMapping("/{biographyId}")
     public ResponseEntity<?> delete(@PathVariable("biographyId") int biographyId) {
         int deleted = biographyService.delete(biographyId);
@@ -335,8 +335,8 @@ public class BiographyController {
         return dto;
     }
 
-    private BiographyResponse convertModerationToDto(Biography biography, Collection<ModerationAction> actions) {
-        BiographyResponse response =  modelMapper.map(biography, BiographyResponse.class);
+    private ShortBiographyResponse convertModerationToDto(Biography biography, Collection<ModerationAction> actions) {
+        ShortBiographyResponse response =  modelMapper.map(biography, ShortBiographyResponse.class);
 
         response.setActions(actions);
 

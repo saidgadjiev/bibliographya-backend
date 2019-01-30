@@ -43,8 +43,8 @@ public class BiographyDaoImpl implements BiographyDao {
     public Biography save(Biography biography) throws SQLException {
         return jdbcTemplate.execute(
                 "INSERT INTO biography" +
-                        "(first_name, last_name, middle_name, biography, creator_id, user_id) " +
-                        "VALUES(?, ?, ?, ?, ?, ?) " +
+                        "(first_name, last_name, middle_name, biography, creator_id, user_id, moderation_status) " +
+                        "VALUES(?, ?, ?, ?, ?, ?, ?) " +
                         "RETURNING *",
                 (PreparedStatementCallback<Biography>) ps -> {
                     ps.setString(1, biography.getFirstName());
@@ -67,6 +67,11 @@ public class BiographyDaoImpl implements BiographyDao {
                         ps.setNull(6, Types.INTEGER);
                     } else {
                         ps.setInt(6, biography.getUserId());
+                    }
+                    if (biography.getModerationStatus() == null) {
+                        ps.setNull(7, Types.INTEGER);
+                    } else {
+                        ps.setInt(7, biography.getModerationStatus().getCode());
                     }
 
                     ps.execute();
@@ -134,7 +139,9 @@ public class BiographyDaoImpl implements BiographyDao {
         sql
                 .append("SELECT ")
                 .append(getFullSelectList())
-                .append(" FROM biography b LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
+                .append(" FROM biography b")
+                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
+                .append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id");
 
         if (clause.length() > 0) {
             sql.append("WHERE ").append(clause.toString()).append(" ");
@@ -188,7 +195,6 @@ public class BiographyDaoImpl implements BiographyDao {
         biography.setFirstName(rs.getString("first_name"));
         biography.setLastName(rs.getString("last_name"));
         biography.setMiddleName(rs.getString("middle_name"));
-        biography.setIsAutobiography(rs.getBoolean("is_autobiography"));
 
         biography.setCreatorId(ResultSetUtils.intOrNull(rs,"creator_id"));
         biography.setUserId(ResultSetUtils.intOrNull(rs,"user_id"));
@@ -211,6 +217,14 @@ public class BiographyDaoImpl implements BiographyDao {
 
             biography.setModeratorBiography(moderatorBiography);
         }
+
+        Biography creator = new Biography();
+
+        creator.setId(rs.getInt("cb_id"));
+        creator.setFirstName(rs.getString("cb_first_name"));
+        creator.setLastName(rs.getString("cb_middle_name"));
+
+        biography.setCreatorBiography(creator);
 
         return biography;
     }
@@ -359,10 +373,12 @@ public class BiographyDaoImpl implements BiographyDao {
         selectList.append("b.moderation_info,");
         selectList.append("b.biography,");
         selectList.append("b.publish_status,");
-        selectList.append("b.is_autobiography,");
         selectList.append("bm.first_name as m_first_name,");
         selectList.append("bm.last_name as m_last_name,");
-        selectList.append("bm.id as m_id");
+        selectList.append("bm.id as m_id,");
+        selectList.append("cb.id as cb_id,");
+        selectList.append("cb.first_name as cb_first_name,");
+        selectList.append("cb.last_name as cb_last_name");
 
         return selectList.toString();
     }
