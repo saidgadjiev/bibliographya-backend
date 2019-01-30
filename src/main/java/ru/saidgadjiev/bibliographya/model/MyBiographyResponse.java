@@ -1,12 +1,14 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
+
 import java.sql.Timestamp;
 import java.util.Collection;
 
 /**
  * Created by said on 22.10.2018.
  */
-public class BiographyResponse {
+public class MyBiographyResponse {
 
     private Integer id;
 
@@ -32,9 +34,13 @@ public class BiographyResponse {
 
     private LastModified lastModified;
 
+    private Integer moderationStatus;
+
     private ShortBiographyResponse creatorBiography;
 
     private Collection<String> categories;
+
+    private Collection<ModerationAction> actions;
 
     private int publishStatus;
 
@@ -133,6 +139,14 @@ public class BiographyResponse {
         return lastModified;
     }
 
+    public Integer getModerationStatus() {
+        return moderationStatus;
+    }
+
+    public void setModerationStatus(Integer moderationStatus) {
+        this.moderationStatus = moderationStatus;
+    }
+
     public Collection<String> getCategories() {
         return categories;
     }
@@ -147,6 +161,14 @@ public class BiographyResponse {
 
     public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
         this.creatorBiography = creatorBiography;
+    }
+
+    public Collection<ModerationAction> getActions() {
+        return actions;
+    }
+
+    public void setActions(Collection<ModerationAction> actions) {
+        this.actions = actions;
     }
 
     public int getPublishStatus() {

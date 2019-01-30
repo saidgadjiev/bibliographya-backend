@@ -1,29 +1,25 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyReportRequest;
-import ru.saidgadjiev.bibliographya.model.BiographyResponse;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyReportService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by said on 31.12.2018.
  */
 public class BiographyReportController {
 
-    private final ModelMapper modelMapper;
+    private final BibliographyaMapper modelMapper;
 
     private final BiographyReportService reportService;
 
-    public BiographyReportController(ModelMapper modelMapper, BiographyReportService reportService) {
+    public BiographyReportController(BibliographyaMapper modelMapper, BiographyReportService reportService) {
         this.modelMapper = modelMapper;
         this.reportService = reportService;
     }
@@ -38,7 +34,7 @@ public class BiographyReportController {
 
         return ResponseEntity.ok(
                 new PageImpl<>(
-                        convertToDto(reportPage.getContent()),
+                        null,
                         pageRequest,
                         reportPage.getTotalElements()
                 )
@@ -64,17 +60,5 @@ public class BiographyReportController {
         }
 
         return ResponseEntity.ok().build();
-    }
-
-    private List<BiographyResponse> convertToDto(List<Biography> biographies) {
-        List<BiographyResponse> dto = new ArrayList<>();
-
-        for (Biography biography : biographies) {
-            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
-
-            dto.add(biographyResponse);
-        }
-
-        return dto;
     }
 }

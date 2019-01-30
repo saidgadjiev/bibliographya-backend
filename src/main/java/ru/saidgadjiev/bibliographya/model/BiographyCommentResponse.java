@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import ru.saidgadjiev.bibliographya.domain.BiographyComment;
+
 import java.sql.Timestamp;
 
 /**
@@ -11,23 +13,17 @@ public class BiographyCommentResponse {
 
     private String content;
 
-    private String firstName;
-
-    private String lastName;
-
-    private Integer userId;
-
-    private String replyToFirstName;
-
-    private Integer replyToUserId;
-
-    private Integer parentId;
-
     private Timestamp createdAt;
 
     private int biographyId;
 
-    private int replyToBiographyId;
+    private Integer userId;
+
+    private Integer parentId;
+
+    private ShortBiographyResponse biography;
+
+    private BiographyComment parent;
 
     public String getContent() {
         return content;
@@ -35,46 +31,6 @@ public class BiographyCommentResponse {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public Integer getUserName() {
-        return userId;
-    }
-
-    public void setUserName(Integer userId) {
-        this.userId = userId;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getReplyToFirstName() {
-        return replyToFirstName;
-    }
-
-    public void setReplyToFirstName(String replyToFirstName) {
-        this.replyToFirstName = replyToFirstName;
-    }
-
-    public Integer getReplyToUserId() {
-        return replyToUserId;
-    }
-
-    public void setReplyToUserId(Integer replyToUserId) {
-        this.replyToUserId = replyToUserId;
     }
 
     public Timestamp getCreatedAt() {
@@ -109,11 +65,27 @@ public class BiographyCommentResponse {
         this.biographyId = biographyId;
     }
 
-    public int getReplyToBiographyId() {
-        return replyToBiographyId;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setReplyToBiographyId(int replyToBiographyId) {
-        this.replyToBiographyId = replyToBiographyId;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public ShortBiographyResponse getBiography() {
+        return biography;
+    }
+
+    public void setBiography(ShortBiographyResponse biography) {
+        this.biography = biography;
+    }
+
+    public BiographyComment getParent() {
+        return parent;
+    }
+
+    public void setParent(BiographyComment parent) {
+        this.parent = parent;
     }
 }

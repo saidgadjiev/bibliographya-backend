@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -9,16 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
+import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
-import ru.saidgadjiev.bibliographya.model.*;
+import ru.saidgadjiev.bibliographya.model.CompleteRequest;
+import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by said on 15.12.2018.
@@ -30,10 +27,10 @@ public class BiographyFixController {
 
     private final BiographyFixService fixService;
 
-    private final ModelMapper modelMapper;
+    private final BibliographyaMapper modelMapper;
 
     @Autowired
-    public BiographyFixController(BiographyFixService fixService, ModelMapper modelMapper) {
+    public BiographyFixController(BiographyFixService fixService, BibliographyaMapper modelMapper) {
         this.fixService = fixService;
         this.modelMapper = modelMapper;
     }
@@ -49,7 +46,7 @@ public class BiographyFixController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), pageRequest, page.getTotalElements()));
+        return ResponseEntity.ok(new PageImpl<>(modelMapper.convertToBiographyFixResponse(page.getContent()), pageRequest, page.getTotalElements()));
     }
 
     @PatchMapping("/{fixId}/assign-me")
@@ -65,10 +62,12 @@ public class BiographyFixController {
         }
 
         if (updated.getUpdated() == 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(fix, Collections.emptyList()));
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(modelMapper.convertToBiographyFixResponse(fix));
         }
 
-        return ResponseEntity.ok(convertToDto(fix, updated.getActions()));
+        return ResponseEntity.ok(modelMapper.convertToBiographyFixResponse(fix));
     }
 
     @PatchMapping("/{fixId}/complete")
@@ -82,27 +81,6 @@ public class BiographyFixController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertToDto(updated.getObject(), updated.getActions()));
-    }
-
-    private List<BiographyFixResponse> convertToDto(Collection<BiographyFix> biographyFixes) {
-        List<BiographyFixResponse> result = new ArrayList<>();
-
-        for (BiographyFix fix: biographyFixes) {
-            BiographyFixResponse response = modelMapper.map(fix, BiographyFixResponse.class);
-
-            response.setActions(fixService.getActions(fix));
-            result.add(response);
-        }
-
-        return result;
-    }
-
-    private BiographyFixResponse convertToDto(BiographyFix biographyFix, Collection<FixAction> actions) {
-        BiographyFixResponse response = modelMapper.map(biographyFix, BiographyFixResponse.class);
-
-        response.setActions(actions);
-
-        return response;
+        return ResponseEntity.ok(modelMapper.convertToBiographyFixResponse(updated.getObject()));
     }
 }

@@ -21,7 +21,7 @@ public class BiographyFixResponse {
 
     private Collection<FixAction> actions;
 
-    private String fixInfo;
+    private String info;
 
     public Integer getId() {
         return id;
@@ -71,11 +71,11 @@ public class BiographyFixResponse {
         this.actions = actions;
     }
 
-    public String getFixInfo() {
-        return fixInfo;
+    public String getInfo() {
+        return info;
     }
 
-    public void setFixInfo(String fixInfo) {
-        this.fixInfo = fixInfo;
+    public void setInfo(String info) {
+        this.info = info;
     }
 }

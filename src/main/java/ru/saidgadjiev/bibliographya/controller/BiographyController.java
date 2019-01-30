@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -10,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
+import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
@@ -22,10 +22,6 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by said on 22.10.2018.
@@ -43,14 +39,14 @@ public class BiographyController {
 
     private final BiographyFixService fixService;
 
-    private final ModelMapper modelMapper;
+    private final BibliographyaMapper modelMapper;
 
     @Autowired
     public BiographyController(BiographyService biographyService,
                                BiographyModerationService biographyModerationService,
                                BiographyCommentService biographyCommentService,
                                BiographyFixService fixService,
-                               ModelMapper modelMapper
+                               BibliographyaMapper modelMapper
     ) {
         this.biographyService = biographyService;
         this.biographyModerationService = biographyModerationService;
@@ -60,36 +56,47 @@ public class BiographyController {
     }
 
     @GetMapping("/{id:[\\d]+}")
-    public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) throws SQLException {
-        return ResponseEntity.ok(convertToDto(biographyService.getBiographyById(id)));
+    public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) {
+        return ResponseEntity.ok(modelMapper.convertToBiographyResponse(biographyService.getBiographyById(id)));
     }
 
     @GetMapping(value = "")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
-    ) throws SQLException {
+    ) {
         Page<Biography> page = biographyService.getBiographies(pageRequest, null, autobiographies);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+        return ResponseEntity.ok(
+                new PageImpl<>(
+                        modelMapper.convertToBiographyResponse(page.getContent()),
+                        page.getPageable(),
+                        page.getTotalElements()
+                )
+        );
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/my")
-    public ResponseEntity<Page<BiographyResponse>> getMyBiographies(
+    public ResponseEntity<Page<MyBiographyResponse>> getMyBiographies(
             OffsetLimitPageRequest pageRequest
-    ) throws SQLException {
+    ) {
         Page<Biography> page = biographyService.getMyBiographies(pageRequest);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertMyBiographiesToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+        return ResponseEntity.ok(
+                new PageImpl<>(modelMapper.convertToMyBiographyResponse(page.getContent()),
+                        page.getPageable(),
+                        page.getTotalElements()
+                )
+        );
     }
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#id) or hasAnyRole('ROLE_MODERATOR'))")
@@ -122,7 +129,7 @@ public class BiographyController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(convertToDto(biography));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(modelMapper.convertToBiographyResponse(biography));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -137,7 +144,7 @@ public class BiographyController {
 
         Biography biography = biographyService.create(biographyRequest);
 
-        BiographyResponse response = modelMapper.map(biography, BiographyResponse.class);
+        BiographyResponse response = modelMapper.convertToBiographyResponse(biography);
 
         response.setLiked(false);
         response.setLikesCount(0);
@@ -169,7 +176,13 @@ public class BiographyController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertCommentsToDto(page.getContent()), pageRequest, page.getTotalElements()));
+        return ResponseEntity.ok(
+                new PageImpl<>(
+                        modelMapper.convertToBiographyCommentResponse(page.getContent()),
+                        pageRequest,
+                        page.getTotalElements()
+                )
+        );
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -178,7 +191,7 @@ public class BiographyController {
                                                                @RequestBody BiographyCommentRequest commentRequest) {
         BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
 
-        return ResponseEntity.ok(convertCommentToDto(biographyComment));
+        return ResponseEntity.ok(modelMapper.convertToBiographyCommentResponse(biographyComment));
     }
 
     @PreAuthorize("isAuthenticated() and (@comment.isIAuthor(#commentId) or @biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
@@ -242,10 +255,12 @@ public class BiographyController {
         }
 
         if (updated.getUpdated() == 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(convertModerationToDto(biography, Collections.emptyList()));
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(modelMapper.convertToBiographyModerationResponse(biography));
         }
 
-        return ResponseEntity.ok(convertModerationToDto(biography, updated.getActions()));
+        return ResponseEntity.ok(modelMapper.convertToBiographyModerationResponse(biography));
     }
 
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
@@ -263,7 +278,7 @@ public class BiographyController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
+        return ResponseEntity.ok(modelMapper.convertToBiographyModerationResponse(updated.getObject()));
     }
 
     @PreAuthorize("isAuthenticated() and @biography.isIAuthor(#biographyId)")
@@ -281,95 +296,33 @@ public class BiographyController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(convertModerationToDto(updated.getObject(), updated.getActions()));
+        return ResponseEntity.ok(modelMapper.convertToBiographyModerationResponse(updated.getObject()));
     }
 
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @GetMapping(value = "/moderation")
-    public ResponseEntity<Page<BiographyResponse>> getModeration(
+    public ResponseEntity<Page<BiographyModerationResponse>> getModeration(
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "q", required = false) String query
-    ) throws SQLException {
+    ) {
         Page<Biography> page = biographyModerationService.getBiographies(pageRequest, query);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertModerationToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+        return ResponseEntity.ok(
+                new PageImpl<>(
+                        modelMapper.convertToBiographyModerationResponse(page.getContent()),
+                        page.getPageable(),
+                        page.getTotalElements()
+                )
+        );
     }
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @RequestMapping(value = "/{biographyId}", method = RequestMethod.HEAD)
     public ResponseEntity<?> canEdit(@PathVariable("biographyId") int biographyId) {
         return ResponseEntity.ok().build();
-    }
-
-    private List<BiographyResponse> convertToDto(List<Biography> biographies) {
-        List<BiographyResponse> dto = new ArrayList<>();
-
-        for (Biography biography : biographies) {
-            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
-
-            dto.add(biographyResponse);
-        }
-
-        return dto;
-    }
-
-    private BiographyResponse convertToDto(Biography biography) {
-        return modelMapper.map(biography, BiographyResponse.class);
-    }
-
-    private List<BiographyResponse> convertModerationToDto(List<Biography> biographies) {
-        List<BiographyResponse> dto = new ArrayList<>();
-
-        for (Biography biography : biographies) {
-            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
-
-            biographyResponse.setActions(biographyModerationService.getActions(biography));
-
-            dto.add(biographyResponse);
-        }
-
-        return dto;
-    }
-
-    private ShortBiographyResponse convertModerationToDto(Biography biography, Collection<ModerationAction> actions) {
-        ShortBiographyResponse response =  modelMapper.map(biography, ShortBiographyResponse.class);
-
-        response.setActions(actions);
-
-        return response;
-    }
-
-    private List<BiographyResponse> convertMyBiographiesToDto(List<Biography> biographies) {
-        List<BiographyResponse> dto = new ArrayList<>();
-
-        for (Biography biography : biographies) {
-            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
-
-            biographyResponse.setActions(biographyModerationService.getUserActions(biography));
-
-            dto.add(biographyResponse);
-        }
-
-        return dto;
-    }
-
-    private List<BiographyCommentResponse> convertCommentsToDto(List<BiographyComment> biographyComments) {
-        List<BiographyCommentResponse> biographyCommentResponses = new ArrayList<>();
-
-        for (BiographyComment biographyComment : biographyComments) {
-            BiographyCommentResponse biographyCommentResponse = modelMapper.map(biographyComment, BiographyCommentResponse.class);
-
-            biographyCommentResponses.add(biographyCommentResponse);
-        }
-
-        return biographyCommentResponses;
-    }
-
-    private BiographyCommentResponse convertCommentToDto(BiographyComment biographyComment) {
-        return modelMapper.map(biographyComment, BiographyCommentResponse.class);
     }
 }

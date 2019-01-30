@@ -1,11 +1,11 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyResponse;
@@ -23,14 +23,14 @@ import java.util.List;
 @RequestMapping("/api/categories")
 public class BiographyCategoryController {
 
-    private final ModelMapper modelMapper;
+    private final BibliographyaMapper modelMapper;
 
     private final BiographyCategoryService biographyCategoryService;
 
     private final BiographyService biographyService;
 
     @Autowired
-    public BiographyCategoryController(ModelMapper modelMapper,
+    public BiographyCategoryController(BibliographyaMapper modelMapper,
                                        BiographyCategoryService biographyCategoryService,
                                        BiographyService biographyService) {
         this.modelMapper = modelMapper;
@@ -74,19 +74,13 @@ public class BiographyCategoryController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(new PageImpl<>(convertToDto(page.getContent()), page.getPageable(), page.getTotalElements()));
+        return ResponseEntity.ok(
+                new PageImpl<>(
+                        modelMapper.convertToBiographyResponse(page.getContent()),
+                        page.getPageable(),
+                        page.getTotalElements()
+                )
+        );
     }
 
-
-    private List<BiographyResponse> convertToDto(List<Biography> biographies) {
-        List<BiographyResponse> dto = new ArrayList<>();
-
-        for (Biography biography : biographies) {
-            BiographyResponse biographyResponse = modelMapper.map(biography, BiographyResponse.class);
-
-            dto.add(biographyResponse);
-        }
-
-        return dto;
-    }
 }

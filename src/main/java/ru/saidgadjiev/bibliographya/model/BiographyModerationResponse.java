@@ -1,12 +1,14 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
+
 import java.sql.Timestamp;
 import java.util.Collection;
 
 /**
  * Created by said on 22.10.2018.
  */
-public class BiographyResponse {
+public class BiographyModerationResponse {
 
     private Integer id;
 
@@ -32,9 +34,21 @@ public class BiographyResponse {
 
     private LastModified lastModified;
 
+    private Integer moderationStatus;
+
+    private Timestamp moderatedAt;
+
+    private String moderatorId;
+
+    private ShortBiographyResponse moderatorBiography;
+
     private ShortBiographyResponse creatorBiography;
 
     private Collection<String> categories;
+
+    private Collection<ModerationAction> actions;
+
+    private String moderationInfo;
 
     private int publishStatus;
 
@@ -133,6 +147,30 @@ public class BiographyResponse {
         return lastModified;
     }
 
+    public Integer getModerationStatus() {
+        return moderationStatus;
+    }
+
+    public void setModerationStatus(Integer moderationStatus) {
+        this.moderationStatus = moderationStatus;
+    }
+
+    public Timestamp getModeratedAt() {
+        return moderatedAt;
+    }
+
+    public void setModeratedAt(Timestamp moderatedAt) {
+        this.moderatedAt = moderatedAt;
+    }
+
+    public String getModeratorId() {
+        return moderatorId;
+    }
+
+    public void setModeratorId(String moderatorId) {
+        this.moderatorId = moderatorId;
+    }
+
     public Collection<String> getCategories() {
         return categories;
     }
@@ -141,12 +179,36 @@ public class BiographyResponse {
         this.categories = categories;
     }
 
+    public ShortBiographyResponse getModeratorBiography() {
+        return moderatorBiography;
+    }
+
+    public void setModeratorBiography(ShortBiographyResponse moderatorBiography) {
+        this.moderatorBiography = moderatorBiography;
+    }
+
     public ShortBiographyResponse getCreatorBiography() {
         return creatorBiography;
     }
 
     public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
         this.creatorBiography = creatorBiography;
+    }
+
+    public Collection<ModerationAction> getActions() {
+        return actions;
+    }
+
+    public void setActions(Collection<ModerationAction> actions) {
+        this.actions = actions;
+    }
+
+    public String getModerationInfo() {
+        return moderationInfo;
+    }
+
+    public void setModerationInfo(String moderationInfo) {
+        this.moderationInfo = moderationInfo;
     }
 
     public int getPublishStatus() {

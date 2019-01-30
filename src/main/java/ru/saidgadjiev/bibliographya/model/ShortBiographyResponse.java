@@ -17,7 +17,7 @@ public class ShortBiographyResponse {
 
     private String middleName;
 
-    private Collection<ModerationAction> actions;
+    private Integer userId;
 
     public int getId() {
         return id;
@@ -51,11 +51,11 @@ public class ShortBiographyResponse {
         this.middleName = middleName;
     }
 
-    public Collection<ModerationAction> getActions() {
-        return actions;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setActions(Collection<ModerationAction> actions) {
-        this.actions = actions;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 }
