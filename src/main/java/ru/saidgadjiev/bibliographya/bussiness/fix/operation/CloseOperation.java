@@ -29,7 +29,6 @@ public class CloseOperation {
                 new UpdateValue<>(
                         "status",
                         BiographyFix.FixStatus.CLOSED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );

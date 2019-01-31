@@ -31,7 +31,6 @@ public class ApproveOperation {
                 new UpdateValue<>(
                         "moderation_status",
                         Biography.ModerationStatus.APPROVED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );
@@ -39,7 +38,6 @@ public class ApproveOperation {
                 new UpdateValue<>(
                         "publish_status",
                         Biography.PublishStatus.PUBLISHED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );
@@ -48,7 +46,6 @@ public class ApproveOperation {
                 new UpdateValue<>(
                         "moderation_info",
                         null,
-                        true,
                         (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );

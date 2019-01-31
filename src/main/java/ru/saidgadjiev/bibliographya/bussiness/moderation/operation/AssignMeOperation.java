@@ -32,7 +32,6 @@ public class AssignMeOperation {
                 new UpdateValue<>(
                         "moderator_id",
                         moderatorId,
-                        true,
                         PreparedStatement::setInt
                 )
         );

@@ -9,7 +9,8 @@ import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -68,12 +69,10 @@ public class BiographyModerationDao {
                 (PreparedStatementCallback<Biography>) ps -> {
                     int i = 0;
 
-                    for (UpdateValue updateValue: updateValues) {
-                        if (updateValue.isNeedPreparedSet()) {
-                            updateValue.getSetter().set(ps, ++i, updateValue.getValue());
-                        }
+                    for (UpdateValue updateValue : updateValues) {
+                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
                     }
-                    for (FilterCriteria criterion: criteria) {
+                    for (FilterCriteria criterion : criteria) {
                         if (criterion.isNeedPreparedSet()) {
                             criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                         }

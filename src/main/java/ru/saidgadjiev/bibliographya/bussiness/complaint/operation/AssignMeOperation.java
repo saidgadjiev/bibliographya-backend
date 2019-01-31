@@ -29,7 +29,6 @@ public class AssignMeOperation {
                 new UpdateValue<>(
                         "consider_id",
                         considerId,
-                        true,
                         PreparedStatement::setInt
                 )
         );

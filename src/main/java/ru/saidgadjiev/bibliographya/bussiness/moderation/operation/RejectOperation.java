@@ -30,7 +30,6 @@ public class RejectOperation {
                 new UpdateValue<>(
                         "moderation_status",
                         Biography.ModerationStatus.REJECTED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );
@@ -38,7 +37,6 @@ public class RejectOperation {
                 new UpdateValue<>(
                         "publish_status",
                         Biography.PublishStatus.NOT_PUBLISHED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );
@@ -49,7 +47,6 @@ public class RejectOperation {
                 new UpdateValue<>(
                         "moderation_info",
                         rejectText,
-                        true,
                         PreparedStatement::setString
                 )
         );

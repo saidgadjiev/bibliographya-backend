@@ -30,7 +30,6 @@ public class IgnoreOperation {
                 new UpdateValue<>(
                         "fix_info",
                         fixInfo,
-                        true,
                         PreparedStatement::setString
                 )
         );
@@ -39,7 +38,6 @@ public class IgnoreOperation {
                 new UpdateValue<>(
                         "status",
                         BiographyFix.FixStatus.IGNORED.getCode(),
-                        true,
                         PreparedStatement::setInt
 
                 )

@@ -7,10 +7,10 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -118,9 +118,7 @@ public class BiographyFixDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : updateValues) {
-                        if (updateValue.isNeedPreparedSet()) {
-                            updateValue.getSetter().set(ps, ++i, updateValue.getValue());
-                        }
+                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
                     }
                     for (FilterCriteria criterion : criteria) {
                         if (criterion.isNeedPreparedSet()) {
@@ -187,7 +185,7 @@ public class BiographyFixDao {
     private BiographyFix mapFixerInfo(ResultSet rs) throws SQLException {
         BiographyFix fix = new BiographyFix();
 
-        fix.setFixerId(ResultSetUtils.intOrNull(rs,"fixer_id"));
+        fix.setFixerId(ResultSetUtils.intOrNull(rs, "fixer_id"));
         fix.setStatus(BiographyFix.FixStatus.fromCode(rs.getInt("status")));
 
 
