@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION biography_update()
   RETURNS TRIGGER
 AS '
 BEGIN
-  NEW.updated_at := current_date;
+  NEW.updated_at := now();
   RETURN NEW;
 END;'
 LANGUAGE plpgsql;
