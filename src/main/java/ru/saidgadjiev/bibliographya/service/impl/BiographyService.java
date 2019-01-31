@@ -417,32 +417,35 @@ public class BiographyService {
                         true
                 )
         );
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.MODERATION_STATUS)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(Biography.ModerationStatus.APPROVED.getCode())
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-        );
 
-        if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {
+        if (publishStatus == Biography.PublishStatus.PUBLISHED) {
             criteria.add(
-                    new FilterCriteria.Builder<String>()
-                            .propertyName(Biography.BIOGRAPHY)
-                            .filterOperation(FilterOperation.IS_NOT_NULL)
-                            .needPreparedSet(false)
+                    new FilterCriteria.Builder<Integer>()
+                            .propertyName(Biography.MODERATION_STATUS)
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(Biography.ModerationStatus.APPROVED.getCode())
+                            .valueSetter(PreparedStatement::setInt)
                             .build()
             );
-            criteria.add(
-                    new FilterCriteria.Builder<String>()
-                            .propertyName(Biography.BIOGRAPHY)
-                            .filterOperation(FilterOperation.NOT_EQ)
-                            .filterValue("")
-                            .needPreparedSet(true)
-                            .valueSetter(PreparedStatement::setString)
-                            .build()
-            );
+
+            if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {
+                criteria.add(
+                        new FilterCriteria.Builder<String>()
+                                .propertyName(Biography.BIOGRAPHY)
+                                .filterOperation(FilterOperation.IS_NOT_NULL)
+                                .needPreparedSet(false)
+                                .build()
+                );
+                criteria.add(
+                        new FilterCriteria.Builder<String>()
+                                .propertyName(Biography.BIOGRAPHY)
+                                .filterOperation(FilterOperation.NOT_EQ)
+                                .filterValue("")
+                                .needPreparedSet(true)
+                                .valueSetter(PreparedStatement::setString)
+                                .build()
+                );
+            }
         }
 
         return biographyDao.updateValues(updateValues, criteria).getUpdated();
