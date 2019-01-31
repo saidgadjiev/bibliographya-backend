@@ -21,7 +21,7 @@ public class BiographyCommentResponse {
 
     private Integer parentId;
 
-    private ShortBiographyResponse biography;
+    private ShortBiographyResponse user;
 
     private BiographyComment parent;
 
@@ -73,12 +73,12 @@ public class BiographyCommentResponse {
         this.userId = userId;
     }
 
-    public ShortBiographyResponse getBiography() {
-        return biography;
+    public ShortBiographyResponse getUser() {
+        return user;
     }
 
-    public void setBiography(ShortBiographyResponse biography) {
-        this.biography = biography;
+    public void setUser(ShortBiographyResponse user) {
+        this.user = user;
     }
 
     public BiographyComment getParent() {

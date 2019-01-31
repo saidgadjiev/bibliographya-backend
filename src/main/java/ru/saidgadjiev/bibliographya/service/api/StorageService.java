@@ -9,11 +9,13 @@ public interface StorageService {
 
     void init();
 
-    String store(MultipartFile file);
+    String storeCategoryImage(MultipartFile file);
 
-    Resource loadAsResource(String fileName);
+    Resource loadAsResource(String filePath);
 
-    Path load(String fileName);
+    Path load(String filePath);
+
+    void deleteResource(String path);
 
     interface UidGenerator {
         int nextUid();

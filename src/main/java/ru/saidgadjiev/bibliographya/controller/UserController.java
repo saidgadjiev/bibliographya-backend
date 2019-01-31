@@ -55,4 +55,28 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PreAuthorize("isAuthenticated() and userId == authentication.principal.id")
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteProfile(@PathVariable("userId") int userId) {
+        int deleted = userService.deleteUser(userId);
+
+        if (deleted == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("isAuthenticated() and userId == authentication.principal.id")
+    @PutMapping("/{userId}/restore")
+    public ResponseEntity<?> restoreProfile(@PathVariable("userId") int userId) {
+        int updated = userService.restoreUser(userId);
+
+        if (updated == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
 }

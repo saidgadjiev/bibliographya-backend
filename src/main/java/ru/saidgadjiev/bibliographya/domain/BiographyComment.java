@@ -21,7 +21,7 @@ public class BiographyComment {
 
     private BiographyComment parent;
 
-    private Biography biography;
+    private Biography user;
 
     public int getId() {
         return id;
@@ -71,12 +71,12 @@ public class BiographyComment {
         this.parentId = parentId;
     }
 
-    public Biography getBiography() {
-        return biography;
+    public Biography getUser() {
+        return user;
     }
 
-    public void setBiography(Biography biography) {
-        this.biography = biography;
+    public void setUser(Biography user) {
+        this.user = user;
     }
 
     public BiographyComment getParent() {

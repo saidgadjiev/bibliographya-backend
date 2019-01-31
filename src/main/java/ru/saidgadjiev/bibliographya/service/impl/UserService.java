@@ -54,6 +54,14 @@ public class UserService {
         return userRoleDao.deleteRole(userId, role);
     }
 
+    public int deleteUser(int userId) {
+        return userDao.markDelete(userId, true);
+    }
+
+    public int restoreUser(int userId) {
+        return userDao.markDelete(userId, false);
+    }
+
     public UsersStats getStats() {
         return userDao.getStats();
     }

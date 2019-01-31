@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -234,7 +233,7 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         biography.setFirstName(rs.getString("ba_first_name"));
         biography.setLastName(rs.getString("ba_last_name"));
 
-        biographyComment.setBiography(biography);
+        biographyComment.setUser(biography);
 
         int parentId = rs.getInt("bcm_parent_id");
 
@@ -249,7 +248,7 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
             replyTo.setId(rs.getInt("br_id"));
             replyTo.setFirstName(rs.getString("br_first_name"));
 
-            parent.setBiography(replyTo);
+            parent.setUser(replyTo);
             parent.setBiographyId(replyTo.getId());
 
             biographyComment.setParent(parent);

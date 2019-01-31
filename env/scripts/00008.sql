@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS biography_fix (
   id SERIAL PRIMARY KEY,
   created_at TIMESTAMP DEFAULT now(),
   fix_text TEXT NOT NULL,
-  biography_id INTEGER REFERENCES biography(id),
+  biography_id INTEGER REFERENCES user(id),
   creator_id INTEGER NOT NULL REFERENCES "user"(id),
   fixer_id INTEGER REFERENCES "user"(id),
   info TEXT,

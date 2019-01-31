@@ -44,4 +44,18 @@ public class BiographyCategoryService {
 
         dao.create(category);
     }
+
+    public int deleteByName(String categoryName) {
+        return dao.deleteByName(categoryName);
+    }
+
+    public int update(int id, BiographyCategoryRequest categoryRequest) {
+        BiographyCategory biographyCategory = new BiographyCategory();
+
+        biographyCategory.setId(id);
+        biographyCategory.setName(categoryRequest.getName());
+        biographyCategory.setImagePath(categoryRequest.getImagePath());
+
+        return dao.update(biographyCategory);
+    }
 }

@@ -1,11 +1,11 @@
-CREATE TABLE IF NOT EXISTS biography (
+CREATE TABLE IF NOT EXISTS user (
   id                SERIAL PRIMARY KEY,
   first_name        VARCHAR(512) NOT NULL,
   last_name         VARCHAR(512) NOT NULL,
   middle_name       VARCHAR(512),
   creator_id        INTEGER      NOT NULL REFERENCES "user" (id),
   user_id           INTEGER UNIQUE REFERENCES "user" (id),
-  biography         TEXT,
+  user         TEXT,
   created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
   updated_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
   moderation_status INTEGER      NOT NULL DEFAULT 0,
@@ -25,9 +25,9 @@ END;'
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_biography_update
-BEFORE UPDATE ON biography
+BEFORE UPDATE ON user
 FOR EACH ROW
 EXECUTE PROCEDURE biography_update();
 
-INSERT INTO biography (first_name, last_name, middle_name, creator_id, user_id,  moderation_status, moderated_at, moderator_id)
+INSERT INTO user (first_name, last_name, middle_name, creator_id, user_id,  moderation_status, moderated_at, moderator_id)
 VALUES ('Саид', 'Гаджиев', 'Алиевич', 1, 1, 1, now(), 1);

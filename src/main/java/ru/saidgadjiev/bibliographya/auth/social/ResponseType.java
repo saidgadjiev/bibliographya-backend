@@ -9,11 +9,20 @@ public enum ResponseType {
      * AUTHORIZATION_CODE denotes the server-side authorization flow, and is associated
      * with the response_type=code parameter value
      */
-    AUTHORIZATION_CODE,
+    AUTHORIZATION_CODE("code"),
 
     /**
      * IMPLICIT_GRANT denotes the client-side authorization flow and is associated with
      * the response_type=token parameter value
      */
-    IMPLICIT_GRANT
-}
+    IMPLICIT_GRANT("implicit");
+
+    private final String desc;
+
+    ResponseType(String desc) {
+        this.desc = desc;
+    }
+
+    public String getDesc() {
+        return desc;
+    }}

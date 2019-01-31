@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
@@ -11,11 +12,9 @@ import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyResponse;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryBiographyService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by said on 27.11.2018.
@@ -91,4 +90,33 @@ public class BiographyCategoryController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{categoryName}")
+    public ResponseEntity<?> delete(@PathVariable("categoryName") String categoryName) {
+        int deleted = biographyCategoryService.deleteByName(categoryName);
+
+        if (deleted == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable("id") int id,
+            @RequestBody BiographyCategoryRequest biographyCategoryRequest,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        int updated = biographyCategoryService.update(id, biographyCategoryRequest);
+
+        if (updated == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
 }

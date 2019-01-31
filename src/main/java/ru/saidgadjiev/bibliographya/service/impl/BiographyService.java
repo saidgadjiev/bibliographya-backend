@@ -108,29 +108,38 @@ public class BiographyService {
         return biographyDao.save(biography);
     }
 
-    public Biography getBiography(String userNameFilter) {
+    public Biography getShortBiography(int userId) {
         List<FilterCriteria> criteria = new ArrayList<>();
 
-        if (userNameFilter != null) {
-            criteria.add(
-                    argumentResolver.resolve(
-                            "user_name",
-                            String::valueOf,
-                            PreparedStatement::setString,
-                            userNameFilter
-                    )
-            );
-        }
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName("user_id")
+                        .filterValue(userId)
+                        .filterOperation(FilterOperation.EQ)
+                        .needPreparedSet(true)
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
+        );
+        List<Map<String, Object>> fields = biographyDao.getFields(Arrays.asList("id", "first_name", "last_name"), criteria);
 
-        Biography biography = biographyDao.getBiography(criteria);
-
-        if (biography == null) {
+        if (fields == null || fields.isEmpty()) {
             return null;
         }
+        Map<String, Object> result = fields.iterator().next();
 
-        postProcess(biography);
+        Biography biography = new Biography();
+
+        biography.setId((Integer) result.get("id"));
+        biography.setFirstName((String) result.get("first_name"));
+        biography.setLastName((String) result.get("last_name"));
 
         return biography;
+    }
+
+    public Biography getCurrentUserShortBiography() {
+        User user = (User) securityService.findLoggedInUser();
+
+        return getShortBiography(user.getId());
     }
 
     public Biography getBiographyById(int id) {

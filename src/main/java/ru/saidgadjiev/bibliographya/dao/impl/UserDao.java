@@ -90,6 +90,16 @@ public class UserDao {
         return usersStats;
     }
 
+    public int markDelete(int id, boolean deleted) {
+        return jdbcTemplate.update(
+                "UPDATE \"user\" SET deleted = ? WHERE id = ?",
+                preparedStatement -> {
+                    preparedStatement.setBoolean(1, deleted);
+                    preparedStatement.setInt(2, id);
+                }
+        );
+    }
+
     private User map(ResultSet rs) throws SQLException {
         User user = new User();
 

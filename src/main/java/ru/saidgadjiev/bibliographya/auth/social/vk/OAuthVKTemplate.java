@@ -5,11 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.auth.social.TokenInfo;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +55,7 @@ public class OAuthVKTemplate {
             params.addAll(parameters);
         }
 
-        params.set("response_type", "code");
+        params.set("response_type", ResponseType.AUTHORIZATION_CODE.getDesc());
         params.set("client_id", formEncode(clientId));
         params.set("redirect_uri", redirectUri);
         params.set("v", API_VERSION);
@@ -127,7 +129,7 @@ public class OAuthVKTemplate {
 
     private String formEncode(String data) {
         try {
-            return URLEncoder.encode(data, "UTF-8");
+            return URLEncoder.encode(data, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException ex) {
             // should not happen, UTF-8 is always supported
             throw new IllegalStateException(ex);

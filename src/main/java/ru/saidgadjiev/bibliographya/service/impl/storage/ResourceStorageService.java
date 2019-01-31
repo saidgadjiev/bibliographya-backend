@@ -26,24 +26,29 @@ public class ResourceStorageService implements StorageService {
     }
 
     @Override
-    public String store(MultipartFile file) {
+    public String storeCategoryImage(MultipartFile file) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Resource loadAsResource(String fileName) {
+    public Resource loadAsResource(String filePath) {
         String dir = storageProperties.getDir();
-        Resource resource = new ClassPathResource((dir.endsWith("/") ? dir : dir + "/") + fileName);
+        Resource resource = new ClassPathResource((dir.endsWith("/") ? dir : dir + "/") + filePath);
 
         if (resource.exists() || resource.isReadable()) {
             return resource;
         } else {
-            throw new StorageFileNotFoundException("Could not read file: " + fileName);
+            throw new StorageFileNotFoundException("Could not read file: " + filePath);
         }
     }
 
     @Override
-    public Path load(String fileName) {
+    public Path load(String filePath) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deleteResource(String path) {
+
     }
 }

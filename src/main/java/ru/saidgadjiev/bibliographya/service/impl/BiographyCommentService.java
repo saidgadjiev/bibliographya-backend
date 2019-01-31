@@ -50,7 +50,7 @@ public class BiographyCommentService {
         biography.setFirstName(userDetails.getBiography().getFirstName());
         biography.setLastName(userDetails.getBiography().getLastName());
 
-        biographyComment.setBiography(biography);
+        biographyComment.setUser(biography);
 
         if (commentRequest.getParent() != null) {
             biographyComment.setParentId(commentRequest.getParent().getId());
@@ -63,7 +63,7 @@ public class BiographyCommentService {
             replyTo.setId(commentRequest.getParent().getBiographyId());
             replyTo.setFirstName(commentRequest.getParent().getFirstName());
 
-            parent.setBiography(replyTo);
+            parent.setUser(replyTo);
             parent.setBiographyId(commentRequest.getParent().getBiographyId());
 
             biographyComment.setParent(parent);

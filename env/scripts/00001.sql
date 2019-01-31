@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS "user" (
   id SERIAL PRIMARY KEY,
   created_at TIMESTAMP DEFAULT NOW(),
-  provider_id VARCHAR(30) NOT NULL
+  provider_id VARCHAR(30) NOT NULL,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS "user_account" (
