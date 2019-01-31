@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.model;
 
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -19,7 +20,7 @@ public class BiographyFixResponse {
 
     private ShortBiographyResponse creatorBiography;
 
-    private Collection<FixAction> actions;
+    private Collection<FixAction> actions = new ArrayList<>();
 
     private String info;
 

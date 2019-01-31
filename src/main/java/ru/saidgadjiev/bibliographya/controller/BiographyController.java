@@ -187,8 +187,15 @@ public class BiographyController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{biographyId}/comments")
-    public ResponseEntity<BiographyCommentResponse> addComment(@PathVariable("biographyId") Integer biographyId,
-                                                               @RequestBody BiographyCommentRequest commentRequest) {
+    public ResponseEntity<BiographyCommentResponse> addComment(
+            @PathVariable("biographyId") Integer biographyId,
+            @RequestBody BiographyCommentRequest commentRequest,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
 
         return ResponseEntity.ok(modelMapper.convertToBiographyCommentResponse(biographyComment));

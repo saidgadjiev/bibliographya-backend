@@ -16,7 +16,7 @@ public interface BiographyCommentDao {
 
     int delete(int biographyId, int commentId);
 
-    List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset, Integer afterKey);
+    List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset);
 
     long countOffByBiographyId(int biographyId);
 

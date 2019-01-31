@@ -21,11 +21,11 @@ public interface BibliographyaMapper {
 
     BiographyModerationResponse convertToBiographyModerationResponse(Biography biography);
 
+    List<BiographyModerationResponse> convertToBiographyModerationResponse(List<Biography> biographies);
+
     List<MyBiographyResponse> convertToMyBiographyResponse(List<Biography> biographies);
 
     MyBiographyResponse convertToMyBiographyResponse(Biography biography);
-
-    List<BiographyModerationResponse> convertToBiographyModerationResponse(List<Biography> biographies);
 
     ShortBiographyResponse convertToShortBiographyResponse(Biography biography);
 

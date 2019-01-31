@@ -1,10 +1,11 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.model.BiographyCommentRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCommentService;
 
 /**
@@ -23,9 +24,16 @@ public class BiographyCommentController {
 
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable("id") Integer commentId,
-                                    @RequestBody ObjectNode comment) {
-        int result = biographyCommentService.updateComment(commentId, comment.get("content").asText());
+    public ResponseEntity<?> update(
+            @PathVariable("id") Integer commentId,
+            @RequestBody BiographyCommentRequest commentRequest,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        int result = biographyCommentService.updateComment(commentId, commentRequest);
 
         if (result == 0) {
             return ResponseEntity.notFound().build();

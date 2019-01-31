@@ -141,7 +141,7 @@ public class BiographyDaoImpl implements BiographyDao {
                 .append(getFullSelectList())
                 .append(" FROM biography b")
                 .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
-                .append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id");
+                .append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
 
         if (clause.length() > 0) {
             sql.append("WHERE ").append(clause.toString()).append(" ");
@@ -222,7 +222,7 @@ public class BiographyDaoImpl implements BiographyDao {
 
         creator.setId(rs.getInt("cb_id"));
         creator.setFirstName(rs.getString("cb_first_name"));
-        creator.setLastName(rs.getString("cb_middle_name"));
+        creator.setLastName(rs.getString("cb_last_name"));
 
         biography.setCreatorBiography(creator);
 
@@ -232,7 +232,10 @@ public class BiographyDaoImpl implements BiographyDao {
     @Override
     public Biography getById(int id) {
         return jdbcTemplate.query(
-                "SELECT " + getFullSelectList() + " FROM biography b LEFT JOIN biography bm ON b.moderator_id = bm.user_id  WHERE b.id=" + id + "",
+                "SELECT " + getFullSelectList() + " FROM biography b \n" +
+                        "  LEFT JOIN biography bm ON b.moderator_id = bm.user_id\n" +
+                        "  LEFT JOIN biography cb ON b.creator_id = cb.user_id\n" +
+                        "WHERE b.id=" + id + "",
                 rs -> {
                     if (rs.next()) {
                         return mapFull(rs);

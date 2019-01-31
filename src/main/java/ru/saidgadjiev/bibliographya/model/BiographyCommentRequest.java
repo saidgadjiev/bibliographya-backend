@@ -1,5 +1,8 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 /**
  * Created by said on 18.11.2018.
  */
@@ -7,11 +10,13 @@ public class BiographyCommentRequest {
 
     private Integer id;
 
+    @NotNull
+    @Size(min = 1)
     private String content;
 
     private String firstName;
 
-    private String lastName;
+    private int biographyId;
 
     private BiographyCommentRequest parent;
 
@@ -39,19 +44,19 @@ public class BiographyCommentRequest {
         this.firstName = firstName;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
     public BiographyCommentRequest getParent() {
         return parent;
     }
 
     public void setParent(BiographyCommentRequest parent) {
         this.parent = parent;
+    }
+
+    public int getBiographyId() {
+        return biographyId;
+    }
+
+    public void setBiographyId(int biographyId) {
+        this.biographyId = biographyId;
     }
 }

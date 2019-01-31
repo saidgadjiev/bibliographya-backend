@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.model;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -46,7 +47,7 @@ public class BiographyModerationResponse {
 
     private Collection<String> categories;
 
-    private Collection<ModerationAction> actions;
+    private Collection<ModerationAction> actions = new ArrayList<>();
 
     private String moderationInfo;
 

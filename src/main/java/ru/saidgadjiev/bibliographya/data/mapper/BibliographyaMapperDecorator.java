@@ -9,6 +9,9 @@ import ru.saidgadjiev.bibliographya.model.MyBiographyResponse;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyModerationService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class BibliographyaMapperDecorator implements BibliographyaMapper {
 
     private BibliographyaMapper delegate;
@@ -27,12 +30,43 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
     }
 
     @Override
+    public List<BiographyModerationResponse> convertToBiographyModerationResponse(List<Biography> biographies) {
+        if (biographies == null) {
+            return null;
+        }
+
+        List<BiographyModerationResponse> list = new ArrayList<>(biographies.size());
+
+        for (Biography biography : biographies) {
+            list.add(convertToBiographyModerationResponse(biography));
+        }
+
+        return list;
+    }
+
+    @Override
     public MyBiographyResponse convertToMyBiographyResponse(Biography biography) {
         MyBiographyResponse myBiographyResponse = delegate.convertToMyBiographyResponse(biography);
 
         myBiographyResponse.setActions(biographyModerationService.getUserActions(biography));
 
         return myBiographyResponse;
+    }
+
+
+    @Override
+    public List<MyBiographyResponse> convertToMyBiographyResponse(List<Biography> biographies) {
+        if (biographies == null) {
+            return null;
+        }
+
+        List<MyBiographyResponse> list = new ArrayList<>(biographies.size());
+
+        for (Biography biography : biographies) {
+            list.add(convertToMyBiographyResponse(biography));
+        }
+
+        return list;
     }
 
     @Override
@@ -42,6 +76,21 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
         fixResponse.setActions(fixService.getActions(biographyFix));
 
         return fixResponse;
+    }
+
+    @Override
+    public List<BiographyFixResponse> convertToBiographyFixResponse(List<BiographyFix> biographyFixes) {
+        if (biographyFixes == null) {
+            return null;
+        }
+
+        List<BiographyFixResponse> list = new ArrayList<>(biographyFixes.size());
+
+        for (BiographyFix biographyFix : biographyFixes) {
+            list.add(convertToBiographyFixResponse(biographyFix));
+        }
+
+        return list;
     }
 
     @Autowired

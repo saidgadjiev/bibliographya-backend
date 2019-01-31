@@ -46,6 +46,7 @@ public class BiographyCommentService {
 
         Biography biography = new Biography();
 
+        biography.setId(userDetails.getBiography().getId());
         biography.setFirstName(userDetails.getBiography().getFirstName());
         biography.setLastName(userDetails.getBiography().getLastName());
 
@@ -59,10 +60,11 @@ public class BiographyCommentService {
 
             Biography replyTo = new Biography();
 
+            replyTo.setId(commentRequest.getParent().getBiographyId());
             replyTo.setFirstName(commentRequest.getParent().getFirstName());
-            replyTo.setLastName(commentRequest.getParent().getLastName());
 
             parent.setBiography(replyTo);
+            parent.setBiographyId(commentRequest.getParent().getBiographyId());
 
             biographyComment.setParent(parent);
         }
@@ -80,8 +82,7 @@ public class BiographyCommentService {
                 biographyId,
                 pageRequest.getSort(),
                 pageRequest.getPageSize(),
-                pageRequest.getOffset(),
-                null
+                pageRequest.getOffset()
         );
         long total = biographyCommentDao.countOffByBiographyId(biographyId);
 
@@ -97,10 +98,8 @@ public class BiographyCommentService {
     }
 
     @Transactional
-    public int updateComment(Integer commentId, String content) {
-        int updated = biographyCommentDao.updateContent(commentId, content);
-
-        return updated;
+    public int updateComment(Integer commentId, BiographyCommentRequest request) {
+        return biographyCommentDao.updateContent(commentId, request.getContent());
     }
 
     public boolean isIAuthor(int commentId) {

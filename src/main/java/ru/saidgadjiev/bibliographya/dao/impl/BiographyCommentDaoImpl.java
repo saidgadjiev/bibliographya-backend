@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyCommentDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
@@ -32,35 +33,33 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
 
     @Override
     public BiographyComment create(BiographyComment biographyComment) {
-        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
-                    "(content, biography_id, user_id, parent_id) " +
-                    "VALUES(?, ?, ?, ?) RETURNING id, created_at")) {
-                ps.setString(1, biographyComment.getContent());
-                ps.setInt(2, biographyComment.getBiographyId());
-                ps.setInt(3, biographyComment.getUserId());
+        return jdbcTemplate.execute(
+                "INSERT INTO biography_comment" +
+                        "(content, biography_id, user_id, parent_id) " +
+                        "VALUES(?, ?, ?, ?) RETURNING id, created_at",
+                (PreparedStatementCallback<BiographyComment>) ps -> {
+                    ps.setString(1, biographyComment.getContent());
+                    ps.setInt(2, biographyComment.getBiographyId());
+                    ps.setInt(3, biographyComment.getUserId());
 
-                if (biographyComment.getParentId() != null) {
-                    ps.setInt(4, biographyComment.getParentId());
-                } else {
-                    ps.setNull(4, Types.INTEGER);
-                }
-
-                ps.execute();
-
-                try (ResultSet resultSet = ps.getResultSet()) {
-                    if (resultSet.next()) {
-                        biographyComment.setId(resultSet.getInt("id"));
-                        biographyComment.setCreatedAt(resultSet.getTimestamp("created_at"));
+                    if (biographyComment.getParentId() != null) {
+                        ps.setInt(4, biographyComment.getParentId());
+                    } else {
+                        ps.setNull(4, Types.INTEGER);
                     }
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException(ex.getMessage(), ex) {
-            };
-        }
 
-        return biographyComment;
+                    ps.execute();
+
+                    try (ResultSet resultSet = ps.getResultSet()) {
+                        if (resultSet.next()) {
+                            biographyComment.setId(resultSet.getInt("id"));
+                            biographyComment.setCreatedAt(resultSet.getTimestamp("created_at"));
+                        }
+                    }
+                    
+                    return biographyComment;
+                }
+        );
     }
 
     @Override
@@ -72,22 +71,15 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
     }
 
     @Override
-    public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset, Integer afterKey) {
+    public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset) {
         String sortClause = SortUtils.toSql(sort, "bc1");
 
         return jdbcTemplate.query(
-                "SELECT " +
-                        "  bc1.*,\n" +
-                        "  bg1.id as biography_id, " +
-                        "  bg1.first_name,\n" +
-                        "  bg1.last_name,\n" +
-                        "  bg2.id as reply_biography_id," +
-                        "  bg2.user_id AS reply_user_name,\n" +
-                        "  bg2.first_name AS reply_first_name\n" +
-                        " FROM biography_comment bc1 LEFT JOIN biography_comment bc2 ON bc1.parent_id = bc2.id\n" +
-                        "  LEFT JOIN biography bg1 ON bc1.user_id = bg1.user_id\n" +
-                        "  LEFT JOIN biography bg2 ON bc2.user_id = bg2.user_id\n" +
-                        " WHERE bc1.biography_id = ?\n" +
+                "SELECT " + selectList() +
+                        " FROM biography_comment bcm LEFT JOIN biography_comment bcpm ON bcm.parent_id = bcpm.id\n" +
+                        "  LEFT JOIN biography ba ON bcm.user_id = ba.user_id\n" +
+                        "  LEFT JOIN biography br ON bcpm.user_id = br.user_id\n" +
+                        " WHERE bcm.biography_id = ?\n" +
                         (StringUtils.isNotBlank(sortClause) ? " ORDER BY " + sortClause : "") +
                         " LIMIT ? " +
                         " OFFSET ?",
@@ -154,18 +146,11 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
     @Override
     public BiographyComment getById(int id) {
         return jdbcTemplate.query(
-                "SELECT\n" +
-                        "  bc1.*,\n" +
-                        "  bg1.id AS biography_id," +
-                        "  bg1.first_name,\n" +
-                        "  bg1.last_name,\n" +
-                        "  bg2.id AS reply_biography_id," +
-                        "  bg2.user_id AS reply_user_id,\n" +
-                        "  bg2.first_name AS reply_first_name\n" +
-                        "FROM biography_comment bc1 LEFT JOIN biography_comment bc2 ON bc1.parent_id = bc2.id\n" +
-                        "  LEFT JOIN biography bg1 ON bc1.user_id = bg1.user_id\n" +
-                        "  LEFT JOIN biography bg2 ON bc2.user_id = bg2.user_id\n" +
-                        "WHERE bc1.id = ?",
+                "SELECT " + selectList() + " " +
+                        "FROM biography_comment bcm LEFT JOIN biography_comment bcpm ON bcm.parent_id = bcpm.id\n" +
+                        "  LEFT JOIN biography ba ON bcm.user_id = ba.user_id\n" +
+                        "  LEFT JOIN biography br ON bcpm.user_id = br.user_id\n" +
+                        "WHERE bcm.id = ?",
                 ps -> {
                     ps.setInt(1, id);
                 },
@@ -237,21 +222,21 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
     private BiographyComment map(ResultSet rs) throws SQLException {
         BiographyComment biographyComment = new BiographyComment();
 
-        biographyComment.setId(rs.getInt("id"));
-        biographyComment.setCreatedAt(rs.getTimestamp("created_at"));
-        biographyComment.setContent(rs.getString("content"));
-        biographyComment.setBiographyId(rs.getInt("biography_id"));
-        biographyComment.setUserId(rs.getInt("user_id"));
+        biographyComment.setId(rs.getInt("bcm_id"));
+        biographyComment.setCreatedAt(rs.getTimestamp("bcm_created_at"));
+        biographyComment.setContent(rs.getString("bcm_content"));
+        biographyComment.setBiographyId(rs.getInt("bcm_biography_id"));
+        biographyComment.setUserId(rs.getInt("bcm_user_id"));
 
         Biography biography = new Biography();
 
-        biography.setId(rs.getInt("biography_id"));
-        biography.setFirstName(rs.getString("first_name"));
-        biography.setLastName(rs.getString("last_name"));
+        biography.setId(rs.getInt("ba_id"));
+        biography.setFirstName(rs.getString("ba_first_name"));
+        biography.setLastName(rs.getString("ba_last_name"));
 
         biographyComment.setBiography(biography);
 
-        int parentId = rs.getInt("parent_id");
+        int parentId = rs.getInt("bcm_parent_id");
 
         if (!rs.wasNull()) {
             biographyComment.setParentId(parentId);
@@ -261,9 +246,8 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
             parent.setId(parentId);
 
             Biography replyTo = new Biography();
-            replyTo.setId(rs.getInt("reply_biography_id"));
-            replyTo.setFirstName(rs.getString("reply_first_name"));
-            replyTo.setUserId(rs.getInt("reply_user_id"));
+            replyTo.setId(rs.getInt("br_id"));
+            replyTo.setFirstName(rs.getString("br_first_name"));
 
             parent.setBiography(replyTo);
             parent.setBiographyId(replyTo.getId());
@@ -283,5 +267,24 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
                     ps.setInt(2, commentId);
                 }
         );
+    }
+
+    private String selectList() {
+        StringBuilder builder = new StringBuilder();
+
+        builder
+                .append("bcm.id as bcm_id,")
+                .append("bcm.content as bcm_content,")
+                .append("bcm.created_at as bcm_created_at,")
+                .append("bcm.biography_id as bcm_biography_id,")
+                .append("bcm.user_id as bcm_user_id,")
+                .append("bcm.parent_id as bcm_parent_id,")
+                .append("ba.id as ba_id,")
+                .append("ba.first_name as ba_first_name,")
+                .append("ba.last_name as ba_last_name,")
+                .append("br.id as br_id,")
+                .append("br.first_name as br_first_name");
+
+        return builder.toString();
     }
 }
