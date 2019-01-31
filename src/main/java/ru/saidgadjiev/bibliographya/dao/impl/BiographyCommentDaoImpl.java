@@ -72,7 +72,7 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
 
     @Override
     public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset) {
-        String sortClause = SortUtils.toSql(sort, "bc1");
+        String sortClause = SortUtils.toSql(sort, "bcm");
 
         return jdbcTemplate.query(
                 "SELECT " + selectList() +
