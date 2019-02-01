@@ -27,7 +27,6 @@ public class CloseOperation {
                 new UpdateValue<>(
                         "status",
                         Bug.BugStatus.CLOSED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );

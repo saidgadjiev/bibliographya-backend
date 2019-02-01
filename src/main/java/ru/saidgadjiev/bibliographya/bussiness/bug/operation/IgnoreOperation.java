@@ -27,7 +27,6 @@ public class IgnoreOperation {
                 new UpdateValue<>(
                         "info",
                         info,
-                        true,
                         PreparedStatement::setString
                 )
         );
@@ -36,7 +35,6 @@ public class IgnoreOperation {
                 new UpdateValue<>(
                         "status",
                         Bug.BugStatus.IGNORED.getCode(),
-                        true,
                         PreparedStatement::setInt
 
                 )

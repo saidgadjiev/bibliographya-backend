@@ -27,7 +27,6 @@ public class OpenOperation {
                 new UpdateValue<>(
                         "status",
                         Bug.BugStatus.OPENED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );

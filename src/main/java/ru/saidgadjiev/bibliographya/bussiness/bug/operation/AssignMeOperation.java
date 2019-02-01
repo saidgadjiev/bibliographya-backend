@@ -27,7 +27,6 @@ public class AssignMeOperation {
                 new UpdateValue<>(
                         "fixer_id",
                         fixerId,
-                        true,
                         PreparedStatement::setInt
                 )
         );

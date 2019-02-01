@@ -28,7 +28,6 @@ public class ReleaseOperation {
                 new UpdateValue<>(
                         "status",
                         Bug.BugStatus.OPENED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );
@@ -36,7 +35,6 @@ public class ReleaseOperation {
                 new UpdateValue<>(
                         "fixer_id",
                         null,
-                        true,
                         (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER)
                 )
         );
