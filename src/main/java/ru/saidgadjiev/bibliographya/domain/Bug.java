@@ -8,9 +8,9 @@ public class Bug {
 
     private String bugCase;
 
-    private Integer userId;
+    private Integer fixerId;
 
-    private Biography user;
+    private Biography fixer;
 
     private BugStatus status;
 
@@ -40,12 +40,12 @@ public class Bug {
         this.bugCase = bugCase;
     }
 
-    public Integer getUserId() {
-        return userId;
+    public Integer getFixerId() {
+        return fixerId;
     }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    public void setFixerId(Integer fixerId) {
+        this.fixerId = fixerId;
     }
 
     public BugStatus getStatus() {
@@ -64,12 +64,12 @@ public class Bug {
         this.info = info;
     }
 
-    public Biography getUser() {
-        return user;
+    public Biography getFixer() {
+        return fixer;
     }
 
-    public void setUser(Biography user) {
-        this.user = user;
+    public void setFixer(Biography fixer) {
+        this.fixer = fixer;
     }
 
     public enum BugStatus {
@@ -82,6 +82,16 @@ public class Bug {
 
         BugStatus(int code) {
             this.code = code;
+        }
+
+        public static BugStatus fromCode(int status) {
+            for (BugStatus bugStatus: values()) {
+                if (bugStatus.getCode() == status) {
+                    return bugStatus;
+                }
+            }
+
+            return null;
         }
 
         public int getCode() {

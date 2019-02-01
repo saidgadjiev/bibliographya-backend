@@ -138,7 +138,7 @@ public class BiographyFixService {
 
         processValues.put("fixId", fixId);
         processValues.put("fixerId", userDetails.getId());
-        processValues.put("fixInfo", completeRequest.getInfo());
+        processValues.put("info", completeRequest.getInfo());
 
         Handler handler = handlerMap.get(
                 BiographyFix.FixStatus.fromCode(completeRequest.getStatus())
@@ -151,7 +151,7 @@ public class BiographyFixService {
         }
 
         if (updated.getFixerId() != null) {
-            updated.setFixerBiography(userDetails.getBiography());
+            updated.setFixer(userDetails.getBiography());
         }
 
         return updated;

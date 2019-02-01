@@ -42,6 +42,10 @@ public interface BibliographyaMapper {
 
     List<UserResponse> convertToUserResponse(List<User> users);
 
+    BugResponse convertToBugResponse(Bug bug);
+
+    List<BugResponse> convertToBugResponse(List<Bug> bugs);
+
     default int convertPublishStatus(Biography.PublishStatus publishStatus) {
         return publishStatus.getCode();
     }

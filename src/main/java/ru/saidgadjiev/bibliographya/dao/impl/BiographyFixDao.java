@@ -175,10 +175,10 @@ public class BiographyFixDao {
         creatorBiography.setLastName(rs.getString("cb_last_name"));
         creatorBiography.setMiddleName(rs.getString("cb_middle_name"));
 
-        fix.setCreatorBiography(creatorBiography);
+        fix.setCreator(creatorBiography);
 
         if (fix.getFixerId() != null) {
-            fix.setFixerBiography(mapFixerBiography(rs));
+            fix.setFixer(mapFixerBiography(rs));
         }
 
         return fix;
@@ -192,13 +192,13 @@ public class BiographyFixDao {
 
 
         if (fix.getFixerId() != null) {
-            fix.setFixerBiography(mapFixerBiography(rs));
+            fix.setFixer(mapFixerBiography(rs));
         }
 
         return fix;
     }
 
-    public Biography mapFixerBiography(ResultSet rs) throws SQLException {
+    private Biography mapFixerBiography(ResultSet rs) throws SQLException {
         Biography fixerBiography = new Biography();
 
         fixerBiography.setId(rs.getInt("fb_id"));
@@ -253,7 +253,7 @@ public class BiographyFixDao {
         return builder.toString();
     }
 
-    public String fixerInfoSelectList() {
+    private String fixerInfoSelectList() {
         StringBuilder selectList = new StringBuilder();
 
         selectList
@@ -261,7 +261,7 @@ public class BiographyFixDao {
                 .append("bf.status,")
                 .append("fb.id as fb_id,")
                 .append("fb.first_name as fb_first_name,")
-                .append("fb.user_name as fb_user_name,")
+                .append("fb.user_id as fb_user_id,")
                 .append("fb.last_name as fb_last_name,")
                 .append("fb.middle_name as fb_middle_name");
 
