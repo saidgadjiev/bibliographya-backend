@@ -58,6 +58,10 @@ public interface BibliographyaMapper {
         return fixStatus.getCode();
     }
 
+    default int convertBugStatus(Bug.BugStatus bugStatus) {
+        return bugStatus.getCode();
+    }
+
     default Collection<String> convertRoles(Set<Role> roles) {
         return roles.stream().map(Role::getName).collect(Collectors.toList());
     }

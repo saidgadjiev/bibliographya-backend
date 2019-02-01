@@ -3,11 +3,14 @@ package ru.saidgadjiev.bibliographya.data.mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
+import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.model.BiographyFixResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyModerationResponse;
+import ru.saidgadjiev.bibliographya.model.BugResponse;
 import ru.saidgadjiev.bibliographya.model.MyBiographyResponse;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyModerationService;
+import ru.saidgadjiev.bibliographya.service.impl.BugService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +22,8 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
     private BiographyFixService fixService;
 
     private BiographyModerationService biographyModerationService;
+
+    private BugService bugService;
 
     @Override
     public BiographyModerationResponse convertToBiographyModerationResponse(Biography biography) {
@@ -93,6 +98,30 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
         return list;
     }
 
+    @Override
+    public BugResponse convertToBugResponse(Bug bug) {
+        BugResponse bugResponse = delegate.convertToBugResponse(bug);
+
+        bugResponse.setActions(bugService.getActions(bug));
+
+        return bugResponse;
+    }
+
+    @Override
+    public List<BugResponse> convertToBugResponse(List<Bug> bugs) {
+        if (bugs == null) {
+            return null;
+        }
+
+        List<BugResponse> list = new ArrayList<>(bugs.size());
+
+        for (Bug bug : bugs) {
+            list.add(convertToBugResponse(bug));
+        }
+
+        return list;
+    }
+
     @Autowired
     public void setDelegate(BibliographyaMapper delegate) {
         this.delegate = delegate;
@@ -106,5 +135,9 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
     @Autowired
     public void setFixService(BiographyFixService fixService) {
         this.fixService = fixService;
+    }
+
+    public void setBugService(BugService bugService) {
+        this.bugService = bugService;
     }
 }
