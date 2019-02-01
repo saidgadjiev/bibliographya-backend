@@ -30,7 +30,6 @@ public class PendingOperation {
                 new UpdateValue<>(
                         "moderation_status",
                         Biography.ModerationStatus.PENDING.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );

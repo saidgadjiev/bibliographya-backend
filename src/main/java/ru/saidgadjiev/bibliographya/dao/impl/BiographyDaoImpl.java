@@ -43,8 +43,8 @@ public class BiographyDaoImpl implements BiographyDao {
     public Biography save(Biography biography) throws SQLException {
         return jdbcTemplate.execute(
                 "INSERT INTO biography" +
-                        "(first_name, last_name, middle_name, biography, creator_id, user_id, moderation_status) " +
-                        "VALUES(?, ?, ?, ?, ?, ?, ?) " +
+                        "(first_name, last_name, middle_name, biography, creator_id, user_id) " +
+                        "VALUES(?, ?, ?, ?, ?, ?) " +
                         "RETURNING *",
                 (PreparedStatementCallback<Biography>) ps -> {
                     ps.setString(1, biography.getFirstName());
@@ -68,17 +68,12 @@ public class BiographyDaoImpl implements BiographyDao {
                     } else {
                         ps.setInt(6, biography.getUserId());
                     }
-                    if (biography.getModerationStatus() == null) {
-                        ps.setNull(7, Types.INTEGER);
-                    } else {
-                        ps.setInt(7, biography.getModerationStatus().getCode());
-                    }
 
                     ps.execute();
 
                     try (ResultSet resultSet = ps.getResultSet()) {
                         if (resultSet.next()) {
-                            return mapFull(resultSet);
+                            return mapFull(resultSet, false, false);
                         }
 
                         return null;
@@ -88,24 +83,51 @@ public class BiographyDaoImpl implements BiographyDao {
     }
 
     @Override
-    public Biography getBiography(Collection<FilterCriteria> biographyCriteria) {
-        String clause = toClause(biographyCriteria, null);
+    public Biography save(Collection<UpdateValue> values) throws SQLException {
+        StringBuilder sql = new StringBuilder();
 
-        return jdbcTemplate.query(
-                "SELECT * FROM biography " + (clause.length() > 0 ? "WHERE " + clause : ""),
-                ps -> {
+        sql.append("INSERT INTO biography(");
+
+        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
+            sql.append(iterator.next().getName());
+
+            if (iterator.hasNext()) {
+                sql.append(", ");
+            }
+        }
+
+        sql.append(") VALUES(");
+
+        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
+            sql.append("?");
+
+            if (iterator.hasNext()) {
+                sql.append(", ");
+            }
+        }
+
+        sql.append(") ");
+
+        sql.append("RETURNING *");
+
+        return jdbcTemplate.execute(
+                sql.toString(),
+                (PreparedStatementCallback<Biography>) ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion : biographyCriteria) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                    }
-                },
-                rs -> {
-                    if (rs.next()) {
-                        return mapFull(rs);
+                    for (UpdateValue updateValue : values) {
+                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
                     }
 
-                    return null;
+                    ps.execute();
+
+                    try (ResultSet resultSet = ps.getResultSet()) {
+                        if (resultSet.next()) {
+                            return mapFull(resultSet, false, false);
+                        }
+
+                        return null;
+                    }
                 }
         );
     }
@@ -173,7 +195,7 @@ public class BiographyDaoImpl implements BiographyDao {
                         criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                     }
                 },
-                (resultSet, i) -> mapFull(resultSet)
+                (resultSet, i) -> mapFull(resultSet, true, true)
         );
     }
 
@@ -188,7 +210,7 @@ public class BiographyDaoImpl implements BiographyDao {
         });
     }
 
-    private Biography mapFull(ResultSet rs) throws SQLException {
+    private Biography mapFull(ResultSet rs, boolean mapCreator, boolean mapModerator) throws SQLException {
         Biography biography = new Biography();
 
         biography.setId(rs.getInt("id"));
@@ -196,18 +218,18 @@ public class BiographyDaoImpl implements BiographyDao {
         biography.setLastName(rs.getString("last_name"));
         biography.setMiddleName(rs.getString("middle_name"));
 
-        biography.setCreatorId(ResultSetUtils.intOrNull(rs,"creator_id"));
-        biography.setUserId(ResultSetUtils.intOrNull(rs,"user_id"));
+        biography.setCreatorId(ResultSetUtils.intOrNull(rs, "creator_id"));
+        biography.setUserId(ResultSetUtils.intOrNull(rs, "user_id"));
         biography.setUpdatedAt(rs.getTimestamp("updated_at"));
         biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("moderation_status")));
         biography.setModeratedAt(rs.getTimestamp("moderated_at"));
 
-        biography .setModeratorId(ResultSetUtils.intOrNull(rs,"moderator_id"));
+        biography.setModeratorId(ResultSetUtils.intOrNull(rs, "moderator_id"));
         biography.setBiography(rs.getString("biography"));
         biography.setModerationInfo(rs.getString("moderation_info"));
         biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
 
-        if (biography.getModeratorId() != null) {
+        if (biography.getModeratorId() != null && mapModerator) {
             Biography moderatorBiography = new Biography();
 
             moderatorBiography.setId(rs.getInt("m_id"));
@@ -218,13 +240,15 @@ public class BiographyDaoImpl implements BiographyDao {
             biography.setModeratorBiography(moderatorBiography);
         }
 
-        Biography creator = new Biography();
+        if (mapCreator) {
+            Biography creator = new Biography();
 
-        creator.setId(rs.getInt("cb_id"));
-        creator.setFirstName(rs.getString("cb_first_name"));
-        creator.setLastName(rs.getString("cb_last_name"));
+            creator.setId(rs.getInt("cb_id"));
+            creator.setFirstName(rs.getString("cb_first_name"));
+            creator.setLastName(rs.getString("cb_last_name"));
 
-        biography.setCreatorBiography(creator);
+            biography.setCreatorBiography(creator);
+        }
 
         return biography;
     }
@@ -238,7 +262,7 @@ public class BiographyDaoImpl implements BiographyDao {
                         "WHERE b.id=" + id + "",
                 rs -> {
                     if (rs.next()) {
-                        return mapFull(rs);
+                        return mapFull(rs, true, true);
                     }
 
                     return null;
@@ -274,9 +298,7 @@ public class BiographyDaoImpl implements BiographyDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : updateValues) {
-                        if (updateValue.isNeedPreparedSet()) {
-                            updateValue.getSetter().set(ps, ++i, updateValue.getValue());
-                        }
+                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
                     }
                     for (FilterCriteria criterion : criteria) {
                         if (criterion.isNeedPreparedSet()) {
@@ -346,11 +368,11 @@ public class BiographyDaoImpl implements BiographyDao {
                     ResultSetMetaData md = rs.getMetaData();
                     int columns = md.getColumnCount();
 
-                    while (rs.next()){
+                    while (rs.next()) {
                         Map<String, Object> row = new HashMap<>(columns);
 
-                        for(int i=1; i<=columns; ++i){
-                            row.put(md.getColumnName(i),rs.getObject(i));
+                        for (int i = 1; i <= columns; ++i) {
+                            row.put(md.getColumnName(i), rs.getObject(i));
                         }
                         result.add(row);
                     }

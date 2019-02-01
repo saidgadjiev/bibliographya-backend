@@ -16,6 +16,8 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryBiographyServi
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
+import javax.validation.Valid;
+
 /**
  * Created by said on 27.11.2018.
  */
@@ -104,7 +106,7 @@ public class BiographyCategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable("id") int id,
-            @RequestBody BiographyCategoryRequest biographyCategoryRequest,
+            @Valid @RequestBody BiographyCategoryRequest biographyCategoryRequest,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {

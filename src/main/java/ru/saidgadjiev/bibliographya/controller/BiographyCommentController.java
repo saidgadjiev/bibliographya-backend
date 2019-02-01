@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.model.BiographyCommentRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCommentService;
 
+import javax.validation.Valid;
+
 /**
  * Created by said on 16.11.2018.
  */
@@ -26,7 +28,7 @@ public class BiographyCommentController {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable("id") Integer commentId,
-            @RequestBody BiographyCommentRequest commentRequest,
+            @Valid @RequestBody BiographyCommentRequest commentRequest,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {

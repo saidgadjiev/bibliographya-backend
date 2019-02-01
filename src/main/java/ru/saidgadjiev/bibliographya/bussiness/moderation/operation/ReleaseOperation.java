@@ -33,7 +33,6 @@ public class ReleaseOperation {
                 new UpdateValue<String>(
                         "moderator_id",
                         null,
-                        true,
                         (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER)
                 )
         );
@@ -42,7 +41,6 @@ public class ReleaseOperation {
                 new UpdateValue<>(
                         "moderation_status",
                         Biography.ModerationStatus.PENDING.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );

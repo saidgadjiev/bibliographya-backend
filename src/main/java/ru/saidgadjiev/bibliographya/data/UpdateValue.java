@@ -9,17 +9,14 @@ public class UpdateValue<T> {
 
     private T value;
 
-    private boolean needPreparedSet = true;
-
     private PreparedSetter<T> setter;
 
     public UpdateValue() {
     }
 
-    public UpdateValue(String name, T value, boolean needPreparedSet, PreparedSetter<T> setter) {
+    public UpdateValue(String name, T value, PreparedSetter<T> setter) {
         this.name = name;
         this.value = value;
-        this.needPreparedSet = needPreparedSet;
         this.setter = setter;
     }
 
@@ -47,11 +44,4 @@ public class UpdateValue<T> {
         this.value = value;
     }
 
-    public boolean isNeedPreparedSet() {
-        return needPreparedSet;
-    }
-
-    public void setNeedPreparedSet(boolean needPreparedSet) {
-        this.needPreparedSet = needPreparedSet;
-    }
 }

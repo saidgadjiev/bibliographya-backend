@@ -9,6 +9,26 @@ import java.util.Objects;
  */
 public class Biography {
 
+    public static final String ID = "id";
+
+    public static final String CREATOR_ID = "creator_id";
+
+    public static final String USER_ID = "user_id";
+
+    public static final String MODERATION_STATUS = "moderation_status";
+
+    public static final String FIRST_NAME = "first_name";
+
+    public static final String LAST_NAME = "last_name";
+
+    public static final String MIDDLE_NAME = "middle_name";
+
+    public static final String PUBLISH_STATUS = "publish_status";
+
+    public static final String BIOGRAPHY = "biography";
+
+    public static final String UPDATED_AT = "updated_at";
+
     private Integer id;
 
     private String firstName;

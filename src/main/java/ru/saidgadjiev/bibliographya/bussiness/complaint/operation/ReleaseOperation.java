@@ -29,7 +29,6 @@ public class ReleaseOperation {
                 new UpdateValue<>(
                         "consider_id",
                         null,
-                        true,
                         (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER)
                 )
         );

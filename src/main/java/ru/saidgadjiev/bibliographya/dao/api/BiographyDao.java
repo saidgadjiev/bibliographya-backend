@@ -17,7 +17,7 @@ import java.util.Map;
 public interface BiographyDao {
     Biography save(Biography biography) throws SQLException;
 
-    Biography getBiography(Collection<FilterCriteria> biographyCriteria);
+    Biography save(Collection<UpdateValue> values) throws SQLException;
 
     List<Biography> getBiographiesList(int limit,
                                        long offset,

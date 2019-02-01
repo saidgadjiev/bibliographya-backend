@@ -29,7 +29,6 @@ public class ConsiderOperation {
                 new UpdateValue<>(
                         "status",
                         BiographyReport.ReportStatus.CONSIDERED.getCode(),
-                        true,
                         PreparedStatement::setInt
                 )
         );
