@@ -42,6 +42,10 @@ public interface BibliographyaMapper {
 
     List<UserResponse> convertToUserResponse(List<User> users);
 
+    BugResponse convertToBugResponse(Bug bug);
+
+    List<BugResponse> convertToBugResponse(List<Bug> bugs);
+
     default int convertPublishStatus(Biography.PublishStatus publishStatus) {
         return publishStatus.getCode();
     }
@@ -52,6 +56,10 @@ public interface BibliographyaMapper {
 
     default int convertFixStatus(BiographyFix.FixStatus fixStatus) {
         return fixStatus.getCode();
+    }
+
+    default int convertBugStatus(Bug.BugStatus bugStatus) {
+        return bugStatus.getCode();
     }
 
     default Collection<String> convertRoles(Set<Role> roles) {

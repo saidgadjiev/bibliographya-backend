@@ -12,9 +12,9 @@ public class BugResponse {
 
     private String bugCase;
 
-    private Integer userId;
+    private Integer fixerId;
 
-    private ShortBiographyResponse user;
+    private ShortBiographyResponse fixer;
 
     private int status;
 
@@ -46,20 +46,20 @@ public class BugResponse {
         this.bugCase = bugCase;
     }
 
-    public Integer getUserId() {
-        return userId;
+    public Integer getFixerId() {
+        return fixerId;
     }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    public void setFixerId(Integer fixerId) {
+        this.fixerId = fixerId;
     }
 
-    public ShortBiographyResponse getUser() {
-        return user;
+    public ShortBiographyResponse getFixer() {
+        return fixer;
     }
 
-    public void setUser(ShortBiographyResponse user) {
-        this.user = user;
+    public void setFixer(ShortBiographyResponse fixer) {
+        this.fixer = fixer;
     }
 
     public int getStatus() {
