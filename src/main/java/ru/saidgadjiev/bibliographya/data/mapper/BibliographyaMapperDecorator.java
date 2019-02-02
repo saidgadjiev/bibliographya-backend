@@ -27,6 +27,9 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
 
     @Override
     public BiographyModerationResponse convertToBiographyModerationResponse(Biography biography) {
+        if (biography == null) {
+            return null;
+        }
         BiographyModerationResponse moderationResponse = delegate.convertToBiographyModerationResponse(biography);
 
         moderationResponse.setActions(biographyModerationService.getActions(biography));
@@ -51,6 +54,9 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
 
     @Override
     public MyBiographyResponse convertToMyBiographyResponse(Biography biography) {
+        if (biography == null) {
+            return null;
+        }
         MyBiographyResponse myBiographyResponse = delegate.convertToMyBiographyResponse(biography);
 
         myBiographyResponse.setActions(biographyModerationService.getUserActions(biography));
@@ -76,6 +82,9 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
 
     @Override
     public BiographyFixResponse convertToBiographyFixResponse(BiographyFix biographyFix) {
+        if (biographyFix == null) {
+            return null;
+        }
         BiographyFixResponse fixResponse = delegate.convertToBiographyFixResponse(biographyFix);
 
         fixResponse.setActions(fixService.getActions(biographyFix));
@@ -100,6 +109,9 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
 
     @Override
     public BugResponse convertToBugResponse(Bug bug) {
+        if (bug == null) {
+            return null;
+        }
         BugResponse bugResponse = delegate.convertToBugResponse(bug);
 
         bugResponse.setActions(bugService.getActions(bug));

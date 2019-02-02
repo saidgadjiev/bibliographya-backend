@@ -237,7 +237,7 @@ public class BiographyDaoImpl implements BiographyDao {
             moderatorBiography.setLastName(rs.getString("m_last_name"));
             moderatorBiography.setUserId(biography.getModeratorId());
 
-            biography.setModeratorBiography(moderatorBiography);
+            biography.setModerator(moderatorBiography);
         }
 
         if (mapCreator) {
@@ -247,7 +247,7 @@ public class BiographyDaoImpl implements BiographyDao {
             creator.setFirstName(rs.getString("cb_first_name"));
             creator.setLastName(rs.getString("cb_last_name"));
 
-            biography.setCreatorBiography(creator);
+            biography.setCreator(creator);
         }
 
         return biography;

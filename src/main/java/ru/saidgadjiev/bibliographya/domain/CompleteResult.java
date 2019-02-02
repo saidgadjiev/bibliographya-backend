@@ -11,12 +11,9 @@ public class CompleteResult<O, A> {
 
     private O biography;
 
-    private Collection<A> actions;
-
-    public CompleteResult(int updated, O biography, Collection<A> actions) {
+    public CompleteResult(int updated, O biography) {
         this.updated = updated;
         this.biography = biography;
-        this.actions = actions;
     }
 
     public CompleteResult(int updated) {
@@ -29,9 +26,5 @@ public class CompleteResult<O, A> {
 
     public O getObject() {
         return biography;
-    }
-
-    public Collection<A> getActions() {
-        return actions;
     }
 }

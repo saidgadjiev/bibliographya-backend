@@ -32,17 +32,17 @@ public class MyBiographyResponse {
 
     private Timestamp updatedAt;
 
-    private LastModified lastModified;
-
     private Integer moderationStatus;
 
-    private ShortBiographyResponse creatorBiography;
+    private String moderationInfo;
+
+    private ShortBiographyResponse creator;
 
     private Collection<String> categories;
 
     private Collection<ModerationAction> actions;
 
-    private int publishStatus;
+    private Integer publishStatus;
 
     public Integer getId() {
         return id;
@@ -129,14 +129,7 @@ public class MyBiographyResponse {
     }
 
     public void setUpdatedAt(Timestamp updatedAt) {
-        if (updatedAt != null) {
-            this.updatedAt = updatedAt;
-            this.lastModified = new LastModified(updatedAt.getTime(), updatedAt.getNanos());
-        }
-    }
-
-    public LastModified getLastModified() {
-        return lastModified;
+        this.updatedAt = updatedAt;
     }
 
     public Integer getModerationStatus() {
@@ -155,12 +148,12 @@ public class MyBiographyResponse {
         this.categories = categories;
     }
 
-    public ShortBiographyResponse getCreatorBiography() {
-        return creatorBiography;
+    public ShortBiographyResponse getCreator() {
+        return creator;
     }
 
-    public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
-        this.creatorBiography = creatorBiography;
+    public void setCreator(ShortBiographyResponse creator) {
+        this.creator = creator;
     }
 
     public Collection<ModerationAction> getActions() {
@@ -171,11 +164,19 @@ public class MyBiographyResponse {
         this.actions = actions;
     }
 
-    public int getPublishStatus() {
+    public Integer getPublishStatus() {
         return publishStatus;
     }
 
-    public void setPublishStatus(int publishStatus) {
+    public void setPublishStatus(Integer publishStatus) {
         this.publishStatus = publishStatus;
+    }
+
+    public String getModerationInfo() {
+        return moderationInfo;
+    }
+
+    public void setModerationInfo(String moderationInfo) {
+        this.moderationInfo = moderationInfo;
     }
 }

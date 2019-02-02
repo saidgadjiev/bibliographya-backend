@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.bussiness.fix.ClosedHandler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliographya.bussiness.fix.Handler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
-import ru.saidgadjiev.bibliographya.data.FilterArgumentResolver;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
@@ -40,19 +40,15 @@ public class BiographyFixService {
 
     private final BiographyCategoryBiographyService biographyCategoryBiographyService;
 
-    private final FilterArgumentResolver argumentResolver;
-
     private Map<BiographyFix.FixStatus, Handler> handlerMap = new HashMap<>();
 
     @Autowired
     public BiographyFixService(BiographyFixDao biographyFixDao,
                                SecurityService securityService,
-                               BiographyCategoryBiographyService biographyCategoryBiographyService,
-                               FilterArgumentResolver argumentResolver) {
+                               BiographyCategoryBiographyService biographyCategoryBiographyService) {
         this.biographyFixDao = biographyFixDao;
         this.securityService = securityService;
         this.biographyCategoryBiographyService = biographyCategoryBiographyService;
-        this.argumentResolver = argumentResolver;
 
         initHandlers();
     }
@@ -107,7 +103,7 @@ public class BiographyFixService {
     public CompleteResult<BiographyFix, FixAction> complete(int fixId, CompleteRequest completeRequest) throws SQLException {
         BiographyFix fix = doComplete(fixId, completeRequest);
 
-        return new CompleteResult<>(fix == null ? 0 : 1, fix, getActions(fix));
+        return new CompleteResult<>(fix == null ? 0 : 1, fix);
     }
 
     public Collection<FixAction> getActions(BiographyFix fix) {
@@ -131,6 +127,7 @@ public class BiographyFixService {
         handlerMap.put(BiographyFix.FixStatus.PENDING, new PendingHandler(biographyFixDao));
     }
 
+    @Transactional
     private BiographyFix doComplete(int fixId, CompleteRequest completeRequest) throws SQLException {
         User userDetails = (User) securityService.findLoggedInUser();
 

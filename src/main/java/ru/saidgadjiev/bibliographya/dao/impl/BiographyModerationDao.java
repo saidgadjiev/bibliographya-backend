@@ -100,6 +100,8 @@ public class BiographyModerationDao {
     private String getModeratorInfoSelectList() {
         StringBuilder selectList = new StringBuilder();
 
+        selectList.append("b.moderation_status as b_moderation_status,");
+        selectList.append("b.moderator_id as b_moderator_id,");
         selectList.append("bm.user_id as m_user_id,");
         selectList.append("bm.first_name as m_first_name,");
         selectList.append("bm.last_name as m_last_name,");
@@ -111,6 +113,8 @@ public class BiographyModerationDao {
     private Biography mapModeratorInfo(ResultSet rs) throws SQLException {
         Biography biography = new Biography();
 
+        biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("b_moderation_status")));
+        biography.setModeratorId(ResultSetUtils.intOrNull(rs, "b_moderator_id"));
         Biography moderatorBiography = new Biography();
 
         moderatorBiography.setFirstName(rs.getString("m_first_name"));
@@ -118,7 +122,7 @@ public class BiographyModerationDao {
         moderatorBiography.setUserId(rs.getInt("m_user_id"));
         moderatorBiography.setId(rs.getInt("m_id"));
 
-        biography.setModeratorBiography(moderatorBiography);
+        biography.setModerator(moderatorBiography);
 
         return biography;
     }

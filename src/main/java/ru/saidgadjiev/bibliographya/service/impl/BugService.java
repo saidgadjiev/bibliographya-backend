@@ -51,7 +51,7 @@ public class BugService {
     public CompleteResult<Bug, BugAction> complete(int bugId, CompleteRequest completeRequest) throws SQLException {
         Bug updated = doComplete(bugId, completeRequest);
 
-        return new CompleteResult<>(1, updated, getActions(updated));
+        return new CompleteResult<>(updated == null ? 0 : 1, updated);
     }
 
     public Collection<BugAction> getActions(Bug bug) {
