@@ -72,7 +72,7 @@ public class UserDao {
         UsersStats usersStats = new UsersStats();
 
         Map<ProviderType, Integer> countByProviderType = jdbcTemplate.query(
-                "SELECT provider_id, COUNT(provider_id) as cnt FROM user GROUP BY provider_id",
+                "SELECT provider_id, COUNT(provider_id) as cnt FROM \"user\" GROUP BY provider_id",
                 resultSet -> {
                     Map<ProviderType, Integer> stats = new LinkedHashMap<>();
 

@@ -20,4 +20,6 @@ public interface BiographyLikeDao {
     Map<Integer, Boolean> isLikedByBiographies(int userId, Collection<Integer> biographiesIds);
 
     Map<Integer, Integer> getLikesCountByBiographies(Collection<Integer> biographiesIds);
+
+    long countOff();
 }

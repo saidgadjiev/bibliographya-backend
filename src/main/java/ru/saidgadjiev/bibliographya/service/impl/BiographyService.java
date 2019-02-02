@@ -11,6 +11,7 @@ import ru.saidgadjiev.bibliographya.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.domain.BiographiesStats;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -393,6 +394,14 @@ public class BiographyService {
         User user = (User) securityService.findLoggedInUser();
 
         return Objects.equals(creatorId, user.getId());
+    }
+
+    public BiographiesStats getStats() {
+        BiographiesStats biographiesStats = new BiographiesStats();
+
+        biographiesStats.setCount(biographyDao.countOff());
+
+        return biographiesStats;
     }
 
     private int publishUpdate(int biographyId, Biography.PublishStatus publishStatus) {

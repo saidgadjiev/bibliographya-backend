@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;
+import ru.saidgadjiev.bibliographya.domain.CommentsStats;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.BiographyCommentRequest;
 
@@ -119,5 +120,13 @@ public class BiographyCommentService {
         User user = (User) securityService.findLoggedInUser();
 
         return Objects.equals(creatorId, user.getId());
+    }
+
+    public CommentsStats getStats() {
+        CommentsStats commentsStats = new CommentsStats();
+
+        commentsStats.setCount(biographyCommentDao.countOff());
+
+        return commentsStats;
     }
 }

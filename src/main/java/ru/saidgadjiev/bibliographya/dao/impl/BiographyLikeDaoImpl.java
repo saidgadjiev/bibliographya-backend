@@ -137,4 +137,18 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
                 }
         );
     }
+
+    @Override
+    public long countOff() {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM biography_like",
+                rs -> {
+                    if (rs.next()) {
+                        return rs.getLong("cnt");
+                    }
+
+                    return 0L;
+                }
+        );
+    }
 }
