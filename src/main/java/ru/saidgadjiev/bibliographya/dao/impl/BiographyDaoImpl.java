@@ -88,23 +88,21 @@ public class BiographyDaoImpl implements BiographyDao {
 
         sql.append("INSERT INTO biography(");
 
+        StringBuilder valuesBuilder = new StringBuilder();
+
         for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
             sql.append(iterator.next().getName());
+            valuesBuilder.append("?");
 
             if (iterator.hasNext()) {
                 sql.append(", ");
+                valuesBuilder.append(",");
             }
         }
 
         sql.append(") VALUES(");
 
-        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
-            sql.append("?");
-
-            if (iterator.hasNext()) {
-                sql.append(", ");
-            }
-        }
+        sql.append(valuesBuilder.toString());
 
         sql.append(") ");
 
