@@ -7,16 +7,6 @@ spring:
       userName: ${DB_USER_NAME}
       password: ${DB_PASSWORD}
 app:
-  firebase:
-    database:
-      url: ${FIREBASE_DATABASE_URL}
-    config:
-      path: ${FIREBASE_CONFIG_PATH}
-  pusher:
-    appId: ${PUSHER_APP_ID}
-    key: ${PUSHER_KEY}
-    secret: ${PUSHER_SECRET}
-    cluster: ${PUSHER_CLUSTER}
   social:
     facebook:
       appId: ${FACEBOOK_APP_ID}
