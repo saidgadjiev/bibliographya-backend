@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.service.impl.storage;
 
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Profile("prod")
 @Service
 public class FileSystemStorageService implements StorageService {
 
