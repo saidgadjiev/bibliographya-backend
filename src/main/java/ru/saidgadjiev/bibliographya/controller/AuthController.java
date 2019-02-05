@@ -63,6 +63,7 @@ public class AuthController {
 
     @PostMapping(value = "/signIn/{providerId}", params = "code")
     public ResponseEntity<?> singInSocial(
+            HttpServletRequest request,
             HttpServletResponse response,
             @PathVariable("providerId") String providerId,
             @RequestParam("code") String code,
@@ -77,6 +78,7 @@ public class AuthController {
         try {
             AuthContext authContext = new AuthContext()
                     .setProviderType(providerType)
+                    .setRequest(request)
                     .setCode(code)
                     .setResponse(response);
 
@@ -96,6 +98,7 @@ public class AuthController {
 
     @PostMapping("/signIn")
     public ResponseEntity<?> singIn(
+            HttpServletRequest request,
             HttpServletResponse response,
             @Valid @RequestBody SignInRequest signInRequest,
             BindingResult bindingResult
@@ -108,6 +111,7 @@ public class AuthController {
             AuthContext authContext = new AuthContext()
                     .setProviderType(ProviderType.USERNAME_PASSWORD)
                     .setResponse(response)
+                    .setRequest(request)
                     .setSignInRequest(signInRequest);
 
             return ResponseEntity.ok(authService.auth(authContext, null));
