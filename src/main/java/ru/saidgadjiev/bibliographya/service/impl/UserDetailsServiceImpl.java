@@ -63,6 +63,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
         User user = new User();
 
+        user.setProviderType(ProviderType.USERNAME_PASSWORD);
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
         user.setUserAccount(userAccount);
 
@@ -85,7 +86,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public User loadUserById(int userId) {
-        User user = userAccountDao.getById(userId);
+        User user = userAccountDao.getByUserId(userId);
 
         user.setRoles(userRoleDao.getRoles(userId));
 

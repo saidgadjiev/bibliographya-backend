@@ -13,19 +13,20 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.SocialAccount;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.UserAccount;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-class SocialAccountDaoTest {
+class UserAccountDaoTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private SocialAccountDao socialAccountDao;
+    private UserAccountDao userAccountDao;
 
     @BeforeEach
     void init() {
@@ -39,57 +40,77 @@ class SocialAccountDaoTest {
 
     @Test
     void save() {
-        SocialAccount socialAccount = new SocialAccount();
+        UserAccount userAccount = new UserAccount();
 
-        socialAccount.setAccountId("test");
+        userAccount.setName("test");
+        userAccount.setPassword("test");
 
         User user = new User();
 
-        user.setProviderType(ProviderType.FACEBOOK);
-        user.setSocialAccount(socialAccount);
+        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setUserAccount(userAccount);
 
-        User result = socialAccountDao.save(user);
+        User result = userAccountDao.save(user);
 
-        Assertions.assertEquals(result.getSocialAccount().getId(), 1);
+        Assertions.assertEquals(result.getUserAccount().getId(), 1);
         Assertions.assertEquals(result.getId(), 1);
 
-        Assertions.assertNull(socialAccountDao.getByUserId(user.getId()));
+        Assertions.assertNull(userAccountDao.getByUserId(user.getId()));
 
         createUserBiography();
 
-        assertEquals(result, socialAccountDao.getByUserId(user.getId()));
+        assertEquals(result, userAccountDao.getByUserId(user.getId()));
     }
 
     @Test
-    void getByAccountId() {
-        SocialAccount socialAccount = new SocialAccount();
+    void getByUsername() {
+        UserAccount userAccount = new UserAccount();
 
-        socialAccount.setAccountId("test");
+        userAccount.setName("test");
+        userAccount.setPassword("test");
 
         User user = new User();
 
-        user.setProviderType(ProviderType.FACEBOOK);
-        user.setRoles(Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()));
-        user.setSocialAccount(socialAccount);
+        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setUserAccount(userAccount);
 
-        User result = socialAccountDao.save(user);
+        User result = userAccountDao.save(user);
 
-        Assertions.assertEquals(result.getSocialAccount().getId(), 1);
+        Assertions.assertEquals(result.getUserAccount().getId(), 1);
         Assertions.assertEquals(result.getId(), 1);
 
-        Assertions.assertNull(socialAccountDao.getByAccountId(ProviderType.FACEBOOK, socialAccount.getAccountId()));
+        Assertions.assertNull(userAccountDao.getByUsername("test"));
 
         createUserBiography();
 
-        assertEquals(result, socialAccountDao.getByAccountId(ProviderType.FACEBOOK, socialAccount.getAccountId()));
+        assertEquals(result, userAccountDao.getByUsername("test"));
+    }
+
+    @Test
+    void isExistUsername() {
+        UserAccount userAccount = new UserAccount();
+
+        userAccount.setName("test");
+        userAccount.setPassword("test");
+
+        User user = new User();
+
+        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setUserAccount(userAccount);
+
+        Assertions.assertFalse(userAccountDao.isExistUsername("test"));
+
+        userAccountDao.save(user);
+
+        Assertions.assertTrue(userAccountDao.isExistUsername("test"));
     }
 
     private void assertEquals(User expected, User actual) {
         Assertions.assertEquals(expected.getId(), actual.getId());
         Assertions.assertEquals(expected.getProviderType(), actual.getProviderType());
-        Assertions.assertEquals(expected.getSocialAccount().getId(), actual.getSocialAccount().getId());
-        Assertions.assertEquals(expected.getSocialAccount().getAccountId(), actual.getSocialAccount().getAccountId());
-        Assertions.assertEquals(expected.getSocialAccount().getUserId(), actual.getSocialAccount().getUserId());
+        Assertions.assertEquals(expected.getUserAccount().getId(), actual.getUserAccount().getId());
+        Assertions.assertEquals(expected.getUserAccount().getName(), actual.getUserAccount().getName());
+        Assertions.assertEquals(expected.getUserAccount().getUserId(), actual.getUserAccount().getUserId());
         Assertions.assertEquals((int) actual.getBiography().getId(), 1);
         Assertions.assertEquals(actual.getBiography().getFirstName(), "Тест");
         Assertions.assertEquals(actual.getBiography().getLastName(), "Тест");
@@ -106,9 +127,10 @@ class SocialAccountDaoTest {
         );
 
         jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS \"social_account\" (\n" +
+                "CREATE TABLE IF NOT EXISTS \"user_account\" (\n" +
                         "  id SERIAL PRIMARY KEY,\n" +
-                        "  account_id VARCHAR(30) UNIQUE NOT NULL,\n" +
+                        "  name VARCHAR(128) UNIQUE NOT NULL,\n" +
+                        "  password VARCHAR(1024) NOT NULL,\n" +
                         "  user_id INTEGER NOT NULL REFERENCES \"user\"(id)\n" +
                         ")"
         );
@@ -135,7 +157,7 @@ class SocialAccountDaoTest {
 
     private void deleteTables() {
         jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS social_account"
+                "DROP TABLE IF EXISTS user_account"
         );
 
         jdbcTemplate.execute(

@@ -105,7 +105,7 @@ public class UserAccountDao {
         );
     }
 
-    public User getById(int userId) {
+    public User getByUserId(int userId) {
         return jdbcTemplate.query(
                 "SELECT\n" +
                         "  u.id AS u_id,\n" +
@@ -155,6 +155,7 @@ public class UserAccountDao {
         userAccount.setId(rs.getInt("ua_id"));
         userAccount.setName(rs.getString("ua_name"));
         userAccount.setPassword(rs.getString("ua_password"));
+        userAccount.setUserId(user.getId());
 
         user.setUserAccount(userAccount);
 
