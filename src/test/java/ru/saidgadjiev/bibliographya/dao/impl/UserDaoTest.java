@@ -128,8 +128,7 @@ class UserDaoTest {
     private void assertEquals(List<User> userList,
                               Map<Integer, User> expectedList,
                               Map<Integer, Biography> biographies) {
-        for (int i = 0; i < userList.size(); ++i) {
-            User user = userList.get(i);
+        for (User user : userList) {
             Biography biography = biographies.get(user.getId());
             User expected = expectedList.get(user.getId());
 
