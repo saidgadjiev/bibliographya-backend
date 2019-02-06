@@ -27,6 +27,8 @@ public class User implements UserDetails, CredentialsContainer {
 
     private Boolean isNew = false;
 
+    private boolean isDeleted = false;
+
     public User() {
     }
 
@@ -137,5 +139,13 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setIsNew(Boolean aNew) {
         isNew = aNew;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 }

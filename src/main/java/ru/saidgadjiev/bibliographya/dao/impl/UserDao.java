@@ -105,12 +105,14 @@ public class UserDao {
 
         user.setId(rs.getInt("u_id"));
         user.setProviderType(ProviderType.fromId(rs.getString("u_provider_id")));
+        user.setDeleted(rs.getBoolean("u_deleted"));
 
         Biography biography = new Biography();
 
         biography.setId(rs.getInt("ba_id"));
         biography.setFirstName(rs.getString("ba_first_name"));
         biography.setLastName(rs.getString("ba_last_name"));
+        biography.setUserId(user.getId());
 
         user.setBiography(biography);
 
@@ -144,6 +146,7 @@ public class UserDao {
 
         selectList
                 .append("u.id as u_id,")
+                .append("u.deleted as u_deleted,")
                 .append("u.provider_id as u_provider_id,")
                 .append("ba.id as ba_id,")
                 .append("ba.first_name as ba_first_name,")
