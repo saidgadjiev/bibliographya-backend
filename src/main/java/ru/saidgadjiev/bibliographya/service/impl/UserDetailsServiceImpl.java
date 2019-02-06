@@ -11,6 +11,7 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.dao.impl.SocialAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
+import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
@@ -30,6 +31,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     private final SocialAccountDao socialAccountDao;
 
+    private final UserRoleDao userRoleDao;
+
     private BiographyService biographyService;
 
     private final PasswordEncoder passwordEncoder;
@@ -37,9 +40,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     @Autowired
     public UserDetailsServiceImpl(UserAccountDao userAccountDao,
                                   SocialAccountDao socialAccountDao,
+                                  UserRoleDao userRoleDao,
                                   PasswordEncoder passwordEncoder) {
         this.userAccountDao = userAccountDao;
         this.socialAccountDao = socialAccountDao;
+        this.userRoleDao = userRoleDao;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -59,10 +64,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         User user = new User();
 
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
-
         user.setUserAccount(userAccount);
 
         user = userAccountDao.save(user);
+        userRoleDao.addRoles(user.getId(), user.getRoles());
+
         BiographyRequest biographyRequest = new BiographyRequest();
 
         biographyRequest.setFirstName(signUpRequest.getFirstName());
@@ -79,7 +85,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public User loadUserById(int userId) {
-        return userAccountDao.getById(userId);
+        User user = userAccountDao.getById(userId);
+
+        user.setRoles(userRoleDao.getRoles(userId));
+
+        return user;
     }
 
     @Override
@@ -89,7 +99,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public UserDetails loadSocialUserById(int userId) {
-        return socialAccountDao.getByUserId(userId);
+        User user = socialAccountDao.getByUserId(userId);
+
+        user.setRoles(userRoleDao.getRoles(userId));
+
+        return user;
     }
 
     @Override
@@ -108,10 +122,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
         user.setProviderType(ProviderType.fromId(userInfo.getProviderId()));
         user.setRoles(Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()));
-
         user.setSocialAccount(socialAccount);
 
         user = socialAccountDao.save(user);
+        userRoleDao.addRoles(user.getId(), user.getRoles());
+
         BiographyRequest biographyRequest = new BiographyRequest();
 
         biographyRequest.setFirstName(userInfo.getFirstName());

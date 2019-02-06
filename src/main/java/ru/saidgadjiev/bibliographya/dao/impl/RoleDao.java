@@ -3,11 +3,13 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -34,6 +36,15 @@ public class RoleDao {
 
         return jdbcTemplate.query(
                 sql.toString(),
+                preparedStatement -> {
+                    int i = 0;
+
+                    for (FilterCriteria criterion: criteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(preparedStatement, ++i, criterion.getFilterValue());
+                        }
+                    }
+                },
                 (resultSet, i) -> map(resultSet)
         );
     }

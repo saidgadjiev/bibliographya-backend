@@ -1,14 +1,12 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.SocialAccount;
 import ru.saidgadjiev.bibliographya.domain.User;
 
@@ -16,10 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Created by said on 25.12.2018.
@@ -32,6 +27,10 @@ public class SocialAccountDao {
     @Autowired
     public SocialAccountDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 
     public User save(User user) {
@@ -47,7 +46,11 @@ public class SocialAccountDao {
                 },
                 keyHolderUser
         );
-        user.setId(((Number) keyHolderUser.getKeys().get("id")).intValue());
+        Map<String, Object> keys = keyHolderUser.getKeys();
+
+        if (keys != null && keys.containsKey("id")) {
+            user.setId(((Number) keyHolderUser.getKeys().get("id")).intValue());
+        }
 
         user.getSocialAccount().setUserId(user.getId());
 
@@ -66,30 +69,18 @@ public class SocialAccountDao {
                 },
                 keyHolderSocialAccount
         );
-        user.getSocialAccount().setId(((Number) keyHolderSocialAccount.getKeys().get("id")).intValue());
+        keys = keyHolderSocialAccount.getKeys();
 
-        List<Role> roles = new ArrayList<>(user.getRoles());
+        if (keys != null && keys.containsKey("id")) {
+            user.getSocialAccount().setId(((Number) keys.get("id")).intValue());
+        }
 
-        jdbcTemplate.batchUpdate(
-                "INSERT INTO user_role(user_id, role_name) VALUES(?, ?)",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, user.getId());
-                        ps.setString(2, roles.get(i).getName());
-                    }
-
-                    @Override
-                    public int getBatchSize() {
-                        return roles.size();
-                    }
-                });
 
         return user;
     }
 
     public User getByUserId(int userId) {
-        User result = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT\n" +
                         "  u.id AS u_id,\n" +
                         "  u.provider_id AS u_provider_id,\n" +
@@ -101,9 +92,7 @@ public class SocialAccountDao {
                         "  b.last_name AS b_last_name\n" +
                         "FROM \"user\" u INNER JOIN social_account sa ON sa.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
                         "WHERE u.id = ?",
-                ps -> {
-                    ps.setInt(1, userId);
-                },
+                ps -> ps.setInt(1, userId),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
@@ -112,18 +101,10 @@ public class SocialAccountDao {
                     return null;
                 }
         );
-
-        if (result == null) {
-            return null;
-        }
-
-        result.setRoles(getRoles(userId));
-
-        return result;
     }
 
     public User getByAccountId(ProviderType providerType, String accountId) {
-        User result = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT\n" +
                         "  u.id AS u_id,\n" +
                         "  u.provider_id AS u_provider_id,\n" +
@@ -147,28 +128,6 @@ public class SocialAccountDao {
                     return null;
                 }
         );
-
-        if (result == null) {
-            return null;
-        }
-
-        result.setRoles(getRoles(result.getId()));
-
-        return result;
-    }
-
-    private Set<Role> getRoles(int userId) {
-        Set<Role> roles = new LinkedHashSet<>();
-
-        jdbcTemplate.query(
-                "SELECT * FROM user_role WHERE user_id = ?",
-                ps -> ps.setInt(1, userId),
-                rs -> {
-                    roles.add(new Role(rs.getString("role_name")));
-                }
-        );
-
-        return roles;
     }
 
     private User map(ResultSet rs) throws SQLException {

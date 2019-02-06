@@ -1,18 +1,17 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UserAccount;
 
 import java.sql.*;
-import java.util.*;
+import java.util.Map;
 
 /**
  * Created by said on 22.10.2018.
@@ -40,7 +39,11 @@ public class UserAccountDao {
                 },
                 keyHolderUser
         );
-        user.setId(((Number) keyHolderUser.getKeys().get("id")).intValue());
+        Map<String, Object> keys = keyHolderUser.getKeys();
+
+        if (keys != null && keys.containsKey("id")) {
+            user.setId(((Number) keys.get("id")).intValue());
+        }
 
         user.getUserAccount().setUserId(user.getId());
 
@@ -69,30 +72,17 @@ public class UserAccountDao {
                 },
                 keyHolderUserAccount
         );
-        user.getUserAccount().setId(((Number) keyHolderUserAccount.getKeys().get("id")).intValue());
+        keys = keyHolderUserAccount.getKeys();
 
-        List<Role> roles = new ArrayList<>(user.getRoles());
-
-        jdbcTemplate.batchUpdate(
-                "INSERT INTO user_role(user_id, role_name) VALUES(?, ?)",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, user.getId());
-                        ps.setString(2, roles.get(i).getName());
-                    }
-
-                    @Override
-                    public int getBatchSize() {
-                        return roles.size();
-                    }
-                });
+        if (keys != null && keys.containsKey("id")) {
+            user.getUserAccount().setId(((Number) keys.get("id")).intValue());
+        }
 
         return user;
     }
 
     public User getByUsername(String name) {
-        User result = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT\n" +
                         "  u.id AS u_id,\n" +
                         "  u.provider_id AS u_provider_id,\n" +
@@ -113,18 +103,10 @@ public class UserAccountDao {
                     return null;
                 }
         );
-
-        if (result == null) {
-            return null;
-        }
-
-        result.setRoles(getRoles(result.getId()));
-
-        return result;
     }
 
     public User getById(int userId) {
-        User result = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT\n" +
                         "  u.id AS u_id,\n" +
                         "  u.provider_id AS u_provider_id,\n" +
@@ -145,18 +127,10 @@ public class UserAccountDao {
                     return null;
                 }
         );
-
-        if (result == null) {
-            return null;
-        }
-
-        result.setRoles(getRoles(userId));
-
-        return result;
     }
 
     public boolean isExistUsername(String username) {
-        return jdbcTemplate.query(
+        Boolean result = jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM user_account WHERE name ='" + username + "'",
                 rs -> {
                     if (rs.next()) {
@@ -166,20 +140,8 @@ public class UserAccountDao {
                     return false;
                 }
         );
-    }
 
-    private Set<Role> getRoles(int userId) {
-        Set<Role> roles = new LinkedHashSet<>();
-
-        jdbcTemplate.query(
-                "SELECT * FROM user_role WHERE user_id = ?",
-                ps -> ps.setInt(1, userId),
-                rs -> {
-                    roles.add(new Role(rs.getString("role_name")));
-                }
-        );
-
-        return roles;
+        return result == null ? false : result;
     }
 
     private User map(ResultSet rs) throws SQLException {
