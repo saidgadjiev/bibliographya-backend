@@ -56,16 +56,8 @@ public class UserAccountDao {
                             Statement.RETURN_GENERATED_KEYS
                     );
 
-                    if (user.getUsername() == null) {
-                        ps.setNull(1, Types.VARCHAR);
-                    } else {
-                        ps.setString(1, user.getUsername());
-                    }
-                    if (user.getPassword() == null) {
-                        ps.setNull(2, Types.VARCHAR);
-                    } else {
-                        ps.setString(2, user.getPassword());
-                    }
+                    ps.setString(1, user.getUsername());
+                    ps.setString(2, user.getPassword());
                     ps.setInt(3, user.getId());
 
                     return ps;

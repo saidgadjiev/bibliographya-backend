@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
@@ -47,11 +48,11 @@ public class UserService {
     }
 
     public int addRole(int userId, String role) {
-        return userRoleDao.addRole(userId, role);
+        return userRoleDao.addRole(userId, new Role(role));
     }
 
     public int deleteRole(int userId, String role) {
-        return userRoleDao.deleteRole(userId, role);
+        return userRoleDao.deleteRole(userId, new Role(role));
     }
 
     public int deleteUser(int userId) {

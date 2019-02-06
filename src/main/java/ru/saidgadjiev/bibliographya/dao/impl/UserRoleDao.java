@@ -39,22 +39,22 @@ public class UserRoleDao {
 
     }
 
-    public int addRole(int userId, String role) {
+    public int addRole(int userId, Role role) {
         return jdbcTemplate.update(
                 "INSERT INTO user_role(user_id, role_name) VALUES(?, ?)",
                 preparedStatement -> {
                     preparedStatement.setInt(1, userId);
-                    preparedStatement.setString(2, role);
+                    preparedStatement.setString(2, role.getName());
                 }
         );
     }
 
-    public int deleteRole(int userId, String role) {
+    public int deleteRole(int userId, Role role) {
         return jdbcTemplate.update(
                 "DELETE FROM user_role WHERE user_id = ? AND role_name = ?",
                 preparedStatement -> {
                     preparedStatement.setInt(1, userId);
-                    preparedStatement.setString(2, role);
+                    preparedStatement.setString(2, role.getName());
                 }
         );
     }

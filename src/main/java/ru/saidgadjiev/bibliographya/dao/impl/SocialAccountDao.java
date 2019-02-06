@@ -29,10 +29,6 @@ public class SocialAccountDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public JdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-
     public User save(User user) {
         KeyHolder keyHolderUser = new GeneratedKeyHolder();
 
