@@ -35,5 +35,9 @@
         <Dc name="00009" description="Создаем сущность жалоб биографий">
             <SqlFile file="env/scripts/00009.sql"/>
         </Dc>
+
+        <Dc name="00010" description="Таблица для багов">
+            <SqlFile file="env/scripts/00010.sql"/>
+        </Dc>
     </target>
 </project>

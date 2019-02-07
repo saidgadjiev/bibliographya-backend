@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug;
 
+import java.util.Objects;
+
 public class BugAction {
 
     private String name;
@@ -26,6 +28,26 @@ public class BugAction {
         return signal;
     }
 
+    @Override
+    public String toString() {
+        return "BugAction{" +
+                "name='" + name + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BugAction bugAction = (BugAction) o;
+        return Objects.equals(name, bugAction.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
     public static BugAction close() {
         return new BugAction("Close", "Закрыть", Handler.Signal.CLOSE.getDesc());
     }
@@ -34,8 +56,8 @@ public class BugAction {
         return new BugAction("AssignMe", "Назначить меня", Handler.Signal.ASSIGN_ME.getDesc());
     }
 
-    public static BugAction open() {
-        return new BugAction("Open", "Открыть", Handler.Signal.OPEN.getDesc());
+    public static BugAction pending() {
+        return new BugAction("Open", "Открыть", Handler.Signal.PENDING.getDesc());
     }
 
     public static BugAction ignore() {

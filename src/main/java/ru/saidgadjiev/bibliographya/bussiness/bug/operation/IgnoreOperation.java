@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug.operation;
 
+import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class IgnoreOperation {
+public class IgnoreOperation implements BusinessOperation<Bug> {
 
     private final BugDao bugDao;
 
@@ -19,6 +20,7 @@ public class IgnoreOperation {
         this.bugDao = bugDao;
     }
 
+    @Override
     public Bug execute(Map<String, Object> args) {
         List<UpdateValue> updateValues = new ArrayList<>();
         String info = (String) args.get("info");

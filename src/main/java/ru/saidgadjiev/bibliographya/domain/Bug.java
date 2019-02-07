@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.domain;
 
+import java.sql.Timestamp;
+
 public class Bug {
 
     private Integer id;
@@ -13,6 +15,10 @@ public class Bug {
     private Biography fixer;
 
     private BugStatus status;
+
+    private Timestamp createdAt;
+
+    private Timestamp fixedAt;
 
     private String info;
 
@@ -72,9 +78,25 @@ public class Bug {
         this.fixer = fixer;
     }
 
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getFixedAt() {
+        return fixedAt;
+    }
+
+    public void setFixedAt(Timestamp fixedAt) {
+        this.fixedAt = fixedAt;
+    }
+
     public enum BugStatus {
 
-        OPENED(0),
+        PENDING(0),
         CLOSED(1),
         IGNORED(2);
 

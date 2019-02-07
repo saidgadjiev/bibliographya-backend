@@ -15,11 +15,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class OpenedHandler implements Handler {
+public class PendingHandler implements Handler {
 
     private final BugDao bugDao;
 
-    public OpenedHandler(BugDao bugDao) {
+    public PendingHandler(BugDao bugDao) {
         this.bugDao = bugDao;
     }
 
@@ -41,9 +41,9 @@ public class OpenedHandler implements Handler {
 
     @Override
     public Collection<BugAction> getActions(Map<String, Object> args) {
-        Integer userId = (Integer) args.get("userId");
+        Integer fixerId = (Integer) args.get("fixerId");
 
-        if (userId == null) {
+        if (fixerId == null) {
             return new ArrayList<BugAction>() {{
                 add(BugAction.assignMe());
             }};
@@ -51,7 +51,7 @@ public class OpenedHandler implements Handler {
 
         User user = (User) args.get("user");
 
-        if (user.getId() == userId) {
+        if (user.getId() == fixerId) {
             return new ArrayList<BugAction>() {{
                 add(BugAction.close());
                 add(BugAction.ignore());

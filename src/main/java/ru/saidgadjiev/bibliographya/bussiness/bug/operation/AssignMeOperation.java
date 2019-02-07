@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug.operation;
 
+import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class AssignMeOperation {
+public class AssignMeOperation implements BusinessOperation<Bug> {
 
     private final BugDao bugDao;
 
@@ -19,6 +20,7 @@ public class AssignMeOperation {
         this.bugDao = bugDao;
     }
 
+    @Override
     public Bug execute(Map<String, Object> args) {
         List<UpdateValue> values = new ArrayList<>();
         int fixerId = (Integer) args.get("fixerId");
@@ -55,6 +57,12 @@ public class AssignMeOperation {
                 )
         );
 
-        return bugDao.update(values, criteria);
+        Bug bug = bugDao.update(values, criteria);
+
+        if (bugDao.getDialect().supportReturning()) {
+            return bug;
+        }
+
+        return bugDao.getById(id);
     }
 }

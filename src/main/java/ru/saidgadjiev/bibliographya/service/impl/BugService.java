@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.bussiness.bug.*;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
-import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -34,18 +33,18 @@ public class BugService {
     }
 
     private void initHandlers() {
-        handlerMap.put(Bug.BugStatus.OPENED, new OpenedHandler(bugDao));
+        handlerMap.put(Bug.BugStatus.PENDING, new PendingHandler(bugDao));
         handlerMap.put(Bug.BugStatus.IGNORED, new IgnoredHandler(bugDao));
         handlerMap.put(Bug.BugStatus.CLOSED, new ClosedHandler(bugDao));
     }
 
-    public void create(BugRequest bugRequest) {
+    public Bug create(BugRequest bugRequest) {
         Bug bug = new Bug();
 
         bug.setTheme(bugRequest.getTheme());
         bug.setBugCase(bugRequest.getBugCase());
 
-        bugDao.create(bug);
+        return bugDao.create(bug);
     }
 
     public CompleteResult<Bug, BugAction> complete(int bugId, CompleteRequest completeRequest) throws SQLException {

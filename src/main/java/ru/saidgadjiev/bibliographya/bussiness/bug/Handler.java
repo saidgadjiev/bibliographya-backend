@@ -19,7 +19,7 @@ public interface Handler {
     enum Signal {
 
         ASSIGN_ME("assign-me"),
-        OPEN("open"),
+        PENDING("pending"),
         CLOSE("close"),
         IGNORE("ignore"),
         RELEASE("release");

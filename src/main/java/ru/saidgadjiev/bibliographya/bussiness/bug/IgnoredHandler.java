@@ -1,6 +1,6 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug;
 
-import ru.saidgadjiev.bibliographya.bussiness.bug.operation.OpenOperation;
+import ru.saidgadjiev.bibliographya.bussiness.bug.operation.PendingOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.domain.Bug;
@@ -23,8 +23,8 @@ public class IgnoredHandler implements Handler {
     @Override
     public Bug handle(Signal signal, Map<String, Object> args) throws SQLException {
         switch (signal) {
-            case OPEN:
-                return new OpenOperation(bugDao).execute(args);
+            case PENDING:
+                return new PendingOperation(bugDao).execute(args);
             case RELEASE:
                 return new ReleaseOperation(bugDao).execute(args);
         }
@@ -35,11 +35,11 @@ public class IgnoredHandler implements Handler {
     @Override
     public Collection<BugAction> getActions(Map<String, Object> args) {
         User user = (User) args.get("user");
-        int userId = (Integer) args.get("userId");
+        int fixerId = (Integer) args.get("fixerId");
 
-        if (user.getId() == userId) {
+        if (user.getId() == fixerId) {
             return new ArrayList<BugAction>() {{
-                add(BugAction.open());
+                add(BugAction.pending());
                 add(BugAction.release());
             }};
         }

@@ -1,10 +1,10 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug.operation;
 
+import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
 import java.sql.PreparedStatement;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ReleaseOperation {
+public class ReleaseOperation implements BusinessOperation<Bug> {
 
     private final BugDao bugDao;
 
@@ -21,13 +21,14 @@ public class ReleaseOperation {
         this.bugDao = bugDao;
     }
 
+    @Override
     public Bug execute(Map<String, Object> args) {
         List<UpdateValue> values = new ArrayList<>();
 
         values.add(
                 new UpdateValue<>(
                         "status",
-                        Bug.BugStatus.OPENED.getCode(),
+                        Bug.BugStatus.PENDING.getCode(),
                         PreparedStatement::setInt
                 )
         );
