@@ -46,23 +46,23 @@ public interface BibliographyaMapper {
 
     List<BugResponse> convertToBugResponse(List<Bug> bugs);
 
-    default int convertPublishStatus(Biography.PublishStatus publishStatus) {
-        return publishStatus.getCode();
+    default Integer convertPublishStatus(Biography.PublishStatus publishStatus) {
+        return publishStatus == null ? null : publishStatus.getCode();
     }
 
-    default int convertModerationStatus(Biography.ModerationStatus moderationStatus) {
-        return moderationStatus.getCode();
+    default Integer convertModerationStatus(Biography.ModerationStatus moderationStatus) {
+        return moderationStatus == null ? null : moderationStatus.getCode();
     }
 
-    default int convertFixStatus(BiographyFix.FixStatus fixStatus) {
-        return fixStatus.getCode();
+    default Integer convertFixStatus(BiographyFix.FixStatus fixStatus) {
+        return fixStatus == null ? null : fixStatus.getCode();
     }
 
-    default int convertBugStatus(Bug.BugStatus bugStatus) {
-        return bugStatus.getCode();
+    default Integer convertBugStatus(Bug.BugStatus bugStatus) {
+        return bugStatus == null ? null : bugStatus.getCode();
     }
 
     default Collection<String> convertRoles(Set<Role> roles) {
-        return roles.stream().map(Role::getName).collect(Collectors.toList());
+        return roles == null ? null : roles.stream().map(Role::getName).collect(Collectors.toList());
     }
 }

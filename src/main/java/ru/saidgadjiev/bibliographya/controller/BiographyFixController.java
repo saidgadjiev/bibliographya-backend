@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.controller;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
+import ru.saidgadjiev.bibliographya.bussiness.fix.Handler;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
@@ -51,6 +53,11 @@ public class BiographyFixController {
 
     @PatchMapping("/{fixId}/assign-me")
     public ResponseEntity<?> assignMe(@PathVariable("fixId") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+        Handler.Signal signal = Handler.Signal.fromDesc(completeRequest.getSignal());
+
+        if (signal == null || !signal.equals(Handler.Signal.ASSIGN_ME)) {
+            return ResponseEntity.badRequest().build();
+        }
         CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
                 fixId,
                 completeRequest
@@ -72,6 +79,14 @@ public class BiographyFixController {
 
     @PatchMapping("/{fixId}/complete")
     public ResponseEntity<?> complete(@PathVariable("fixId") int fixId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+        Handler.Signal signal = Handler.Signal.fromDesc(completeRequest.getSignal());
+
+        if (signal == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (signal.equals(Handler.Signal.IGNORE) && StringUtils.isBlank(completeRequest.getInfo())) {
+            return ResponseEntity.badRequest().build();
+        }
         CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
                 fixId,
                 completeRequest

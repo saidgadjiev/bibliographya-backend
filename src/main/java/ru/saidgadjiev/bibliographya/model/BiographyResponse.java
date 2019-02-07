@@ -32,11 +32,11 @@ public class BiographyResponse {
 
     private LastModified lastModified;
 
-    private ShortBiographyResponse creatorBiography;
+    private ShortBiographyResponse creator;
 
     private Collection<String> categories;
 
-    private int publishStatus;
+    private Integer publishStatus;
 
     public Integer getId() {
         return id;
@@ -141,19 +141,19 @@ public class BiographyResponse {
         this.categories = categories;
     }
 
-    public ShortBiographyResponse getCreatorBiography() {
-        return creatorBiography;
+    public ShortBiographyResponse getCreator() {
+        return creator;
     }
 
-    public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
-        this.creatorBiography = creatorBiography;
+    public void setCreator(ShortBiographyResponse creator) {
+        this.creator = creator;
     }
 
-    public int getPublishStatus() {
+    public Integer getPublishStatus() {
         return publishStatus;
     }
 
-    public void setPublishStatus(int publishStatus) {
+    public void setPublishStatus(Integer publishStatus) {
         this.publishStatus = publishStatus;
     }
 }

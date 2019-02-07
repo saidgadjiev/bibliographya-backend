@@ -20,6 +20,8 @@ public interface BiographyCommentDao {
 
     long countOffByBiographyId(int biographyId);
 
+    long countOff();
+
     Map<Integer, Long> countOffByBiographiesIds(Collection<Integer> biographiesIds);
 
     BiographyComment getById(int id);

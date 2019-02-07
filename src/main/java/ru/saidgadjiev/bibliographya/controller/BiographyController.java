@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.controller;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.bussiness.moderation.Handler;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
@@ -251,6 +253,11 @@ public class BiographyController {
     @PatchMapping("/{biographyId}/moderation/assign-me")
     public ResponseEntity<?> assignMe(@PathVariable("biographyId") int biographyId,
                                       @RequestBody CompleteRequest completeRequest) throws SQLException {
+        Handler.Signal signal = Handler.Signal.fromDesc(completeRequest.getSignal());
+
+        if (signal == null || !signal.equals(Handler.Signal.ASSIGN_ME)) {
+            return ResponseEntity.badRequest().build();
+        }
         CompleteResult<Biography, ModerationAction> updated = biographyModerationService.complete(
                 biographyId,
                 completeRequest
@@ -276,6 +283,14 @@ public class BiographyController {
             @PathVariable("biographyId") int biographyId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
+        Handler.Signal signal = Handler.Signal.fromDesc(completeRequest.getSignal());
+
+        if (signal == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (signal.equals(Handler.Signal.REJECT) && StringUtils.isBlank(completeRequest.getInfo())) {
+            return ResponseEntity.badRequest().build();
+        }
         CompleteResult<Biography, ModerationAction> updated = biographyModerationService.complete(
                 biographyId,
                 completeRequest

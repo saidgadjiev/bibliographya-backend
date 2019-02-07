@@ -67,9 +67,9 @@ public class Biography {
 
     private boolean liked;
 
-    private Biography moderatorBiography;
+    private Biography moderator;
 
-    private Biography creatorBiography;
+    private Biography creator;
 
     private String moderationInfo;
 
@@ -195,12 +195,12 @@ public class Biography {
         this.liked = liked;
     }
 
-    public Biography getModeratorBiography() {
-        return moderatorBiography;
+    public Biography getModerator() {
+        return moderator;
     }
 
-    public void setModeratorBiography(Biography moderatorBiography) {
-        this.moderatorBiography = moderatorBiography;
+    public void setModerator(Biography moderator) {
+        this.moderator = moderator;
     }
 
     public String getModerationInfo() {
@@ -251,12 +251,12 @@ public class Biography {
         this.publishStatus = publishStatus;
     }
 
-    public Biography getCreatorBiography() {
-        return creatorBiography;
+    public Biography getCreator() {
+        return creator;
     }
 
-    public void setCreatorBiography(Biography creatorBiography) {
-        this.creatorBiography = creatorBiography;
+    public void setCreator(Biography creator) {
+        this.creator = creator;
     }
 
     /**

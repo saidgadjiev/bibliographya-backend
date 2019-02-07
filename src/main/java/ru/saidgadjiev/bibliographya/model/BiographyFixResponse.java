@@ -20,6 +20,8 @@ public class BiographyFixResponse {
 
     private ShortBiographyResponse creator;
 
+    private String fixText;
+
     private Collection<FixAction> actions = new ArrayList<>();
 
     private String info;
@@ -78,5 +80,13 @@ public class BiographyFixResponse {
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public String getFixText() {
+        return fixText;
+    }
+
+    public void setFixText(String fixText) {
+        this.fixText = fixText;
     }
 }

@@ -55,9 +55,9 @@ public class PendingHandler implements Handler {
 
         if (user.getId() == fixerId) {
             return new ArrayList<FixAction>() {{
+                add(FixAction.ignore());
                 add(FixAction.close());
                 add(FixAction.release());
-                add(FixAction.ignore());
             }};
         }
 

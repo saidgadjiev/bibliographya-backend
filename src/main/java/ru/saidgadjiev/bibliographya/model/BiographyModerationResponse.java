@@ -39,11 +39,11 @@ public class BiographyModerationResponse {
 
     private Timestamp moderatedAt;
 
-    private String moderatorId;
+    private Integer moderatorId;
 
-    private ShortBiographyResponse moderatorBiography;
+    private ShortBiographyResponse moderator;
 
-    private ShortBiographyResponse creatorBiography;
+    private ShortBiographyResponse creator;
 
     private Collection<String> categories;
 
@@ -51,7 +51,7 @@ public class BiographyModerationResponse {
 
     private String moderationInfo;
 
-    private int publishStatus;
+    private Integer publishStatus;
 
     public Integer getId() {
         return id;
@@ -164,11 +164,11 @@ public class BiographyModerationResponse {
         this.moderatedAt = moderatedAt;
     }
 
-    public String getModeratorId() {
+    public Integer getModeratorId() {
         return moderatorId;
     }
 
-    public void setModeratorId(String moderatorId) {
+    public void setModeratorId(Integer moderatorId) {
         this.moderatorId = moderatorId;
     }
 
@@ -180,20 +180,20 @@ public class BiographyModerationResponse {
         this.categories = categories;
     }
 
-    public ShortBiographyResponse getModeratorBiography() {
-        return moderatorBiography;
+    public ShortBiographyResponse getModerator() {
+        return moderator;
     }
 
-    public void setModeratorBiography(ShortBiographyResponse moderatorBiography) {
-        this.moderatorBiography = moderatorBiography;
+    public void setModerator(ShortBiographyResponse moderator) {
+        this.moderator = moderator;
     }
 
-    public ShortBiographyResponse getCreatorBiography() {
-        return creatorBiography;
+    public ShortBiographyResponse getCreator() {
+        return creator;
     }
 
-    public void setCreatorBiography(ShortBiographyResponse creatorBiography) {
-        this.creatorBiography = creatorBiography;
+    public void setCreator(ShortBiographyResponse creator) {
+        this.creator = creator;
     }
 
     public Collection<ModerationAction> getActions() {
@@ -212,11 +212,11 @@ public class BiographyModerationResponse {
         this.moderationInfo = moderationInfo;
     }
 
-    public int getPublishStatus() {
+    public Integer getPublishStatus() {
         return publishStatus;
     }
 
-    public void setPublishStatus(int publishStatus) {
+    public void setPublishStatus(Integer publishStatus) {
         this.publishStatus = publishStatus;
     }
 }

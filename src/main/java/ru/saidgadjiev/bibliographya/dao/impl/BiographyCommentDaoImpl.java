@@ -2,9 +2,11 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyCommentDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
@@ -99,6 +101,20 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
                 rs -> {
                     if (rs.next()) {
                         return rs.getLong(1);
+                    }
+
+                    return 0L;
+                }
+        );
+    }
+
+    @Override
+    public long countOff() {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM biography_comment",
+                rs -> {
+                    if (rs.next()) {
+                        return rs.getLong("cnt");
                     }
 
                     return 0L;

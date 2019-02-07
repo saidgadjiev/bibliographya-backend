@@ -12,9 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 @Service
 public class TokenCookieService {
 
-    public void addCookie(HttpServletResponse response, String tokenName, String token) {
+    public void addCookie(HttpServletRequest request, HttpServletResponse response, String tokenName, String token) {
         Cookie cookie = new Cookie(tokenName, token);
 
+        cookie.setDomain(request.getServerName());
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         response.addCookie(cookie);

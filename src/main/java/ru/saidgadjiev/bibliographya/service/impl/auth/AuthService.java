@@ -157,7 +157,7 @@ public class AuthService {
 
         String token = tokenService.createToken(user, accessGrant);
 
-        tokenCookieService.addCookie(authContext.getResponse(), "X-TOKEN", token);
+        tokenCookieService.addCookie(authContext.getRequest(), authContext.getResponse(), "X-TOKEN", token);
 
         return user;
     }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyLikeDao;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
+import ru.saidgadjiev.bibliographya.domain.LikesStats;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 import java.util.Collection;
@@ -79,5 +80,13 @@ public class BiographyLikeService {
         }
 
         return biographyLikeDao.isLiked(userDetails.getId(), biographyId);
+    }
+
+    public LikesStats getStats() {
+        LikesStats likesStats = new LikesStats();
+
+        likesStats.setCount(biographyLikeDao.countOff());
+
+        return likesStats;
     }
 }

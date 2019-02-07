@@ -28,7 +28,7 @@ public class IgnoreOperation {
 
         updateValues.add(
                 new UpdateValue<>(
-                        "fix_info",
+                        "info",
                         fixInfo,
                         PreparedStatement::setString
                 )

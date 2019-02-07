@@ -5,9 +5,11 @@ import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 import cz.jirutka.rsql.parser.ast.Node;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.*;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyModerationDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
@@ -19,7 +21,6 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -78,16 +79,18 @@ public class BiographyModerationService {
         return biographyService.getBiographies(pageRequest, criteria, null);
     }
 
+    @Transactional
     public CompleteResult<Biography, ModerationAction> complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         Biography updated = doComplete(biographyId, completeRequest);
 
-        return new CompleteResult<>(1, updated, getActions(updated));
+        return new CompleteResult<>(updated == null ? 0 : 1, updated);
     }
 
+    @Transactional
     public CompleteResult<Biography, ModerationAction> userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         Biography updated = doComplete(biographyId, completeRequest);
 
-        return new CompleteResult<>(1, updated, getUserActions(updated));
+        return new CompleteResult<>(updated == null ? 0 : 1, updated);
     }
 
     private Biography doComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
@@ -110,13 +113,13 @@ public class BiographyModerationService {
         }
 
         if (updated.getModeratorId() != null) {
-            updated.setModeratorBiography(userDetails.getBiography());
+            updated.setModerator(userDetails.getBiography());
         }
 
         return updated;
     }
 
-    public Collection<ModerationAction> getActions(Biography biography) {
+    public Collection<ModerationAction> getActions(@NotNull Biography biography) {
         User user = (User) securityService.findLoggedInUser();
 
         return handlerMap.get(biography.getModerationStatus()).getActions(
@@ -128,7 +131,7 @@ public class BiographyModerationService {
         );
     }
 
-    public Collection<ModerationAction> getUserActions(Biography biography) {
+    public Collection<ModerationAction> getUserActions(@NotNull Biography biography) {
         return handlerMap.get(biography.getModerationStatus()).getUserActions(Collections.emptyMap());
     }
 
