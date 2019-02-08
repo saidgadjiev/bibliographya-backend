@@ -17,23 +17,32 @@ import java.util.Map;
 
 public class PendingHandler implements Handler {
 
-    private final BugDao bugDao;
+    private final AssignMeOperation assignMeOperation;
+    private final CloseOperation closeOperation;
+    private final IgnoreOperation ignoreOperation;
+    private final ReleaseOperation releaseOperation;
 
-    public PendingHandler(BugDao bugDao) {
-        this.bugDao = bugDao;
+    public PendingHandler(AssignMeOperation assignMeOperation,
+                          CloseOperation closeOperation,
+                          IgnoreOperation ignoreOperation,
+                          ReleaseOperation releaseOperation) {
+        this.assignMeOperation = assignMeOperation;
+        this.closeOperation = closeOperation;
+        this.ignoreOperation = ignoreOperation;
+        this.releaseOperation = releaseOperation;
     }
 
     @Override
     public Bug handle(Signal signal, Map<String, Object> args) throws SQLException {
         switch (signal) {
             case ASSIGN_ME:
-                return new AssignMeOperation(bugDao).execute(args);
+                return assignMeOperation.execute(args);
             case CLOSE:
-                return new CloseOperation(bugDao).execute(args);
+                return closeOperation.execute(args);
             case IGNORE:
-                return new IgnoreOperation(bugDao).execute(args);
+                return ignoreOperation.execute(args);
             case RELEASE:
-                return new ReleaseOperation(bugDao).execute(args);
+                return releaseOperation.execute(args);
         }
 
         return null;

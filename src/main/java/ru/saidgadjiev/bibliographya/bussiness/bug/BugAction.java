@@ -57,7 +57,7 @@ public class BugAction {
     }
 
     public static BugAction pending() {
-        return new BugAction("Open", "Открыть", Handler.Signal.PENDING.getDesc());
+        return new BugAction("Pending", "Открыть", Handler.Signal.PENDING.getDesc());
     }
 
     public static BugAction ignore() {

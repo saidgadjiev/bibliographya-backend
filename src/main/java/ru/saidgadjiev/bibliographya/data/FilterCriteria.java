@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.data;
 
+import java.util.Objects;
+
 /**
  * Created by said on 24.11.2018.
  */
@@ -92,6 +94,21 @@ public class FilterCriteria<T> {
 
     public void setLogicOperator(LogicOperator logicOperator) {
         this.logicOperator = logicOperator;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FilterCriteria<?> that = (FilterCriteria<?>) o;
+        return propertyName.equals(that.propertyName) &&
+                filterOperation == that.filterOperation &&
+                Objects.equals(filterValue, that.filterValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(propertyName, filterOperation, filterValue);
     }
 
     public static final class Builder<T> {

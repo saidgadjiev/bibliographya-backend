@@ -56,7 +56,16 @@ public class PendingOperation implements BusinessOperation<Bug> {
                         true
                 )
         );
+        Bug bug = bugDao.update(values, criteria);
 
-        return bugDao.update(values, criteria);
+        if (bug == null) {
+            return null;
+        }
+
+        if (bugDao.getDialect().supportReturning()) {
+            return bug;
+        }
+
+        return bugDao.getById(bugId);
     }
 }

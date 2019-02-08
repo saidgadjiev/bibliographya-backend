@@ -66,6 +66,16 @@ public class IgnoreOperation implements BusinessOperation<Bug> {
                 )
         );
 
-        return bugDao.update(updateValues, criteria);
+        Bug bug = bugDao.update(updateValues, criteria);
+
+        if (bug == null) {
+            return null;
+        }
+
+        if (bugDao.getDialect().supportReturning()) {
+            return bug;
+        }
+
+        return bugDao.getById(id);
     }
 }

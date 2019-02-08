@@ -2,52 +2,56 @@ package ru.saidgadjiev.bibliographya.bussiness.bug.operation;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.saidgadjiev.bibliographya.dao.dialect.H2Dialect;
+import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
+import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
-class CloseOperationTest extends BaseBugOperationTest {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+class CloseOperationTest {
 
-    @Override
-    protected BusinessOperation<Bug> bugBusinessOperation() {
-        return new CloseOperation(bugDao);
-    }
+    @MockBean
+    private BugDao bugDao;
 
-    @Override
-    protected Bug expected() {
-        Bug expected = new Bug();
+    @Test
+    void execute() {
+        Bug current = new Bug();
 
-        expected.setId(1);
-        expected.setFixerId(1);
-        expected.setStatus(Bug.BugStatus.CLOSED);
+        current.setStatus(Bug.BugStatus.PENDING);
+        current.setId(1);
+        current.setCreatedAt(new Timestamp(new Date().getTime()));
 
-        return expected;
-    }
+        Mockito.when(bugDao.update(any(), any())).thenAnswer(new Answer<Bug>() {
+            @Override
+            public Bug answer(InvocationOnMock invocationOnMock) throws Throwable {
+                current.setStatus(Bug.BugStatus.CLOSED);
 
-    @Override
-    protected Map<String, Object> args() {
-        Map<String, Object> args = new HashMap<>();
+                return current;
+            }
+        });
+        Mockito.when(bugDao.getDialect()).thenReturn(new PostgresDialect());
+        AssignMeOperation assignMeOperation = new AssignMeOperation(bugDao);
 
-        args.put("bugId", 1);
-        args.put("fixerId", 1);
+        Bug result = assignMeOperation.execute(new HashMap<String, Object>() {{
+            put("fixerId", 1);
+            put("bugId", 1);
+        }});
 
-        return args;
-    }
-
-    @Override
-    protected void preExecute() {
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 0)"
-        );
+        Assertions.assertEquals(Bug.BugStatus.CLOSED, current.getStatus());
+        Assertions.assertEquals(result.getStatus(), current.getStatus());
     }
 }

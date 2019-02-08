@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -15,10 +16,11 @@ import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
+import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
 import java.sql.*;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
@@ -175,11 +177,56 @@ public class BugDao {
                 "SELECT * FROM bug WHERE id = " + id,
                 resultSet -> {
                     if (resultSet.next()) {
-                        return map(resultSet);
+                        return mapFull(resultSet, Collections.emptySet());
                     }
 
                     return null;
                 }
+        );
+    }
+
+    public List<Bug> getList(int limit, long offset, Sort sort, List<FilterCriteria> criteria, Set<String> fields) {
+        String clause = toClause(criteria, "b");
+
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ")
+                .append(selectList(fields))
+                .append(" FROM bug b")
+                .append(" LEFT JOIN biography fb ON b.fixer_id = fb.user_id ");
+
+        if (clause.length() > 0) {
+            sql.append("WHERE ").append(clause).append(" ");
+        }
+
+        String sortClause = SortUtils.toSql(sort, "b");
+
+        if (StringUtils.isNotBlank(sortClause)) {
+            sql.append("ORDER BY ").append(sortClause).append(" ");
+        }
+
+        sql
+                .append("LIMIT ")
+                .append(limit)
+                .append(" OFFSET ")
+                .append(offset);
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (FilterCriteria criterion
+                            : criteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())
+                    ) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
+                },
+                (resultSet, i) -> mapFull(resultSet, fields)
         );
     }
 
@@ -224,7 +271,7 @@ public class BugDao {
         return fixerBiography;
     }
 
-    private Bug map(ResultSet resultSet) throws SQLException {
+    private Bug mapFull(ResultSet resultSet, Set<String> fields) throws SQLException {
         Bug result = new Bug();
 
         result.setId(resultSet.getInt("id"));
@@ -234,6 +281,11 @@ public class BugDao {
         result.setCreatedAt(resultSet.getTimestamp("created_at"));
         result.setFixedAt(resultSet.getTimestamp("fixed_at"));
         result.setInfo(resultSet.getString("info"));
+        result.setFixerId(ResultSetUtils.intOrNull(resultSet, "fixer_id"));
+
+        if (fields.contains("fixer")) {
+            result.setFixer(mapFixerBiography(resultSet));
+        }
 
         return result;
     }
@@ -249,6 +301,31 @@ public class BugDao {
                 .append("fb.first_name as fb_first_name,")
                 .append("fb.user_id as fb_user_id,")
                 .append("fb.last_name as fb_last_name");
+
+        return selectList.toString();
+    }
+
+    private String selectList(Set<String> fields) {
+        StringBuilder selectList = new StringBuilder();
+
+        selectList
+                .append("b.id,")
+                .append("b.theme,")
+                .append("b.bug_case,")
+                .append("b.status,")
+                .append("b.created_at,")
+                .append("b.status,")
+                .append("b.fixed_at,")
+                .append("b.info,")
+                .append("b.fixer_id");
+
+        if (fields.contains("fixer")) {
+            selectList
+                    .append(",fb.id as fb_id,")
+                    .append("fb.first_name as fb_first_name,")
+                    .append("fb.user_id as fb_user_id,")
+                    .append("fb.last_name as fb_last_name");
+        }
 
         return selectList.toString();
     }

@@ -2,6 +2,14 @@ package ru.saidgadjiev.bibliographya.bussiness.bug;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.saidgadjiev.bibliographya.bussiness.bug.operation.PendingOperation;
+import ru.saidgadjiev.bibliographya.bussiness.bug.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 
@@ -10,90 +18,48 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
-class ClosedHandlerTest extends BaseBugBusinessTest {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+class ClosedHandlerTest {
+
+    @MockBean
+    private PendingOperation pendingOperation;
+
+    @MockBean
+    private ReleaseOperation releaseOperation;
+
+    @Autowired
+    private ClosedHandler closedHandler;
 
     @Test
     void handleRelease() throws SQLException {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 1)"
-        );
-
-        ClosedHandler closedHandler = new ClosedHandler(bugDao);
-
         closedHandler.handle(Handler.Signal.RELEASE, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
 
-        Bug bug = jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = 1",
-                resultSet -> {
-                    if (resultSet.next()) {
-                        return map(resultSet);
-                    }
-
-                    return null;
-                }
-        );
-
-        Bug expected = new Bug();
-
-        expected.setId(1);
-        expected.setStatus(Bug.BugStatus.PENDING);
-
-        Assertions.assertNotNull(bug);
-        assertEquals(expected, bug);
+        Mockito.verify(releaseOperation, Mockito.times(1)).execute(new HashMap<String, Object>() {{
+            put("bugId", 1);
+            put("fixerId", 1);
+        }});
     }
 
 
     @Test
     void handlePending() throws SQLException {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 1)"
-        );
-
-        ClosedHandler closedHandler = new ClosedHandler(bugDao);
-
         closedHandler.handle(Handler.Signal.PENDING, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
 
-        Bug bug = jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = 1",
-                resultSet -> {
-                    if (resultSet.next()) {
-                        return map(resultSet);
-                    }
-
-                    return null;
-                }
-        );
-
-        Bug expected = new Bug();
-
-        expected.setId(1);
-        expected.setStatus(Bug.BugStatus.PENDING);
-        expected.setFixerId(1);
-
-        Assertions.assertNotNull(bug);
-        assertEquals(expected, bug);
+        Mockito.verify(pendingOperation, Mockito.times(1)).execute(new HashMap<String, Object>() {{
+            put("bugId", 1);
+            put("fixerId", 1);
+        }});
     }
 
     @Test
     void getForMyBugActions() {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 1)"
-        );
-
-        ClosedHandler closedHandler = new ClosedHandler(bugDao);
-
         Collection<BugAction> actions = closedHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
 
@@ -109,14 +75,6 @@ class ClosedHandlerTest extends BaseBugBusinessTest {
 
     @Test
     void getForeignActions() {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 1)"
-        );
-
-        ClosedHandler closedHandler = new ClosedHandler(bugDao);
-
         Collection<BugAction> actions = closedHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
 

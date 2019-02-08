@@ -235,9 +235,7 @@ public class BiographyService {
 
         postProcess(biographies);
 
-        long total = biographyDao.countOff();
-
-        return new PageImpl<>(biographies, pageRequest, total);
+        return new PageImpl<>(biographies, pageRequest, biographies.size());
     }
 
 

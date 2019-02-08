@@ -13,14 +13,13 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -133,7 +132,7 @@ class BugDaoTest {
         excepted.setStatus(Bug.BugStatus.PENDING);
 
         Assertions.assertNotNull(actual);
-        assertEquals(excepted, actual);
+        assertEquals(excepted, actual, Collections.emptySet());
 
         Bug actual1 = jdbcTemplate.query(
                 "SELECT * FROM bug WHERE id = 2",
@@ -154,7 +153,7 @@ class BugDaoTest {
         excepted1.setStatus(Bug.BugStatus.PENDING);
 
         Assertions.assertNotNull(actual1);
-        assertEquals(excepted1, actual1);
+        assertEquals(excepted1, actual1, Collections.emptySet());
     }
 
     @Test
@@ -178,15 +177,131 @@ class BugDaoTest {
         Assertions.assertEquals("Тест", bug.getFixer().getLastName());
     }
 
-    private void assertEquals(Bug excepted, Bug actual) {
-        Assertions.assertEquals(excepted.getId(), actual.getId());
-        Assertions.assertEquals(excepted.getTheme(), actual.getTheme());
-        Assertions.assertEquals(excepted.getBugCase(), actual.getBugCase());
-        Assertions.assertEquals(excepted.getStatus(), actual.getStatus());
+    @Test
+    void getListWithFields() {
+        createUser(ProviderType.FACEBOOK);
+        createUserBiography();
+
+        jdbcTemplate.update(
+                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
+        );
+        jdbcTemplate.update(
+                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
+        );
+
+        List<Bug> bugsWithFixerList = bugDao.getList(10, 0L, null, Collections.emptyList(), Collections.singleton("fixer"));
+
+        Assertions.assertEquals(2, bugsWithFixerList.size());
+        Bug expected1 = new Bug();
+
+        expected1.setId(1);
+        expected1.setTheme("Тест");
+        expected1.setBugCase("Тест");
+        expected1.setFixerId(1);
+        expected1.setStatus(Bug.BugStatus.PENDING);
+        Biography fixer = new Biography();
+
+        fixer.setId(1);
+        fixer.setFirstName("Тест");
+        fixer.setLastName("Тест");
+
+        expected1.setFixer(fixer);
+
+        assertEquals(expected1, bugsWithFixerList.get(0), Collections.singleton("fixer"));
+
+        expected1.setId(2);
+        expected1.setTheme("Тест2");
+        expected1.setBugCase("Тест2");
+
+        assertEquals(expected1, bugsWithFixerList.get(1), Collections.singleton("fixer"));
+    }
+
+    @Test
+    void getListWithoutFields() {
+        createUser(ProviderType.FACEBOOK);
+        createUserBiography();
+
+        jdbcTemplate.update(
+                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
+        );
+        jdbcTemplate.update(
+                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
+        );
+
+        List<Bug> bugsList = bugDao.getList(10, 0L, null, Collections.emptyList(), Collections.emptySet());
+        Assertions.assertEquals(2, bugsList.size());
+
+        Bug expected1 = new Bug();
+
+        expected1.setId(1);
+        expected1.setTheme("Тест");
+        expected1.setBugCase("Тест");
+        expected1.setStatus(Bug.BugStatus.PENDING);
+        expected1.setFixerId(1);
+
+        assertEquals(expected1, bugsList.get(0), Collections.emptySet());
+
+        expected1.setId(2);
+        expected1.setTheme("Тест2");
+        expected1.setBugCase("Тест2");
+
+        assertEquals(expected1, bugsList.get(1), Collections.emptySet());
+    }
+
+    @Test
+    void getListWithCriteria() {
+        createUser(ProviderType.FACEBOOK);
+        createUserBiography();
+
+        jdbcTemplate.update(
+                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
+        );
+        jdbcTemplate.update(
+                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
+        );
+
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria.Builder<String>()
+                        .propertyName("bug_case")
+                        .valueSetter(PreparedStatement::setString)
+                        .filterValue("Тест2")
+                        .needPreparedSet(true)
+                        .filterOperation(FilterOperation.EQ)
+                        .build()
+        );
+
+        List<Bug> bugsList = bugDao.getList(10, 0L, null, criteria, Collections.emptySet());
+
+        Assertions.assertEquals(1, bugsList.size());
+
+        Bug expected1 = new Bug();
+
+        expected1.setId(2);
+        expected1.setTheme("Тест2");
+        expected1.setBugCase("Тест2");
+        expected1.setStatus(Bug.BugStatus.PENDING);
+        expected1.setFixerId(1);
+
+        assertEquals(expected1, bugsList.get(0), Collections.emptySet());
+    }
+
+    private void assertEquals(Bug expected, Bug actual, Set<String> fields) {
+        Assertions.assertEquals(expected.getId(), actual.getId());
+        Assertions.assertEquals(expected.getTheme(), actual.getTheme());
+        Assertions.assertEquals(expected.getBugCase(), actual.getBugCase());
+        Assertions.assertEquals(expected.getStatus(), actual.getStatus());
         Assertions.assertNotNull(actual.getCreatedAt());
-        Assertions.assertEquals(excepted.getFixedAt(), actual.getFixedAt());
-        Assertions.assertEquals(excepted.getFixerId(), actual.getFixerId());
-        Assertions.assertEquals(excepted.getInfo(), actual.getInfo());
+        Assertions.assertEquals(expected.getFixedAt(), actual.getFixedAt());
+        Assertions.assertEquals(expected.getFixerId(), actual.getFixerId());
+        Assertions.assertEquals(expected.getInfo(), actual.getInfo());
+
+        if (fields.contains("fixer")) {
+            Assertions.assertEquals(expected.getFixer().getId(), actual.getFixer().getId());
+            Assertions.assertEquals(expected.getFixer().getFirstName(), actual.getFixer().getFirstName());
+            Assertions.assertEquals(expected.getFixer().getLastName(), actual.getFixer().getLastName());
+        }
     }
 
     private void createTables() {

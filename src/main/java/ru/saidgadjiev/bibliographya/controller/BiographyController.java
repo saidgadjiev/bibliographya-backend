@@ -258,7 +258,7 @@ public class BiographyController {
         if (signal == null || !signal.equals(Handler.Signal.ASSIGN_ME)) {
             return ResponseEntity.badRequest().build();
         }
-        CompleteResult<Biography, ModerationAction> updated = biographyModerationService.complete(
+        CompleteResult<Biography> updated = biographyModerationService.complete(
                 biographyId,
                 completeRequest
         );
@@ -291,7 +291,7 @@ public class BiographyController {
         if (signal.equals(Handler.Signal.REJECT) && StringUtils.isBlank(completeRequest.getInfo())) {
             return ResponseEntity.badRequest().build();
         }
-        CompleteResult<Biography, ModerationAction> updated = biographyModerationService.complete(
+        CompleteResult<Biography> updated = biographyModerationService.complete(
                 biographyId,
                 completeRequest
         );
@@ -309,7 +309,7 @@ public class BiographyController {
             @PathVariable("biographyId") int biographyId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
-        CompleteResult<Biography, ModerationAction> updated = biographyModerationService.userComplete(
+        CompleteResult<Biography> updated = biographyModerationService.userComplete(
                 biographyId,
                 completeRequest
         );

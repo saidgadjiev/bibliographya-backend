@@ -1,45 +1,58 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug.operation;
 
-import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.saidgadjiev.bibliographya.dao.dialect.H2Dialect;
+import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
+import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
-class IgnoreOperationTest extends BaseBugOperationTest {
+import static org.mockito.ArgumentMatchers.any;
 
-    @Override
-    protected void preExecute() {
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 0)"
-        );
-    }
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+class IgnoreOperationTest {
 
-    @Override
-    protected BusinessOperation<Bug> bugBusinessOperation() {
-        return new IgnoreOperation(bugDao);
-    }
+    @MockBean
+    private BugDao bugDao;
 
-    @Override
-    protected Map<String, Object> args() {
-        Map<String, Object> args = new HashMap<>();
+    @Test
+    void execute() {
+        Bug current = new Bug();
 
-        args.put("bugId", 1);
-        args.put("fixerId", 1);
-        args.put("info", "Тест");
+        current.setStatus(Bug.BugStatus.PENDING);
+        current.setId(1);
+        current.setCreatedAt(new Timestamp(new Date().getTime()));
 
-        return args;
-    }
+        Mockito.when(bugDao.update(any(), any())).thenAnswer(new Answer<Bug>() {
+            @Override
+            public Bug answer(InvocationOnMock invocationOnMock) throws Throwable {
+                current.setStatus(Bug.BugStatus.IGNORED);
 
-    @Override
-    protected Bug expected() {
-        Bug expected = new Bug();
+                return current;
+            }
+        });
+        Mockito.when(bugDao.getDialect()).thenReturn(new PostgresDialect());
+        AssignMeOperation assignMeOperation = new AssignMeOperation(bugDao);
 
-        expected.setId(1);
-        expected.setFixerId(1);
-        expected.setStatus(Bug.BugStatus.IGNORED);
-        expected.setInfo("Тест");
+        Bug result = assignMeOperation.execute(new HashMap<String, Object>() {{
+            put("fixerId", 1);
+            put("bugId", 1);
+            put("info", "Тест");
+        }});
 
-        return expected;
+        Assertions.assertEquals(Bug.BugStatus.IGNORED, current.getStatus());
+        Assertions.assertEquals(result.getStatus(), current.getStatus());
     }
 }

@@ -58,7 +58,7 @@ public class BiographyFixController {
         if (signal == null || !signal.equals(Handler.Signal.ASSIGN_ME)) {
             return ResponseEntity.badRequest().build();
         }
-        CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
+        CompleteResult<BiographyFix> updated = fixService.complete(
                 fixId,
                 completeRequest
         );
@@ -87,7 +87,7 @@ public class BiographyFixController {
         if (signal.equals(Handler.Signal.IGNORE) && StringUtils.isBlank(completeRequest.getInfo())) {
             return ResponseEntity.badRequest().build();
         }
-        CompleteResult<BiographyFix, FixAction> updated = fixService.complete(
+        CompleteResult<BiographyFix> updated = fixService.complete(
                 fixId,
                 completeRequest
         );

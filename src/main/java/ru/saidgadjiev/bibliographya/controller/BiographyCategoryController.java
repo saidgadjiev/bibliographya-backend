@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
@@ -54,7 +55,7 @@ public class BiographyCategoryController {
     }
 
     @GetMapping("/{categoryName}")
-    public ResponseEntity<BiographyCategory> getCategoryById(@PathVariable("categoryName") String categoryName) {
+    public ResponseEntity<BiographyCategory> getCategoryByName(@PathVariable("categoryName") String categoryName) {
         BiographyCategory category = biographyCategoryService.getByName(categoryName);
 
         if (category == null) {
@@ -86,13 +87,15 @@ public class BiographyCategoryController {
     }
 
     @PostMapping("")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> create(@RequestBody BiographyCategoryRequest categoryRequest) {
-        biographyCategoryService.create(categoryRequest);
+        BiographyCategory category = biographyCategoryService.create(categoryRequest);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(category);
     }
 
     @DeleteMapping("/{categoryName}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> delete(@PathVariable("categoryName") String categoryName) {
         int deleted = biographyCategoryService.deleteByName(categoryName);
 
@@ -104,6 +107,7 @@ public class BiographyCategoryController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> update(
             @PathVariable("id") int id,
             @Valid @RequestBody BiographyCategoryRequest biographyCategoryRequest,

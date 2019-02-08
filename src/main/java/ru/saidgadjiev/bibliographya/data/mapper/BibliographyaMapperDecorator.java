@@ -149,6 +149,7 @@ public abstract class BibliographyaMapperDecorator implements BibliographyaMappe
         this.fixService = fixService;
     }
 
+    @Autowired
     public void setBugService(BugService bugService) {
         this.bugService = bugService;
     }

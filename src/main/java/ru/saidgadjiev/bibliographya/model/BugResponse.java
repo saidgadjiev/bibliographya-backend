@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.model;
 
 import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 
 public class BugResponse {
@@ -13,6 +14,8 @@ public class BugResponse {
     private String bugCase;
 
     private Integer fixerId;
+
+    private Timestamp createdAt;
 
     private ShortBiographyResponse fixer;
 
@@ -84,5 +87,13 @@ public class BugResponse {
 
     public void setActions(Collection<BugAction> actions) {
         this.actions = actions;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 }

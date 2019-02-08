@@ -5,7 +5,7 @@ import java.util.Collection;
 /**
  * Created by said on 17.12.2018.
  */
-public class CompleteResult<O, A> {
+public class CompleteResult<O> {
 
     private int updated;
 

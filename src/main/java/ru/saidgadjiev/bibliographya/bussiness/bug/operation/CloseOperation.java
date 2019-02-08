@@ -56,6 +56,16 @@ public class CloseOperation implements BusinessOperation<Bug> {
                 )
         );
 
-        return bugDao.update(values, criteria);
+        Bug bug = bugDao.update(values, criteria);
+
+        if (bug == null) {
+            return null;
+        }
+
+        if (bugDao.getDialect().supportReturning()) {
+            return bug;
+        }
+
+        return bugDao.getById(id);
     }
 }

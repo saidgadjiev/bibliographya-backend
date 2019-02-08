@@ -1,19 +1,27 @@
 package ru.saidgadjiev.bibliographya.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
+import ru.saidgadjiev.bibliographya.bussiness.bug.Handler;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.model.BugRequest;
+import ru.saidgadjiev.bibliographya.model.BugResponse;
 import ru.saidgadjiev.bibliographya.model.CompleteRequest;
+import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BugService;
 
+import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/bugs")
@@ -29,16 +37,70 @@ public class BugTrackingController {
         this.modelMapper = modelMapper;
     }
 
-    @PostMapping("")
-    public ResponseEntity<?> create(@RequestBody BugRequest bugRequest) {
-        bugService.create(bugRequest);
+    @GetMapping("")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getBugs(OffsetLimitPageRequest pageRequest,
+                                     @RequestParam(value = "query", required = false) String query) {
+        Page<Bug> page = bugService.getBugs(pageRequest, query);
 
-        return ResponseEntity.ok().build();
+        if (page.getContent().isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(
+                new PageImpl<>(
+                        modelMapper.convertToBugResponse(page.getContent()),
+                        pageRequest,
+                        page.getTotalElements()
+                )
+        );
     }
 
-    @PutMapping("/{bugId}/assign-me")
+    @GetMapping("/tracking")
+    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
+    public ResponseEntity<?> getBugsTracking(OffsetLimitPageRequest pageRequest,
+                                     @RequestParam(value = "query", required = false) String query) {
+        Page<Bug> page = bugService.getBugsTracks(pageRequest, query);
+
+        if (page.getContent().isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(
+                new PageImpl<>(
+                        modelMapper.convertToBugResponse(page.getContent()),
+                        pageRequest,
+                        page.getTotalElements()
+                )
+        );
+    }
+
+    @PostMapping("")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> create(@Valid @RequestBody BugRequest bugRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Bug bug = bugService.create(bugRequest);
+        BugResponse bugResponse = modelMapper.convertToBugResponse(bug);
+
+        bugResponse.setActions(null);
+        bugResponse.setFixer(null);
+
+        return ResponseEntity.ok(bugResponse);
+    }
+
+    @PatchMapping("/{bugId}/assign-me")
+    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     public ResponseEntity<?> assignMe(@PathVariable("bugId") int bugId, @RequestBody CompleteRequest completeRequest) throws SQLException {
-        CompleteResult<Bug, BugAction> updated = bugService.complete(
+        Handler.Signal signal = Handler.Signal.fromDesc(completeRequest.getSignal());
+
+        if (signal == null || !signal.equals(Handler.Signal.ASSIGN_ME)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        CompleteResult<Bug> updated = bugService.complete(
                 bugId,
                 completeRequest
         );
@@ -50,21 +112,25 @@ public class BugTrackingController {
         }
 
         if (updated.getUpdated() == 0) {
+            BugResponse response = modelMapper.convertToBugResponse(bug);
+
+            response.setActions(Collections.emptyList());
+
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body(modelMapper.convertToBugResponse(bug));
+                    .body(response);
         }
 
         return ResponseEntity.ok(modelMapper.convertToBugResponse(bug));
     }
 
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     @PatchMapping("/{bugId}/complete")
     public ResponseEntity<?> complete(
             @PathVariable("bugId") int bugId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
-        CompleteResult<Bug, BugAction> updated = bugService.complete(
+        CompleteResult<Bug> updated = bugService.complete(
                 bugId,
                 completeRequest
         );

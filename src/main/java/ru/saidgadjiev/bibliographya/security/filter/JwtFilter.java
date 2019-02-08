@@ -1,9 +1,7 @@
 package ru.saidgadjiev.bibliographya.security.filter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 

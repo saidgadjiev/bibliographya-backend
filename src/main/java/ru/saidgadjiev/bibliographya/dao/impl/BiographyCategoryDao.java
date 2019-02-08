@@ -2,13 +2,15 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -58,14 +60,26 @@ public class BiographyCategoryDao {
         );
     }
 
-    public void create(BiographyCategory category) {
+    public BiographyCategory create(BiographyCategory category) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
         jdbcTemplate.update(
-                "INSERT INTO biography_category(\"name\", image_path) VALUES (?, ?)",
-                preparedStatement -> {
+                connection -> {
+                    PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO biography_category(\"name\", image_path) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
+
                     preparedStatement.setString(1, category.getName());
                     preparedStatement.setString(2, category.getImagePath());
-                }
+
+                    return preparedStatement;
+                },
+                keyHolder
         );
+
+        if (keyHolder.getKey() != null) {
+            category.setId(keyHolder.getKey().intValue());
+        }
+
+        return category;
     }
 
     public int deleteByName(String name) {

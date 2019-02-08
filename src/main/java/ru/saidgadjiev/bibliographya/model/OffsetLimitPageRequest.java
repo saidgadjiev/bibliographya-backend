@@ -3,6 +3,8 @@ package ru.saidgadjiev.bibliographya.model;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.Objects;
+
 /**
  * Created by said on 20.11.2018.
  */
@@ -66,6 +68,21 @@ public class OffsetLimitPageRequest implements Pageable {
 
     public void setEndAt(Integer endAt) {
         this.endAt = endAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OffsetLimitPageRequest that = (OffsetLimitPageRequest) o;
+        return limit == that.limit &&
+                offset == that.offset &&
+                Objects.equals(sort, that.sort);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(limit, offset, sort);
     }
 
     public static class Builder {

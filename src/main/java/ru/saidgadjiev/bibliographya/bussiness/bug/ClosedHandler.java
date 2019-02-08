@@ -13,19 +13,21 @@ import java.util.Map;
 
 public class ClosedHandler implements Handler {
 
-    private final BugDao bugDao;
+    private final PendingOperation pendingOperation;
+    private final ReleaseOperation releaseOperation;
 
-    public ClosedHandler(BugDao bugDao) {
-        this.bugDao = bugDao;
+    public ClosedHandler(PendingOperation pendingOperation, ReleaseOperation releaseOperation) {
+        this.pendingOperation = pendingOperation;
+        this.releaseOperation = releaseOperation;
     }
 
     @Override
     public Bug handle(Signal signal, Map<String, Object> args) throws SQLException {
         switch (signal) {
             case PENDING:
-                return new PendingOperation(bugDao).execute(args);
+                return pendingOperation.execute(args);
             case RELEASE:
-                return new ReleaseOperation(bugDao).execute(args);
+                return releaseOperation.execute(args);
         }
 
         return null;

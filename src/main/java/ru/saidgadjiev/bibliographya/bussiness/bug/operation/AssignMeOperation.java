@@ -59,6 +59,10 @@ public class AssignMeOperation implements BusinessOperation<Bug> {
 
         Bug bug = bugDao.update(values, criteria);
 
+        if (bug == null) {
+            return null;
+        }
+
         if (bugDao.getDialect().supportReturning()) {
             return bug;
         }

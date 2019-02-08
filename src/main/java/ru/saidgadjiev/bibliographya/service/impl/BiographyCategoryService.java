@@ -28,7 +28,7 @@ public class BiographyCategoryService {
     public Page<BiographyCategory> getCategories(Pageable pageRequest) {
         List<BiographyCategory> categories = dao.getList(pageRequest.getPageSize(), pageRequest.getOffset());
 
-        return new PageImpl<>(categories, pageRequest, dao.countOff());
+        return new PageImpl<>(categories, pageRequest, categories.size());
     }
 
     @Nullable
@@ -36,13 +36,13 @@ public class BiographyCategoryService {
         return dao.getByName(categoryName);
     }
 
-    public void create(BiographyCategoryRequest categoryRequest) {
+    public BiographyCategory create(BiographyCategoryRequest categoryRequest) {
         BiographyCategory category = new BiographyCategory();
 
         category.setName(categoryRequest.getName());
         category.setImagePath(categoryRequest.getImagePath());
 
-        dao.create(category);
+        return dao.create(category);
     }
 
     public int deleteByName(String categoryName) {

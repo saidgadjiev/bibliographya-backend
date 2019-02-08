@@ -80,14 +80,14 @@ public class BiographyModerationService {
     }
 
     @Transactional
-    public CompleteResult<Biography, ModerationAction> complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+    public CompleteResult<Biography> complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         Biography updated = doComplete(biographyId, completeRequest);
 
         return new CompleteResult<>(updated == null ? 0 : 1, updated);
     }
 
     @Transactional
-    public CompleteResult<Biography, ModerationAction> userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+    public CompleteResult<Biography> userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         Biography updated = doComplete(biographyId, completeRequest);
 
         return new CompleteResult<>(updated == null ? 0 : 1, updated);

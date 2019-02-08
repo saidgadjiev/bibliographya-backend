@@ -8,9 +8,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.saidgadjiev.bibliographya.bussiness.bug.ClosedHandler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.Handler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.IgnoredHandler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.H2Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
+import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
+import ru.saidgadjiev.bibliographya.domain.Bug;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by said on 16.11.2018.

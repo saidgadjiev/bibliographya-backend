@@ -3,9 +3,14 @@ package ru.saidgadjiev.bibliographya.bussiness.bug;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.bussiness.bug.operation.*;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 
@@ -17,162 +22,80 @@ import java.util.HashMap;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-class PendingHandlerTest extends BaseBugBusinessTest {
+class PendingHandlerTest {
+
+    @Autowired
+    private PendingHandler pendingHandler;
+
+    @MockBean
+    private PendingOperation pendingOperation;
+
+    @MockBean
+    private AssignMeOperation assignMeOperation;
+
+    @MockBean
+    private IgnoreOperation ignoreOperation;
+
+    @MockBean
+    private ReleaseOperation releaseOperation;
+
+    @MockBean
+    private CloseOperation closeOperation;
 
     @Test
     void handleAssignMe() throws SQLException {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case) VALUES('Тест', 'Тест')"
-        );
-
-        PendingHandler pendingHandler = new PendingHandler(bugDao);
-
         pendingHandler.handle(Handler.Signal.ASSIGN_ME, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
 
-        Bug bug = jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = 1",
-                resultSet -> {
-                    if (resultSet.next()) {
-                        return map(resultSet);
-                    }
-
-                    return null;
-                }
-        );
-
-        Bug expected = new Bug();
-
-        expected.setId(1);
-        expected.setStatus(Bug.BugStatus.PENDING);
-        expected.setFixerId(1);
-
-        Assertions.assertNotNull(bug);
-        assertEquals(expected, bug);
+        Mockito.verify(assignMeOperation, Mockito.times(1)).execute(new HashMap<String, Object>() {{
+            put("bugId", 1);
+            put("fixerId", 1);
+        }});
     }
 
     @Test
     void handleClose() throws SQLException {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
-        );
-
-        PendingHandler pendingHandler = new PendingHandler(bugDao);
-
         pendingHandler.handle(Handler.Signal.CLOSE, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
 
-        Bug bug = jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = 1",
-                resultSet -> {
-                    if (resultSet.next()) {
-                        return map(resultSet);
-                    }
-
-                    return null;
-                }
-        );
-
-        Bug expected = new Bug();
-
-        expected.setId(1);
-        expected.setStatus(Bug.BugStatus.CLOSED);
-        expected.setFixerId(1);
-
-        Assertions.assertNotNull(bug);
-        assertEquals(expected, bug);
+        Mockito.verify(closeOperation, Mockito.times(1)).execute(new HashMap<String, Object>() {{
+            put("bugId", 1);
+            put("fixerId", 1);
+        }});
     }
 
     @Test
     void handleIgnore() throws SQLException {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
-        );
-
-        PendingHandler pendingHandler = new PendingHandler(bugDao);
-
         pendingHandler.handle(Handler.Signal.IGNORE, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
 
-        Bug bug = jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = 1",
-                resultSet -> {
-                    if (resultSet.next()) {
-                        return map(resultSet);
-                    }
-
-                    return null;
-                }
-        );
-
-        Bug expected = new Bug();
-
-        expected.setId(1);
-        expected.setStatus(Bug.BugStatus.IGNORED);
-        expected.setFixerId(1);
-
-        Assertions.assertNotNull(bug);
-        assertEquals(expected, bug);
+        Mockito.verify(ignoreOperation, Mockito.times(1)).execute(new HashMap<String, Object>() {{
+            put("bugId", 1);
+            put("fixerId", 1);
+        }});
     }
 
     @Test
     void handleRelease() throws SQLException {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id, status) VALUES('Тест', 'Тест', 1, 2)"
-        );
-
-        PendingHandler pendingHandler = new PendingHandler(bugDao);
-
         pendingHandler.handle(Handler.Signal.RELEASE, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
 
-        Bug bug = jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = 1",
-                resultSet -> {
-                    if (resultSet.next()) {
-                        return map(resultSet);
-                    }
-
-                    return null;
-                }
-        );
-
-        Bug expected = new Bug();
-
-        expected.setId(1);
-        expected.setStatus(Bug.BugStatus.PENDING);
-
-        Assertions.assertNotNull(bug);
-        assertEquals(expected, bug);
+        Mockito.verify(releaseOperation, Mockito.times(1)).execute(new HashMap<String, Object>() {{
+            put("bugId", 1);
+            put("fixerId", 1);
+        }});
     }
 
     @Test
     void getNotAssignedBugActions() {
-        createUser();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case) VALUES('Тест', 'Тест')"
-        );
-
-
-        PendingHandler pendingHandler = new PendingHandler(bugDao);
-
         Collection<BugAction> actions = pendingHandler.getActions(new HashMap<String, Object>() {{
             User user = new User();
 
@@ -186,16 +109,6 @@ class PendingHandlerTest extends BaseBugBusinessTest {
 
     @Test
     void getAssignedBugActions() {
-        createUser(ProviderType.FACEBOOK);
-        createUserBiography(1);
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
-        );
-
-
-        PendingHandler pendingHandler = new PendingHandler(bugDao);
-
         Collection<BugAction> actions = pendingHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
             User user = new User();
@@ -206,12 +119,5 @@ class PendingHandlerTest extends BaseBugBusinessTest {
         }});
 
         Assertions.assertIterableEquals(Arrays.asList(BugAction.close(), BugAction.ignore(), BugAction.release()), actions);
-    }
-
-    private void assertEquals(Bug expected, Bug actual) {
-        Assertions.assertEquals(expected.getId(), actual.getId());
-        Assertions.assertEquals(expected.getStatus(), actual.getStatus());
-        Assertions.assertEquals(expected.getFixerId(), actual.getFixerId());
-        Assertions.assertEquals(expected.getInfo(), actual.getInfo());
     }
 }

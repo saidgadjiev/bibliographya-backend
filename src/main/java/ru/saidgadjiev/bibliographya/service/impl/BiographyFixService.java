@@ -100,7 +100,7 @@ public class BiographyFixService {
         biographyFixDao.create(biographyFix);
     }
 
-    public CompleteResult<BiographyFix, FixAction> complete(int fixId, CompleteRequest completeRequest) throws SQLException {
+    public CompleteResult<BiographyFix> complete(int fixId, CompleteRequest completeRequest) throws SQLException {
         BiographyFix fix = doComplete(fixId, completeRequest);
 
         return new CompleteResult<>(fix == null ? 0 : 1, fix);
