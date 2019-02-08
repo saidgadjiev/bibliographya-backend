@@ -50,7 +50,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userAccountDao.getByUsername(username);
+        User user = userAccountDao.getByUsername(username);
+
+        user.setRoles(userRoleDao.getRoles(user.getId()));
+
+        return user;
     }
 
     @Override
@@ -109,7 +113,11 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public UserDetails loadSocialUserByAccountId(ProviderType providerType, String accountId) {
-        return socialAccountDao.getByAccountId(providerType, accountId);
+        User user = socialAccountDao.getByAccountId(providerType, accountId);
+
+        user.setRoles(userRoleDao.getRoles(user.getId()));
+
+        return user;
     }
 
     @Override

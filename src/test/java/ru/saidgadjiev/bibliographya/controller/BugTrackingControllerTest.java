@@ -207,7 +207,7 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.getBugsTracks(eq(pageRequest), isNull())).thenReturn(page);
         Mockito.when(bugService.getActions(any()))
-                .thenReturn(Arrays.asList(BugAction.close(), BugAction.ignore(), BugAction.release()))
+                .thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()))
                 .thenReturn(Arrays.asList(BugAction.pending(), BugAction.release()));
 
         mockMvc.perform(get("/api/bugs/tracking?limit=10&offset=0")
@@ -224,12 +224,12 @@ class BugTrackingControllerTest {
                 .andExpect(jsonPath("$.content[0].fixer.firstName", is("Test")))
                 .andExpect(jsonPath("$.content[0].fixer.lastName", is("Test")))
                 .andExpect(jsonPath("$.content[0].actions", hasSize(3)))
-                .andExpect(jsonPath("$.content[0].actions[0].name", is("Close")))
-                .andExpect(jsonPath("$.content[0].actions[0].caption", is("Закрыть")))
-                .andExpect(jsonPath("$.content[0].actions[0].signal", is("close")))
-                .andExpect(jsonPath("$.content[0].actions[1].name", is("Ignore")))
-                .andExpect(jsonPath("$.content[0].actions[1].caption", is("Закрыть без исправления")))
-                .andExpect(jsonPath("$.content[0].actions[1].signal", is("ignore")))
+                .andExpect(jsonPath("$.content[0].actions[0].name", is("Ignore")))
+                .andExpect(jsonPath("$.content[0].actions[0].caption", is("Закрыть без исправления")))
+                .andExpect(jsonPath("$.content[0].actions[0].signal", is("ignore")))
+                .andExpect(jsonPath("$.content[0].actions[1].name", is("Close")))
+                .andExpect(jsonPath("$.content[0].actions[1].caption", is("Закрыть")))
+                .andExpect(jsonPath("$.content[0].actions[1].signal", is("close")))
                 .andExpect(jsonPath("$.content[0].actions[2].name", is("Release")))
                 .andExpect(jsonPath("$.content[0].actions[2].caption", is("Вернуть")))
                 .andExpect(jsonPath("$.content[0].actions[2].signal", is("release")))
@@ -290,7 +290,7 @@ class BugTrackingControllerTest {
             return null;
         }).when(authService).tokenAuth("TestToken");
 
-        Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.close(), BugAction.ignore(), BugAction.release()));
+        Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -307,12 +307,12 @@ class BugTrackingControllerTest {
                 .andExpect(jsonPath("$.fixer.firstName", is("Test")))
                 .andExpect(jsonPath("$.fixer.lastName", is("Test")))
                 .andExpect(jsonPath("$.actions", hasSize(3)))
-                .andExpect(jsonPath("$.actions[0].name", is("Close")))
-                .andExpect(jsonPath("$.actions[0].caption", is("Закрыть")))
-                .andExpect(jsonPath("$.actions[0].signal", is("close")))
-                .andExpect(jsonPath("$.actions[1].name", is("Ignore")))
-                .andExpect(jsonPath("$.actions[1].caption", is("Закрыть без исправления")))
-                .andExpect(jsonPath("$.actions[1].signal", is("ignore")))
+                .andExpect(jsonPath("$.actions[0].name", is("Ignore")))
+                .andExpect(jsonPath("$.actions[0].caption", is("Закрыть без исправления")))
+                .andExpect(jsonPath("$.actions[0].signal", is("ignore")))
+                .andExpect(jsonPath("$.actions[1].name", is("Close")))
+                .andExpect(jsonPath("$.actions[1].caption", is("Закрыть")))
+                .andExpect(jsonPath("$.actions[1].signal", is("close")))
                 .andExpect(jsonPath("$.actions[2].name", is("Release")))
                 .andExpect(jsonPath("$.actions[2].caption", is("Вернуть")))
                 .andExpect(jsonPath("$.actions[2].signal", is("release")));
@@ -356,7 +356,7 @@ class BugTrackingControllerTest {
             return null;
         }).when(authService).tokenAuth("TestToken");
 
-        Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.close(), BugAction.ignore(), BugAction.release()));
+        Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -391,7 +391,7 @@ class BugTrackingControllerTest {
         CompleteResult<Bug> completeResult = new CompleteResult<>(1, bug);
 
         Mockito.when(bugService.complete(eq(1), eq(completeRequest))).thenReturn(completeResult);
-        Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.close(), BugAction.ignore(), BugAction.release()));
+        Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
@@ -411,12 +411,12 @@ class BugTrackingControllerTest {
                 .andExpect(jsonPath("$.status", is(Bug.BugStatus.PENDING.getCode())))
                 .andExpect(jsonPath("$.fixerId", is(1)))
                 .andExpect(jsonPath("$.actions", hasSize(3)))
-                .andExpect(jsonPath("$.actions[0].name", is("Close")))
-                .andExpect(jsonPath("$.actions[0].caption", is("Закрыть")))
-                .andExpect(jsonPath("$.actions[0].signal", is("close")))
-                .andExpect(jsonPath("$.actions[1].name", is("Ignore")))
-                .andExpect(jsonPath("$.actions[1].caption", is("Закрыть без исправления")))
-                .andExpect(jsonPath("$.actions[1].signal", is("ignore")))
+                .andExpect(jsonPath("$.actions[0].name", is("Ignore")))
+                .andExpect(jsonPath("$.actions[0].caption", is("Закрыть без исправления")))
+                .andExpect(jsonPath("$.actions[0].signal", is("ignore")))
+                .andExpect(jsonPath("$.actions[1].name", is("Close")))
+                .andExpect(jsonPath("$.actions[1].caption", is("Закрыть")))
+                .andExpect(jsonPath("$.actions[1].signal", is("close")))
                 .andExpect(jsonPath("$.actions[2].name", is("Release")))
                 .andExpect(jsonPath("$.actions[2].caption", is("Вернуть")))
                 .andExpect(jsonPath("$.actions[2].signal", is("release")));

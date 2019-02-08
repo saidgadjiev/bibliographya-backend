@@ -62,8 +62,8 @@ public class PendingHandler implements Handler {
 
         if (user.getId() == fixerId) {
             return new ArrayList<BugAction>() {{
-                add(BugAction.close());
                 add(BugAction.ignore());
+                add(BugAction.close());
                 add(BugAction.release());
             }};
         }

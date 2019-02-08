@@ -118,6 +118,6 @@ class PendingHandlerTest {
             put("user", user);
         }});
 
-        Assertions.assertIterableEquals(Arrays.asList(BugAction.close(), BugAction.ignore(), BugAction.release()), actions);
+        Assertions.assertIterableEquals(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()), actions);
     }
 }
