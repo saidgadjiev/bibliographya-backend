@@ -21,7 +21,7 @@ public interface BiographyDao {
 
     List<Biography> getBiographiesList(int limit,
                                        long offset,
-                                       String categoryName,
+                                       Integer categoryId,
                                        Collection<FilterCriteria> biographyCriteria,
                                        Sort sort
     );

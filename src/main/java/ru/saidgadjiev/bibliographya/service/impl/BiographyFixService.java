@@ -10,13 +10,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliographya.bussiness.fix.ClosedHandler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.IgnoredHandler;
+import ru.saidgadjiev.bibliographya.bussiness.fix.EmptyHandler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliographya.bussiness.fix.Handler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -80,10 +82,10 @@ public class BiographyFixService {
         long total = biographyFixDao.countOff();
         Collection<Integer> ids = biographyFixes.stream().map(BiographyFix::getBiographyId).collect(Collectors.toList());
 
-        Map<Integer, Collection<String>> categories = biographyCategoryBiographyService.getBiographiesCategories(ids);
+        Map<Integer, BiographyCategoryBiography> categories = biographyCategoryBiographyService.getBiographiesCategories(ids);
 
         for (BiographyFix fix: biographyFixes) {
-            fix.getBiography().setCategories(categories.get(fix.getBiographyId()));
+            fix.getBiography().setCategories(categories.get(fix.getBiographyId()).getCategories());
         }
 
         return new PageImpl<>(biographyFixes, pageRequest, total);
@@ -123,8 +125,9 @@ public class BiographyFixService {
     }
 
     private void initHandlers() {
-        handlerMap.put(BiographyFix.FixStatus.CLOSED, new ClosedHandler());
+        handlerMap.put(BiographyFix.FixStatus.CLOSED, new EmptyHandler());
         handlerMap.put(BiographyFix.FixStatus.PENDING, new PendingHandler(biographyFixDao));
+        handlerMap.put(BiographyFix.FixStatus.IGNORED, new EmptyHandler());
     }
 
     @Transactional

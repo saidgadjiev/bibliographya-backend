@@ -6,6 +6,8 @@ spring:
       url: ${DB_URL}
       userName: ${DB_USER_NAME}
       password: ${DB_PASSWORD}
+    profiles:
+      active: prod
 app:
   social:
     facebook:
@@ -19,7 +21,8 @@ app:
   jwt:
     secret: ${JWT_SECRET}
   upload:
-    dir: ${UPLOAD_DIR}
+    root: ${UPLOAD_DIR}
+    category-root: ${UPLOAD_CATEGORY_DIR}
 management:
   endpoints:
     web:

@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
     - ./logs:/app/logs
+    - ./upload:/app/upload
     ports:
     - "${PORT}:${PORT}"
     - "5005:5005"
@@ -22,6 +23,7 @@ services:
     - DB_USER_NAME=${DB_USER_NAME}
     - DB_PASSWORD=${DB_PASSWORD}
     - UPLOAD_DIR=${UPLOAD_DIR}
+    - UPLOAD_CATEGORY_DIR=${UPLOAD_CATEGORY_DIR}
     depends_on:
     - db
   db:

@@ -283,7 +283,7 @@ public class BugDao {
         result.setInfo(resultSet.getString("info"));
         result.setFixerId(ResultSetUtils.intOrNull(resultSet, "fixer_id"));
 
-        if (fields.contains("fixer")) {
+        if (fields.contains("fixer") && result.getFixerId() != null) {
             result.setFixer(mapFixerBiography(resultSet));
         }
 

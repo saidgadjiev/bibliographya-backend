@@ -22,6 +22,8 @@ import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/api/bugs")
@@ -47,9 +49,17 @@ public class BugTrackingController {
             return ResponseEntity.noContent().build();
         }
 
+        List<BugResponse> bugResponses = modelMapper.convertToBugResponse(page.getContent());
+
+        bugResponses.forEach(bugResponse -> {
+            bugResponse.setActions(Collections.emptyList());
+            bugResponse.setFixerId(null);
+            bugResponse.setFixer(null);
+        });
+
         return ResponseEntity.ok(
                 new PageImpl<>(
-                        modelMapper.convertToBugResponse(page.getContent()),
+                        bugResponses,
                         pageRequest,
                         page.getTotalElements()
                 )

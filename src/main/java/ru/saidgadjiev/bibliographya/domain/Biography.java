@@ -51,7 +51,7 @@ public class Biography {
 
     private Integer moderatorId;
 
-    private Collection<String> categories;
+    private Collection<BiographyCategory> categories;
 
     private long likesCount;
 
@@ -163,11 +163,11 @@ public class Biography {
         this.moderatorId = moderatorId;
     }
 
-    public Collection<String> getCategories() {
+    public Collection<BiographyCategory> getCategories() {
         return categories;
     }
 
-    public void setCategories(Collection<String> categories) {
+    public void setCategories(Collection<BiographyCategory> categories) {
         this.categories = categories;
     }
 

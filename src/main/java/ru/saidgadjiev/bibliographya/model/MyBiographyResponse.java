@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.model;
 
 import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
+import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -38,7 +39,7 @@ public class MyBiographyResponse {
 
     private ShortBiographyResponse creator;
 
-    private Collection<String> categories;
+    private Collection<BiographyCategory> categories;
 
     private Collection<ModerationAction> actions;
 
@@ -140,11 +141,11 @@ public class MyBiographyResponse {
         this.moderationStatus = moderationStatus;
     }
 
-    public Collection<String> getCategories() {
+    public Collection<BiographyCategory> getCategories() {
         return categories;
     }
 
-    public void setCategories(Collection<String> categories) {
+    public void setCategories(Collection<BiographyCategory> categories) {
         this.categories = categories;
     }
 

@@ -133,16 +133,16 @@ public class BiographyDaoImpl implements BiographyDao {
     @Override
     public List<Biography> getBiographiesList(int limit,
                                               long offset,
-                                              String categoryName,
+                                              Integer categoryId,
                                               Collection<FilterCriteria> biographyCriteria,
                                               Sort sort
     ) {
         StringBuilder clause = new StringBuilder();
 
-        if (StringUtils.isNotBlank(categoryName)) {
+        if (categoryId != null) {
             clause
-                    .append("b.id IN (SELECT biography_id FROM biography_category_biography WHERE category_name = '")
-                    .append(categoryName)
+                    .append("b.id IN (SELECT biography_id FROM biography_category_biography WHERE category_id = '")
+                    .append(categoryId)
                     .append("')");
         }
 

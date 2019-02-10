@@ -96,3 +96,4 @@ target/
 postgres-data/
 prometheus-grafana/prometheus
 prometheus-grafana/grafana
+upload

@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
+import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.storage.StorageFileNotFoundException;
 
 @RestController
@@ -19,9 +20,13 @@ public class FileController {
 
     private final StorageService storageService;
 
+    private BiographyCategoryService biographyCategoryService;
+
     @Autowired
-    public FileController(@Qualifier("resourceStorageService") StorageService storageService) {
+    public FileController(@Qualifier("fileSystemStorageService") StorageService storageService,
+                          BiographyCategoryService biographyCategoryService) {
         this.storageService = storageService;
+        this.biographyCategoryService = biographyCategoryService;
     }
 
     @GetMapping(value = "/{filePath}")
@@ -33,14 +38,33 @@ public class FileController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PutMapping("/category/image")
-    public ResponseEntity<?> uploadCategoryImage(@RequestParam(value="file") MultipartFile file) {
-        String path = storageService.storeCategoryImage(file);
+    @PutMapping("/category/{id:[\\d]+}")
+    public ResponseEntity<?> uploadCategoryImage(@PathVariable("id") Integer id, @RequestParam(value="file") MultipartFile file) {
+        String path = storageService.storeToCategoryRoot(id, file);
+
+        biographyCategoryService.updatePath(id, path);
+
         ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
 
         jsonNode.put("path", path);
 
         return ResponseEntity.ok(jsonNode);
+    }
+
+    @GetMapping(value = "/category/{filePath}")
+    public ResponseEntity<Resource> serverCategoryFile(@PathVariable("filePath") String filePath) {
+        Resource resource = storageService.loadFromCategoryRootAsResource(filePath);
+
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + resource.getFilename() + "\"").body(resource);
+    }
+
+    @DeleteMapping("/category/{filePath}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> deleteCategoryResource(@PathVariable("filePath") String filePath) {
+        storageService.deleteCategoryResource(filePath);
+
+        return ResponseEntity.ok().build();
     }
 
     @ExceptionHandler(StorageFileNotFoundException.class)

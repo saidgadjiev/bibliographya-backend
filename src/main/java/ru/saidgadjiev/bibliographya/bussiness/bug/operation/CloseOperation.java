@@ -4,11 +4,14 @@ import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,14 @@ public class CloseOperation implements BusinessOperation<Bug> {
                         "status",
                         Bug.BugStatus.CLOSED.getCode(),
                         PreparedStatement::setInt
+                )
+        );
+
+        values.add(
+                new UpdateValue<>(
+                        "info",
+                        null,
+                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 

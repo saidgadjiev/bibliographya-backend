@@ -9,7 +9,11 @@ public interface StorageService {
 
     void init();
 
-    String storeCategoryImage(MultipartFile file);
+    String storeToCategoryRoot(int id, MultipartFile file);
+
+    Resource loadFromCategoryRootAsResource(String filePath);
+
+    void deleteCategoryResource(String filePath);
 
     Resource loadAsResource(String filePath);
 

@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -134,7 +135,9 @@ class BugTrackingControllerTest {
         Page<Bug> page = new PageImpl<>(bugs, pageRequest, 2);
 
         Mockito.when(bugService.getBugs(eq(pageRequest), isNull())).thenReturn(page);
-        Mockito.when(bugService.getActions(any())).thenReturn(Collections.emptyList());
+        Mockito.when(bugService.getActions(any()))
+                .thenReturn(Arrays.asList(BugAction.assignMe(), BugAction.close(), BugAction.ignore()))
+                .thenReturn(Arrays.asList(BugAction.assignMe(), BugAction.close(), BugAction.ignore()));
 
         mockMvc.perform(get("/api/bugs?limit=10&offset=0")
                 .cookie(new Cookie("X-TOKEN", "TestToken")))
@@ -146,12 +149,16 @@ class BugTrackingControllerTest {
                 .andExpect(jsonPath("$.content[0].actions", hasSize(0)))
                 .andExpect(jsonPath("$.content[0].createdAt", Matchers.notNullValue()))
                 .andExpect(jsonPath("$.content[0].status", Matchers.is(Bug.BugStatus.PENDING.getCode())))
+                .andExpect(jsonPath("$.content[0].fixerId", nullValue()))
+                .andExpect(jsonPath("$.content[0].fixer", nullValue()))
                 .andExpect(jsonPath("$.content[1].id", Matchers.is(2)))
                 .andExpect(jsonPath("$.content[1].theme", Matchers.is("Test2")))
                 .andExpect(jsonPath("$.content[1].bugCase", Matchers.is("Test2")))
-                .andExpect(jsonPath("$.content[0].actions", hasSize(0)))
+                .andExpect(jsonPath("$.content[1].actions", hasSize(0)))
                 .andExpect(jsonPath("$.content[1].createdAt", Matchers.notNullValue()))
-                .andExpect(jsonPath("$.content[1].status", Matchers.is(Bug.BugStatus.CLOSED.getCode())));
+                .andExpect(jsonPath("$.content[1].status", Matchers.is(Bug.BugStatus.CLOSED.getCode())))
+                .andExpect(jsonPath("$.content[1].fixerId", nullValue()))
+                .andExpect(jsonPath("$.content[1].fixer", nullValue()));
 
         logout();
     }
@@ -242,6 +249,87 @@ class BugTrackingControllerTest {
                 .andExpect(jsonPath("$.content[1].fixer.id", is(1)))
                 .andExpect(jsonPath("$.content[1].fixer.firstName", is("Test")))
                 .andExpect(jsonPath("$.content[1].fixer.lastName", is("Test")))
+                .andExpect(jsonPath("$.content[1].actions", hasSize(2)))
+                .andExpect(jsonPath("$.content[1].actions[0].name", is("Pending")))
+                .andExpect(jsonPath("$.content[1].actions[0].caption", is("Открыть")))
+                .andExpect(jsonPath("$.content[1].actions[0].signal", is("pending")))
+                .andExpect(jsonPath("$.content[1].actions[1].name", is("Release")))
+                .andExpect(jsonPath("$.content[1].actions[1].caption", is("Вернуть")))
+                .andExpect(jsonPath("$.content[1].actions[1].signal", is("release")));
+
+        logout();
+    }
+
+    @Test
+    void getNotAssignedBugsTracks() throws Exception {
+        Bug bug = new Bug();
+
+        bug.setId(1);
+        bug.setTheme("Test");
+        bug.setBugCase("Test");
+        bug.setCreatedAt(new Timestamp(new Date().getTime()));
+        bug.setStatus(Bug.BugStatus.PENDING);
+
+        Bug bug1 = new Bug();
+
+        bug1.setId(2);
+        bug1.setTheme("Test2");
+        bug1.setBugCase("Test2");
+        bug1.setCreatedAt(new Timestamp(new Date().getTime()));
+        bug1.setStatus(Bug.BugStatus.IGNORED);
+
+        List<Bug> bugs = new ArrayList<>();
+
+        bugs.add(bug);
+        bugs.add(bug1);
+
+        Mockito.doAnswer(invocationOnMock -> {
+            authenticate();
+
+            return null;
+        }).when(authService).tokenAuth("TestToken");
+
+        OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
+                .setLimit(10)
+                .setOffset(0)
+                .setSort(Sort.unsorted())
+                .build();
+
+        Page<Bug> page = new PageImpl<>(bugs, pageRequest, 2);
+
+        Mockito.when(bugService.getBugsTracks(eq(pageRequest), isNull())).thenReturn(page);
+        Mockito.when(bugService.getActions(any()))
+                .thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()))
+                .thenReturn(Arrays.asList(BugAction.pending(), BugAction.release()));
+
+        mockMvc.perform(get("/api/bugs/tracking?limit=10&offset=0")
+                .cookie(new Cookie("X-TOKEN", "TestToken")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].id", Matchers.is(1)))
+                .andExpect(jsonPath("$.content[0].theme", Matchers.is("Test")))
+                .andExpect(jsonPath("$.content[0].bugCase", Matchers.is("Test")))
+                .andExpect(jsonPath("$.content[0].createdAt", Matchers.notNullValue()))
+                .andExpect(jsonPath("$.content[0].status", Matchers.is(Bug.BugStatus.PENDING.getCode())))
+                .andExpect(jsonPath("$.content[0].fixerId", nullValue()))
+                .andExpect(jsonPath("$.content[0].fixer", nullValue()))
+                .andExpect(jsonPath("$.content[0].actions", hasSize(3)))
+                .andExpect(jsonPath("$.content[0].actions[0].name", is("Ignore")))
+                .andExpect(jsonPath("$.content[0].actions[0].caption", is("Закрыть без исправления")))
+                .andExpect(jsonPath("$.content[0].actions[0].signal", is("ignore")))
+                .andExpect(jsonPath("$.content[0].actions[1].name", is("Close")))
+                .andExpect(jsonPath("$.content[0].actions[1].caption", is("Закрыть")))
+                .andExpect(jsonPath("$.content[0].actions[1].signal", is("close")))
+                .andExpect(jsonPath("$.content[0].actions[2].name", is("Release")))
+                .andExpect(jsonPath("$.content[0].actions[2].caption", is("Вернуть")))
+                .andExpect(jsonPath("$.content[0].actions[2].signal", is("release")))
+                .andExpect(jsonPath("$.content[1].id", Matchers.is(2)))
+                .andExpect(jsonPath("$.content[1].theme", Matchers.is("Test2")))
+                .andExpect(jsonPath("$.content[1].bugCase", Matchers.is("Test2")))
+                .andExpect(jsonPath("$.content[1].createdAt", Matchers.notNullValue()))
+                .andExpect(jsonPath("$.content[1].status", Matchers.is(Bug.BugStatus.IGNORED.getCode())))
+                .andExpect(jsonPath("$.content[0].fixerId", nullValue()))
+                .andExpect(jsonPath("$.content[0].fixer", nullValue()))
                 .andExpect(jsonPath("$.content[1].actions", hasSize(2)))
                 .andExpect(jsonPath("$.content[1].actions[0].name", is("Pending")))
                 .andExpect(jsonPath("$.content[1].actions[0].caption", is("Открыть")))

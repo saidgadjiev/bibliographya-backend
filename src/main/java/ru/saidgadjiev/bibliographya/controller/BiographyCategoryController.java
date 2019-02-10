@@ -13,7 +13,6 @@ import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyResponse;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryBiographyService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
@@ -54,9 +53,9 @@ public class BiographyCategoryController {
         return ResponseEntity.ok(page);
     }
 
-    @GetMapping("/{categoryName}")
-    public ResponseEntity<BiographyCategory> getCategoryByName(@PathVariable("categoryName") String categoryName) {
-        BiographyCategory category = biographyCategoryService.getByName(categoryName);
+    @GetMapping("/{id:[\\d]+}")
+    public ResponseEntity<BiographyCategory> getById(@PathVariable("id") Integer id) {
+        BiographyCategory category = biographyCategoryService.getById(id);
 
         if (category == null) {
             return ResponseEntity.notFound().build();
@@ -65,13 +64,13 @@ public class BiographyCategoryController {
         return ResponseEntity.ok(category);
     }
 
-    @GetMapping("/{categoryName}/biographies")
+    @GetMapping("/{id:[\\d]+}/biographies")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
-            @PathVariable("categoryName") String categoryName,
+            @PathVariable("id") Integer id,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
     ) {
-        Page<Biography> page = biographyService.getBiographies(pageRequest, categoryName, autobiographies);
+        Page<Biography> page = biographyService.getBiographies(pageRequest, id, autobiographies);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -94,10 +93,10 @@ public class BiographyCategoryController {
         return ResponseEntity.ok(category);
     }
 
-    @DeleteMapping("/{categoryName}")
+    @DeleteMapping("/{id:[\\d]+}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> delete(@PathVariable("categoryName") String categoryName) {
-        int deleted = biographyCategoryService.deleteByName(categoryName);
+    public ResponseEntity<?> delete(@PathVariable("id") Integer id) {
+        int deleted = biographyCategoryService.deleteById(id);
 
         if (deleted == 0) {
             return ResponseEntity.notFound().build();
@@ -106,7 +105,7 @@ public class BiographyCategoryController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:[\\d]+}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> update(
             @PathVariable("id") int id,

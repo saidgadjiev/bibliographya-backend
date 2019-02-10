@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCategoryDao;
-import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
@@ -21,7 +20,6 @@ import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
@@ -64,9 +62,9 @@ class BiographyCategoryServiceTest {
     void getByName() {
         BiographyCategory category = createCategory(1, "Test", "Test.jpg");
 
-        Mockito.when(biographyCategoryDao.getByName(eq("Test"))).thenReturn(category);
+        Mockito.when(biographyCategoryDao.getById(eq(1))).thenReturn(category);
 
-        BiographyCategory result = biographyCategoryService.getByName("Test");
+        BiographyCategory result = biographyCategoryService.getById(1);
 
         Assertions.assertNotNull(result);
         assertEquals(category, result);
@@ -114,9 +112,9 @@ class BiographyCategoryServiceTest {
 
                 return 1;
             }
-        }).when(biographyCategoryDao).deleteByName(eq("Test"));
+        }).when(biographyCategoryDao).deleteById(eq(1));
 
-        int deleted = biographyCategoryService.deleteByName("Test");
+        int deleted = biographyCategoryService.deleteById(1);
 
         Assertions.assertEquals(deleted, 1);
         Assertions.assertTrue(db.isEmpty());

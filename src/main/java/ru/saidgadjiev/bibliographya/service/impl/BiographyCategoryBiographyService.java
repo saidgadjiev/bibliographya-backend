@@ -3,8 +3,11 @@ package ru.saidgadjiev.bibliographya.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCategoryBiographyDao;
+import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by said on 01.12.2018.
@@ -19,19 +22,19 @@ public class BiographyCategoryBiographyService {
         this.dao = dao;
     }
 
-    public Map<Integer, Collection<String>> getBiographiesCategories(Collection<Integer> biographiesIds) {
+    public Map<Integer, BiographyCategoryBiography> getBiographiesCategories(Collection<Integer> biographiesIds) {
         return dao.getBiographiesCategories(biographiesIds);
     }
 
-    public Collection<String> getBiographyCategories(Integer biographyId) {
+    public BiographyCategoryBiography getBiographyCategories(Integer biographyId) {
         return dao.getBiographiesCategories(Collections.singletonList(biographyId)).get(biographyId);
     }
 
-    public void addCategoriesToBiography(Collection<String> categories, Integer biographyId) {
-        dao.addCategories(categories, biographyId);
+    public void addCategoriesToBiography(Collection<Integer> categoriesIds, Integer biographyId) {
+        dao.addCategories(categoriesIds, biographyId);
     }
 
-    public void deleteCategoriesFromBiography(Collection<String> categories, Integer biographyId) {
-        dao.deleteCategories(categories, biographyId);
+    public void deleteCategoriesFromBiography(Collection<Integer> categoriesIds, Integer biographyId) {
+        dao.deleteCategories(categoriesIds, biographyId);
     }
 }

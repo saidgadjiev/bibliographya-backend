@@ -185,6 +185,7 @@ public class BiographyFixDao {
     private BiographyFix mapFixerInfo(ResultSet rs) throws SQLException {
         BiographyFix fix = new BiographyFix();
 
+        fix.setId(rs.getInt("id"));
         fix.setFixerId(ResultSetUtils.intOrNull(rs, "fixer_id"));
         fix.setStatus(BiographyFix.FixStatus.fromCode(rs.getInt("status")));
 
@@ -255,6 +256,7 @@ public class BiographyFixDao {
         StringBuilder selectList = new StringBuilder();
 
         selectList
+                .append("bf.id,")
                 .append("bf.fixer_id,")
                 .append("bf.status,")
                 .append("fb.id as fb_id,")

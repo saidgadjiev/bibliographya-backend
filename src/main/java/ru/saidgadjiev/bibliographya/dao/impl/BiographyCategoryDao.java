@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by said on 27.11.2018.
@@ -33,10 +35,10 @@ public class BiographyCategoryDao {
         );
     }
 
-    public BiographyCategory getByName(String categoryName) {
+    public BiographyCategory getById(int id) {
         return jdbcTemplate.query(
-                "SELECT * FROM biography_category WHERE name=?",
-                ps -> ps.setString(1, categoryName),
+                "SELECT * FROM biography_category WHERE id=?",
+                ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
@@ -75,19 +77,21 @@ public class BiographyCategoryDao {
                 keyHolder
         );
 
-        if (keyHolder.getKey() != null) {
-            category.setId(keyHolder.getKey().intValue());
+        Map<String, Object> keys = keyHolder.getKeys();
+
+        if (keys != null && keys.containsKey("id")) {
+            category.setId(((Number) keys.get("id")).intValue());
         }
 
         return category;
     }
 
-    public int deleteByName(String name) {
+    public int deleteById(int id) {
         return jdbcTemplate.update(
                 "DELETE\n" +
                         "FROM biography_category\n" +
-                        "WHERE \"name\" = ?",
-                preparedStatement -> preparedStatement.setString(1, name)
+                        "WHERE \"id\" = ?",
+                preparedStatement -> preparedStatement.setInt(1, id)
         );
     }
 
@@ -98,6 +102,16 @@ public class BiographyCategoryDao {
                     preparedStatement.setString(1, biographyCategory.getName());
                     preparedStatement.setString(2, biographyCategory.getImagePath());
                     preparedStatement.setInt(3, biographyCategory.getId());
+                }
+        );
+    }
+
+    public int updatePath(int id, String newPath) {
+        return jdbcTemplate.update(
+                "UPDATE biography_category SET image_path = ? WHERE id = ?",
+                preparedStatement -> {
+                    preparedStatement.setString(1, newPath);
+                    preparedStatement.setInt(2, id);
                 }
         );
     }

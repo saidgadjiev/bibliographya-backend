@@ -34,11 +34,13 @@ class CloseOperationTest {
         current.setStatus(Bug.BugStatus.PENDING);
         current.setId(1);
         current.setCreatedAt(new Timestamp(new Date().getTime()));
+        current.setInfo("Test");
 
         Mockito.when(bugDao.update(any(), any())).thenAnswer(new Answer<Bug>() {
             @Override
             public Bug answer(InvocationOnMock invocationOnMock) throws Throwable {
                 current.setStatus(Bug.BugStatus.CLOSED);
+                current.setInfo(null);
 
                 return current;
             }
@@ -53,5 +55,7 @@ class CloseOperationTest {
 
         Assertions.assertEquals(Bug.BugStatus.CLOSED, current.getStatus());
         Assertions.assertEquals(result.getStatus(), current.getStatus());
+        Assertions.assertNull(result.getInfo());
+        Assertions.assertNull(current.getInfo());
     }
 }

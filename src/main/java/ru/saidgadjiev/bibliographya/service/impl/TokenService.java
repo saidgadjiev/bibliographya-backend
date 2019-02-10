@@ -49,14 +49,11 @@ public class TokenService {
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put("providerId", user.getProviderType().getId());
             put("userId", user.getId());
-            put("authorities", user.getAuthorities());
         }};
 
         switch (user.getProviderType()) {
             case FACEBOOK:
-                payload.put("accountId", user.getSocialAccount().getAccountId());
                 payload.put("expiredAt", accessGrant.getExpireTime());
-                payload.put("accessToken", accessGrant.getAccessToken());
 
                 break;
             case USERNAME_PASSWORD:

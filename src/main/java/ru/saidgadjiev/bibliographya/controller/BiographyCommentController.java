@@ -25,7 +25,7 @@ public class BiographyCommentController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PutMapping("/{id}")
+    @PutMapping("/{id:[\\d]+}")
     public ResponseEntity<?> update(
             @PathVariable("id") Integer commentId,
             @Valid @RequestBody BiographyCommentRequest commentRequest,

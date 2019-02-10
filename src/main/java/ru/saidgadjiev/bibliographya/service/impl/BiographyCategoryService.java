@@ -32,8 +32,8 @@ public class BiographyCategoryService {
     }
 
     @Nullable
-    public BiographyCategory getByName(String categoryName) {
-        return dao.getByName(categoryName);
+    public BiographyCategory getById(int id) {
+        return dao.getById(id);
     }
 
     public BiographyCategory create(BiographyCategoryRequest categoryRequest) {
@@ -45,8 +45,8 @@ public class BiographyCategoryService {
         return dao.create(category);
     }
 
-    public int deleteByName(String categoryName) {
-        return dao.deleteByName(categoryName);
+    public int deleteById(int id) {
+        return dao.deleteById(id);
     }
 
     public int update(int id, BiographyCategoryRequest categoryRequest) {
@@ -57,5 +57,9 @@ public class BiographyCategoryService {
         biographyCategory.setImagePath(categoryRequest.getImagePath());
 
         return dao.update(biographyCategory);
+    }
+
+    public int updatePath(int id, String newPath) {
+        return dao.updatePath(id, newPath);
     }
 }

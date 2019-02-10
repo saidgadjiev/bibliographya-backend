@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.Handler;
-import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;

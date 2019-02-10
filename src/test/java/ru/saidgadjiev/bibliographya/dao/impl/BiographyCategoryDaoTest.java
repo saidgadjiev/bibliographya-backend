@@ -57,7 +57,7 @@ class BiographyCategoryDaoTest {
                 "INSERT INTO biography_category(name, image_path) VALUES('test', 'test.jpg')"
         );
 
-        BiographyCategory biographyCategory = biographyCategoryDao.getByName("test");
+        BiographyCategory biographyCategory = biographyCategoryDao.getById(1);
 
         Assertions.assertEquals(biographyCategory.getName(), "test");
         Assertions.assertEquals(biographyCategory.getImagePath(), "test.jpg");
@@ -106,12 +106,12 @@ class BiographyCategoryDaoTest {
     }
 
     @Test
-    void deleteByName() {
+    void deleteById() {
         jdbcTemplate.update(
                 "INSERT INTO biography_category(name, image_path) VALUES('test', 'test.jpg')"
         );
 
-        int deleted = biographyCategoryDao.deleteByName("test");
+        int deleted = biographyCategoryDao.deleteById(1);
 
         Assertions.assertEquals(1, deleted);
 

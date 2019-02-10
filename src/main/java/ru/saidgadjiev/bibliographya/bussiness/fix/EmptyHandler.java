@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Created by said on 21.12.2018.
  */
-public class ClosedHandler implements Handler {
+public class EmptyHandler implements Handler {
 
     @Override
     public BiographyFix handle(Signal signal, Map<String, Object> args) throws SQLException {

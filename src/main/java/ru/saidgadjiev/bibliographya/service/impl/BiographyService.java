@@ -11,10 +11,7 @@ import ru.saidgadjiev.bibliographya.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.domain.BiographiesStats;
-import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
@@ -85,8 +82,6 @@ public class BiographyService {
                     result.getId()
             );
         }
-
-        result.setCategories(biographyRequest.getAddCategories());
 
         return result;
     }
@@ -193,7 +188,7 @@ public class BiographyService {
     }
 
     public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
-                                          String categoryName,
+                                          Integer categoryId,
                                           Boolean autobiographies) {
         List<FilterCriteria> criteria = new ArrayList<>();
 
@@ -218,16 +213,16 @@ public class BiographyService {
                         .build()
         );
 
-        return getBiographies(pageRequest, criteria, categoryName);
+        return getBiographies(pageRequest, criteria, categoryId);
     }
 
 
     public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
                                           Collection<FilterCriteria> criteria,
-                                          String categoryName
+                                          Integer categoryId
     ) {
         List<Biography> biographies = biographyDao.getBiographiesList(
-                pageRequest.getPageSize(), pageRequest.getOffset(), categoryName, criteria, pageRequest.getSort());
+                pageRequest.getPageSize(), pageRequest.getOffset(), categoryId, criteria, pageRequest.getSort());
 
         if (biographies.isEmpty()) {
             return new PageImpl<>(biographies, pageRequest, 0);
@@ -462,7 +457,7 @@ public class BiographyService {
         biography.setLikesCount(biographyLikeService.getBiographyLikesCount(biography.getId()));
         biography.setCommentsCount(biographyCommentService.getBiographyCommentsCount(biography.getId()));
         biography.setLiked(biographyLikeService.getBiographyIsLiked(biography.getId()));
-        biography.setCategories(biographyCategoryBiographyService.getBiographyCategories(biography.getId()));
+        biography.setCategories(biographyCategoryBiographyService.getBiographyCategories(biography.getId()).getCategories());
     }
 
     private void postProcess(Collection<Biography> biographies) {
@@ -470,13 +465,13 @@ public class BiographyService {
         Map<Integer, Integer> biographiesLikesCount = biographyLikeService.getBiographiesLikesCount(ids);
         Map<Integer, Boolean> biographiesIsLiked = biographyLikeService.getBiographiesIsLiked(ids);
         Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
-        Map<Integer, Collection<String>> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
+        Map<Integer, BiographyCategoryBiography> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
 
         for (Biography biography : biographies) {
             biography.setLikesCount(biographiesLikesCount.get(biography.getId()));
             biography.setLiked(biographiesIsLiked.get(biography.getId()));
             biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
-            biography.setCategories(biographiesCategories.get(biography.getId()));
+            biography.setCategories(biographiesCategories.get(biography.getId()).getCategories());
         }
     }
 }

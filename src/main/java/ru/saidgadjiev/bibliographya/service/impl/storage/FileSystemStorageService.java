@@ -17,54 +17,68 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.atomic.AtomicInteger;
 
-@Profile("prod")
 @Service
+@Profile({ "dev", "prod" })
 public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation;
 
-    private UidGenerator uidGenerator = new StorageService.UidGenerator() {
-
-        private AtomicInteger atomicInteger = new AtomicInteger();
-
-        @Override
-        public synchronized int nextUid() {
-            return atomicInteger.incrementAndGet();
-        }
-    };
+    private final Path categoryRootLocation;
 
     @Autowired
     public FileSystemStorageService(StorageProperties storageProperties) {
-        this.rootLocation = Paths.get(storageProperties.getDir());
+        this.rootLocation = Paths.get(storageProperties.getRoot());
+        this.categoryRootLocation = rootLocation.resolve(storageProperties.getCategoryRoot());
     }
 
     @Override
-    public String storeCategoryImage(MultipartFile file) {
-        String name = FilenameUtils.getBaseName(file.getOriginalFilename());
+    public String storeToCategoryRoot(int id, MultipartFile file) {
+        String name = String.valueOf(id);
         String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-        String fileName = name + "_" + uidGenerator.nextUid() + "." + ext;
+        String fileName = name + "." + ext;
 
         try {
             if (file.isEmpty()) {
-                throw new StorageException("Failed to store empty file " + fileName);
+                throw new StorageException("Failed to storeToCategoryRoot empty file " + fileName);
             }
             if (fileName.contains("..")) {
                 throw new StorageException(
-                        "Cannot store file with relative path outside current directory "
+                        "Cannot storeToCategoryRoot file with relative path outside current directory "
                                 + fileName);
             }
             try (InputStream inputStream = file.getInputStream()) {
-                String filePath = "category/" + fileName;
-                Path targetPath = rootLocation.resolve(filePath);
+                Files.copy(inputStream, categoryRootLocation.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
 
-                Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-                return filePath;
+                return fileName;
             }
         } catch (IOException e) {
-            throw new StorageException("Failed to store file " + fileName, e);
+            throw new StorageException("Failed to storeToCategoryRoot file " + fileName, e);
+        }
+    }
+
+    @Override
+    public Resource loadFromCategoryRootAsResource(String filePath) {
+        try {
+            Path file = categoryRootLocation.resolve(filePath);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new StorageFileNotFoundException("Could not read file: " + filePath);
+            }
+        } catch (MalformedURLException e) {
+            throw new StorageFileNotFoundException("Could not read file: " + filePath, e);
+        }
+    }
+
+    @Override
+    public void deleteCategoryResource(String filePath) {
+        try {
+            Files.delete(categoryRootLocation.resolve(filePath));
+        } catch (IOException e) {
+            throw new StorageException(e.getMessage(), e);
         }
     }
 
@@ -102,7 +116,7 @@ public class FileSystemStorageService implements StorageService {
     public void init() {
         try {
             Files.createDirectories(rootLocation);
-            Files.createDirectories(rootLocation.resolve("category"));
+            Files.createDirectories(categoryRootLocation);
         } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }

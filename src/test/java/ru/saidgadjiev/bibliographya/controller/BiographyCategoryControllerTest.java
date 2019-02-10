@@ -85,12 +85,12 @@ class BiographyCategoryControllerTest {
     }
 
     @Test
-    void getCategoryByName() throws Exception {
+    void getCategoryById() throws Exception {
         BiographyCategory category = createCategory(1, "Test", "Test.jpg");
 
-        Mockito.when(biographyCategoryService.getByName("Test")).thenReturn(category);
+        Mockito.when(biographyCategoryService.getById(1)).thenReturn(category);
 
-        mockMvc.perform(get("/api/categories/Test"))
+        mockMvc.perform(get("/api/categories/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("Test")))
@@ -165,7 +165,7 @@ class BiographyCategoryControllerTest {
 
                 return 1;
             }
-        }).when(biographyCategoryService).deleteByName(eq("Test"));
+        }).when(biographyCategoryService).deleteById(eq(1));
 
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
@@ -174,7 +174,7 @@ class BiographyCategoryControllerTest {
         }).when(authService).tokenAuth("TestToken");
 
         mockMvc.perform(
-                MockMvcRequestBuilders.delete("/api/categories/Test")
+                MockMvcRequestBuilders.delete("/api/categories/1")
                         .cookie(new Cookie("X-TOKEN", "TestToken"))
         )
                 .andExpect(status().isOk());

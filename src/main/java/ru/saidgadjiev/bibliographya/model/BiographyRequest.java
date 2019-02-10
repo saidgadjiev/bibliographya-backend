@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
@@ -25,9 +27,9 @@ public class BiographyRequest {
 
     private LastModified lastModified;
 
-    private Collection<String> addCategories;
+    private Collection<Integer> addCategories;
 
-    private Collection<String> deleteCategories;
+    private Collection<Integer> deleteCategories;
 
     public String getFirstName() {
         return firstName;
@@ -77,19 +79,19 @@ public class BiographyRequest {
         this.lastModified = lastModified;
     }
 
-    public Collection<String> getAddCategories() {
+    public Collection<Integer> getAddCategories() {
         return addCategories;
     }
 
-    public void setAddCategories(Collection<String> addCategories) {
+    public void setAddCategories(Collection<Integer> addCategories) {
         this.addCategories = addCategories;
     }
 
-    public Collection<String> getDeleteCategories() {
+    public Collection<Integer> getDeleteCategories() {
         return deleteCategories;
     }
 
-    public void setDeleteCategories(Collection<String> deleteCategories) {
+    public void setDeleteCategories(Collection<Integer> deleteCategories) {
         this.deleteCategories = deleteCategories;
     }
 }
