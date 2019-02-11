@@ -16,7 +16,7 @@ public interface BibliographyaUserDetailsService {
 
     UserDetails loadUserById(int userId);
 
-    boolean isExistUserName(String username);
+    boolean isExistEmail(String username);
 
     UserDetails loadSocialUserById(int userId);
 

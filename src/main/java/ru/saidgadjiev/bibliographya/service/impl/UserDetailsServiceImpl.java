@@ -62,12 +62,12 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     public User save(SignUpRequest signUpRequest) throws SQLException {
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName(signUpRequest.getUsername());
+        userAccount.setEmail(signUpRequest.getEmail());
         userAccount.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
 
         User user = new User();
 
-        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setProviderType(ProviderType.EMAIL_PASSWORD);
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
         user.setUserAccount(userAccount);
 
@@ -98,8 +98,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public boolean isExistUserName(String username) {
-        return userAccountDao.isExistUsername(username);
+    public boolean isExistEmail(String username) {
+        return userAccountDao.isExistEmail(username);
     }
 
     @Override

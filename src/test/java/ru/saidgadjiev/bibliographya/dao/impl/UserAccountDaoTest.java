@@ -10,13 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.domain.Role;
-import ru.saidgadjiev.bibliographya.domain.SocialAccount;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UserAccount;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -42,12 +37,12 @@ class UserAccountDaoTest {
     void save() {
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName("test");
+        userAccount.setEmail("test");
         userAccount.setPassword("test");
 
         User user = new User();
 
-        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setProviderType(ProviderType.EMAIL_PASSWORD);
         user.setUserAccount(userAccount);
 
         User result = userAccountDao.save(user);
@@ -66,12 +61,12 @@ class UserAccountDaoTest {
     void getByUsername() {
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName("test");
+        userAccount.setEmail("test");
         userAccount.setPassword("test");
 
         User user = new User();
 
-        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setProviderType(ProviderType.EMAIL_PASSWORD);
         user.setUserAccount(userAccount);
 
         User result = userAccountDao.save(user);
@@ -90,26 +85,26 @@ class UserAccountDaoTest {
     void isExistUsername() {
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName("test");
+        userAccount.setEmail("test");
         userAccount.setPassword("test");
 
         User user = new User();
 
-        user.setProviderType(ProviderType.USERNAME_PASSWORD);
+        user.setProviderType(ProviderType.EMAIL_PASSWORD);
         user.setUserAccount(userAccount);
 
-        Assertions.assertFalse(userAccountDao.isExistUsername("test"));
+        Assertions.assertFalse(userAccountDao.isExistEmail("test"));
 
         userAccountDao.save(user);
 
-        Assertions.assertTrue(userAccountDao.isExistUsername("test"));
+        Assertions.assertTrue(userAccountDao.isExistEmail("test"));
     }
 
     private void assertEquals(User expected, User actual) {
         Assertions.assertEquals(expected.getId(), actual.getId());
         Assertions.assertEquals(expected.getProviderType(), actual.getProviderType());
         Assertions.assertEquals(expected.getUserAccount().getId(), actual.getUserAccount().getId());
-        Assertions.assertEquals(expected.getUserAccount().getName(), actual.getUserAccount().getName());
+        Assertions.assertEquals(expected.getUserAccount().getEmail(), actual.getUserAccount().getEmail());
         Assertions.assertEquals(expected.getUserAccount().getUserId(), actual.getUserAccount().getUserId());
         Assertions.assertEquals((int) actual.getBiography().getId(), 1);
         Assertions.assertEquals(actual.getBiography().getFirstName(), "Тест");

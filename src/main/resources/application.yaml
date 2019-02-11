@@ -2,12 +2,27 @@ server:
   port: ${PORT}
 spring:
     datasource:
-      driver-class-name: ${DB_DRIVER_CLASS_NAME}
+      driver-class-email: ${DB_DRIVER_CLASS_NAME}
       url: ${DB_URL}
       userName: ${DB_USER_NAME}
       password: ${DB_PASSWORD}
     profiles:
       active: prod
+    mail:
+      host: ${MAIL_HOST}
+      port: ${MAIL_PORT}
+      username: ${MAIL_USERNAME}
+      password: ${MAIL_PASSWORD}
+      protocol: smtps
+      properties:
+        mail:
+          transport:
+            protocol: smtps
+          smtps:
+            auth: true
+            starttls:
+              enable: true
+          timeout: 8000
 app:
   social:
     facebook:
@@ -23,6 +38,8 @@ app:
   upload:
     root: ${UPLOAD_DIR}
     category-root: ${UPLOAD_CATEGORY_DIR}
+  support:
+    email: ${SUPPORT_EMAIL}
 management:
   endpoints:
     web:

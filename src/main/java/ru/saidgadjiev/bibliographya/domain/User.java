@@ -43,7 +43,7 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public String getUsername() {
-        return userAccount == null ? null : userAccount.getName();
+        return userAccount == null ? null : userAccount.getEmail();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setName(String name) {
         if (userAccount != null) {
-            userAccount.setName(name);
+            userAccount.setEmail(name);
         }
     }
 

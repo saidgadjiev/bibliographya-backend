@@ -3,14 +3,13 @@ package ru.saidgadjiev.bibliographya.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.NativeWebRequest;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
@@ -44,7 +43,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (providerType.equals(ProviderType.USERNAME_PASSWORD)) {
+        if (providerType.equals(ProviderType.EMAIL_PASSWORD)) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -56,7 +55,14 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        authService.signUp(signUpRequest);
+        SignUpResult signUpResult = authService.signUp(signUpRequest);
+
+        if (signUpResult.getEmailVerificationResult().isExpired()) {
+            return ResponseEntity.status(498).build();
+        }
+        if (signUpResult.getEmailVerificationResult().isInvalid()) {
+            return ResponseEntity.badRequest().build();
+        }
 
         return ResponseEntity.ok().build();
     }
@@ -109,7 +115,7 @@ public class AuthController {
 
         try {
             AuthContext authContext = new AuthContext()
-                    .setProviderType(ProviderType.USERNAME_PASSWORD)
+                    .setProviderType(ProviderType.EMAIL_PASSWORD)
                     .setResponse(response)
                     .setRequest(request)
                     .setSignInRequest(signInRequest);

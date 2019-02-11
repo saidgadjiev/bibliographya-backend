@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -9,12 +10,14 @@ import javax.validation.constraints.Size;
 public class SignUpRequest {
 
     @NotNull
-    @Size(min = 1)
-    private String username;
+    @Email
+    private String email;
 
     @NotNull
     @Size(min = 1)
     private String password;
+
+    private Integer code;
 
     @NotNull
     @Size(min = 1)
@@ -26,12 +29,12 @@ public class SignUpRequest {
 
     private String middleName;
 
-    public String getUsername() {
-        return username;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {
@@ -64,5 +67,13 @@ public class SignUpRequest {
 
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
     }
 }

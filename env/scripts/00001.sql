@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 
 CREATE TABLE IF NOT EXISTS "user_account" (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(128) UNIQUE NOT NULL,
+  email VARCHAR(512) UNIQUE NOT NULL,
   password VARCHAR(1024) NOT NULL,
   user_id INTEGER NOT NULL REFERENCES "user"(id)
 );
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS "social_account" (
   user_id INTEGER NOT NULL REFERENCES "user"(id)
 );
 
-INSERT INTO "user"(provider_id) VALUES ('username_password');
+INSERT INTO "user"(provider_id) VALUES ('email_password');
 
-INSERT INTO "user_account"("name", "password", user_id) VALUES('admin', '$2a$10$V.hNtSdrn5Jmhxd1wMDZ6eo.q2EY0gO/v4pm7HqRoPx7vc8NBZyIO', 1);
+INSERT INTO "user_account"("email", "password", user_id) VALUES('g.said.alievich@mail.ru', '$2a$10$V.hNtSdrn5Jmhxd1wMDZ6eo.q2EY0gO/v4pm7HqRoPx7vc8NBZyIO', 1);
 

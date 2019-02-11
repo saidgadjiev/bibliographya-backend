@@ -12,14 +12,16 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.NativeWebRequest;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
+import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
+import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenCookieService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
@@ -51,11 +53,17 @@ public class AuthService {
 
     private AuthenticationManager authenticationManager;
 
+    private EmailVerificationService emailVerificationService;
+
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
             new CookieClearingLogoutHandler("X-TOKEN"),
             new SecurityContextLogoutHandler()
     );
 
+    @Autowired
+    public void setEmailVerificationService(EmailVerificationService emailVerificationService) {
+        this.emailVerificationService = emailVerificationService;
+    }
 
     @Autowired
     public void setFacebookService(FacebookService facebookService) {
@@ -98,7 +106,7 @@ public class AuthService {
                 return facebookService.createFacebookAuthorizationUrl(redirectUri);
             case VK:
                 return vkService.createVKAuthorizationUrl(redirectUri);
-            case USERNAME_PASSWORD:
+            case EMAIL_PASSWORD:
                 break;
         }
 
@@ -140,7 +148,7 @@ public class AuthService {
 
                 break;
             }
-            case USERNAME_PASSWORD:
+            case EMAIL_PASSWORD:
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(
                                 authContext.getSignInRequest().getUsername(),
@@ -162,8 +170,14 @@ public class AuthService {
         return user;
     }
 
-    public void signUp(SignUpRequest signUpRequest) throws SQLException {
-        userAccountDetailsService.save(signUpRequest);
+    public SignUpResult signUp(SignUpRequest signUpRequest) throws SQLException {
+        EmailVerificationResult verificationResult = emailVerificationService.sendAndVerify(signUpRequest.getEmail(), signUpRequest.getCode());
+
+        if (verificationResult.isValid()) {
+            userAccountDetailsService.save(signUpRequest);
+        }
+
+        return new SignUpResult().setEmailVerificationResult(verificationResult);
     }
 
     public User signOut(HttpServletRequest request, HttpServletResponse response) {
@@ -199,7 +213,7 @@ public class AuthService {
                 case FACEBOOK:
                     userDetails = userAccountDetailsService.loadSocialUserById(userId);
                     break;
-                case USERNAME_PASSWORD:
+                case EMAIL_PASSWORD:
                     userDetails = userAccountDetailsService.loadUserById(userId);
                     break;
             }
