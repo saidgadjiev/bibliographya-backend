@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.NativeWebRequest;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
@@ -115,10 +114,10 @@ public class AuthService {
 
                 SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant.getAccessToken());
 
-                user = (User) userAccountDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
+                user = userAccountDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
 
                 if (user == null) {
-                    user = (User) userAccountDetailsService.saveSocialUser(userInfo);
+                    user = userAccountDetailsService.saveSocialUser(userInfo);
 
                     user.setIsNew(true);
                 }
@@ -130,10 +129,10 @@ public class AuthService {
 
                 SocialUserInfo userInfo = vkService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 
-                user = (User) userAccountDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
+                user = userAccountDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
 
                 if (user == null) {
-                    user = (User) userAccountDetailsService.saveSocialUser(userInfo);
+                    user = userAccountDetailsService.saveSocialUser(userInfo);
 
                     user.setIsNew(true);
                 }

@@ -70,6 +70,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         user.setProviderType(ProviderType.USERNAME_PASSWORD);
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
         user.setUserAccount(userAccount);
+        user = userAccountDao.save(user);
 
         postSave(user, signUpRequest.getFirstName(), signUpRequest.getLastName(), signUpRequest.getMiddleName());
 
@@ -91,7 +92,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public UserDetails loadSocialUserById(int userId) {
+    public User loadSocialUserById(int userId) {
         User user = socialAccountDao.getByUserId(userId);
 
         user.setRoles(userRoleDao.getRoles(userId));
@@ -100,7 +101,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public UserDetails loadSocialUserByAccountId(ProviderType providerType, String accountId) {
+    public User loadSocialUserByAccountId(ProviderType providerType, String accountId) {
         User user = socialAccountDao.getByAccountId(providerType, accountId);
 
         user.setRoles(userRoleDao.getRoles(user.getId()));
@@ -110,7 +111,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     @Transactional
-    public UserDetails saveSocialUser(SocialUserInfo userInfo) throws SQLException {
+    public User saveSocialUser(SocialUserInfo userInfo) throws SQLException {
         SocialAccount socialAccount = new SocialAccount();
 
         socialAccount.setAccountId(userInfo.getId());
@@ -120,6 +121,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         user.setProviderType(ProviderType.fromId(userInfo.getProviderId()));
         user.setRoles(Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()));
         user.setSocialAccount(socialAccount);
+
+        user = socialAccountDao.save(user);
 
         postSave(user, userInfo.getFirstName(), userInfo.getLastName(), userInfo.getMiddleName());
 
@@ -131,13 +134,12 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         this.biographyService = biographyService;
     }
 
-    private void postSave(User user, String firtName, String lastName, String middleName) throws SQLException {
-        user = userAccountDao.save(user);
+    private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {
         userRoleDao.addRoles(user.getId(), user.getRoles());
 
         BiographyRequest biographyRequest = new BiographyRequest();
 
-        biographyRequest.setFirstName(firtName);
+        biographyRequest.setFirstName(firstName);
         biographyRequest.setLastName(lastName);
         biographyRequest.setMiddleName(middleName);
         biographyRequest.setUserId(user.getId());
