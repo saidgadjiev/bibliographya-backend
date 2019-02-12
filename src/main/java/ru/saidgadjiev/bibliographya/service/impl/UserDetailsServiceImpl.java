@@ -71,19 +71,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
         user.setUserAccount(userAccount);
 
-        user = userAccountDao.save(user);
-        userRoleDao.addRoles(user.getId(), user.getRoles());
-
-        BiographyRequest biographyRequest = new BiographyRequest();
-
-        biographyRequest.setFirstName(signUpRequest.getFirstName());
-        biographyRequest.setLastName(signUpRequest.getLastName());
-        biographyRequest.setMiddleName(signUpRequest.getMiddleName());
-        biographyRequest.setUserId(user.getId());
-
-        Biography biography = biographyService.createAccountBiography(user, biographyRequest);
-
-        user.setBiography(biography);
+        postSave(user, signUpRequest.getFirstName(), signUpRequest.getLastName(), signUpRequest.getMiddleName());
 
         return user;
     }
@@ -133,19 +121,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         user.setRoles(Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()));
         user.setSocialAccount(socialAccount);
 
-        user = socialAccountDao.save(user);
-        userRoleDao.addRoles(user.getId(), user.getRoles());
-
-        BiographyRequest biographyRequest = new BiographyRequest();
-
-        biographyRequest.setFirstName(userInfo.getFirstName());
-        biographyRequest.setLastName(userInfo.getLastName());
-        biographyRequest.setMiddleName(userInfo.getMiddleName());
-        biographyRequest.setUserId(user.getId());
-
-        Biography biography = biographyService.createAccountBiography(user, biographyRequest);
-
-        user.setBiography(biography);
+        postSave(user, userInfo.getFirstName(), userInfo.getLastName(), userInfo.getMiddleName());
 
         return user;
     }
@@ -153,5 +129,21 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     @Autowired
     public void setBiographyService(BiographyService biographyService) {
         this.biographyService = biographyService;
+    }
+
+    private void postSave(User user, String firtName, String lastName, String middleName) throws SQLException {
+        user = userAccountDao.save(user);
+        userRoleDao.addRoles(user.getId(), user.getRoles());
+
+        BiographyRequest biographyRequest = new BiographyRequest();
+
+        biographyRequest.setFirstName(firtName);
+        biographyRequest.setLastName(lastName);
+        biographyRequest.setMiddleName(middleName);
+        biographyRequest.setUserId(user.getId());
+
+        Biography biography = biographyService.createAccountBiography(user, biographyRequest);
+
+        user.setBiography(biography);
     }
 }
