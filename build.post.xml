@@ -1,6 +1,6 @@
-<project email="post-build" basedir="." default="post-build">
-    <target email="post-build">
-        <Dc email="00001" description="Создаем сущность пользователь">
+<project name="post-build" basedir="." default="post-build">
+    <target name="post-build">
+        <Dc name="00001" description="Создаем сущность пользователь">
             <SqlFile file="env/scripts/00001.sql"/>
         </Dc>
 
@@ -8,35 +8,35 @@
             <SqlFile file="env/scripts/00002.sql"/>
         </Dc>
 
-        <Dc email="00003" description="Создаем сущность роль_пользователь">
+        <Dc name="00003" description="Создаем сущность роль_пользователь">
             <SqlFile file="env/scripts/00003.sql"/>
         </Dc>
 
-        <Dc email="00004" description="Создаем сущность биография">
+        <Dc name="00004" description="Создаем сущность биография">
             <SqlFile file="env/scripts/00004.sql"/>
         </Dc>
 
-        <Dc email="00005" description="Создаем сущность лайков биографий">
+        <Dc name="00005" description="Создаем сущность лайков биографий">
             <SqlFile file="env/scripts/00005.sql"/>
         </Dc>
 
-        <Dc email="00006" description="Создаем сущность категорий биографий">
+        <Dc name="00006" description="Создаем сущность категорий биографий">
             <SqlFile file="env/scripts/00006.sql"/>
         </Dc>
 
-        <Dc email="00007" description="Создаем сущность комментарий биографий">
+        <Dc name="00007" description="Создаем сущность комментарий биографий">
             <SqlFile file="env/scripts/00007.sql"/>
         </Dc>
 
-        <Dc email="00008" description="Создаем сущность исправлений биографий">
+        <Dc name="00008" description="Создаем сущность исправлений биографий">
             <SqlFile file="env/scripts/00008.sql"/>
         </Dc>
 
-        <Dc email="00009" description="Создаем сущность жалоб биографий">
+        <Dc name="00009" description="Создаем сущность жалоб биографий">
             <SqlFile file="env/scripts/00009.sql"/>
         </Dc>
 
-        <Dc email="00010" description="Таблица для багов">
+        <Dc name="00010" description="Таблица для багов">
             <SqlFile file="env/scripts/00010.sql"/>
         </Dc>
     </target>
