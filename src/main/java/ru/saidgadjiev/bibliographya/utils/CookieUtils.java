@@ -15,7 +15,7 @@ public class CookieUtils {
         cookie.setDomain(request.getServerName());
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(60 * 60 * 24);
+        cookie.setMaxAge(60 * 60 * 24 * 30); // one month
         response.addCookie(cookie);
     }
 
