@@ -17,8 +17,6 @@ public class SignUpRequest {
     @Size(min = 1)
     private String password;
 
-    private Integer code;
-
     @NotNull
     @Size(min = 1)
     private String firstName;
@@ -67,13 +65,5 @@ public class SignUpRequest {
 
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
-    }
-
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
     }
 }

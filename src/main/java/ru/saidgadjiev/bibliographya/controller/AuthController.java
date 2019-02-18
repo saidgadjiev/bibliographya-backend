@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.domain.AccountResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
@@ -51,20 +52,25 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest signUpRequest, BindingResult bindingResult) throws SQLException {
+    public ResponseEntity<?> signUp(HttpServletRequest request,
+                                    @Valid @RequestBody SignUpRequest signUpRequest,
+                                    BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        SignUpResult signUpResult = authService.signUp(signUpRequest);
-
-        if (signUpResult.getEmailVerificationResult().isExpired()) {
-            return ResponseEntity.status(498).build();
-        }
-        if (signUpResult.getEmailVerificationResult().isInvalid()) {
-            return ResponseEntity.badRequest().build();
-        }
+        authService.signUp(request, signUpRequest);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/signUp/confirm")
+    public ResponseEntity<?> confirmSignUp(HttpServletRequest request, @RequestParam("code") Integer code) throws SQLException {
+        if (code == null) {
+            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).build();
+        }
+        SignUpResult signUpResult = authService.confirmSignUp(request, code);
+
+        return ResponseEntity.status(signUpResult.getStatus()).build();
     }
 
     @PostMapping(value = "/signIn/{providerId}", params = "code")
@@ -138,13 +144,9 @@ public class AuthController {
     }
 
     @GetMapping("/account")
-    public ResponseEntity<UserDetails> signOut() {
-        UserDetails userDetails = authService.account();
+    public ResponseEntity<UserDetails> getAccount(HttpServletRequest request) {
+        AccountResult accountResult = authService.account(request);
 
-        if (userDetails == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(userDetails);
+        return ResponseEntity.status(accountResult.getStatus()).body(accountResult.getAccount());
     }
 }

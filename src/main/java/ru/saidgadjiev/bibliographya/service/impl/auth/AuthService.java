@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -8,7 +9,6 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
-import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,7 @@ import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.domain.AccountResult;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -30,6 +31,7 @@ import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -163,14 +165,36 @@ public class AuthService {
         return user;
     }
 
-    public SignUpResult signUp(SignUpRequest signUpRequest) throws SQLException {
-        EmailVerificationResult verificationResult = emailVerificationService.sendAndVerify(signUpRequest.getEmail(), signUpRequest.getCode());
+    public SignUpResult signUp(HttpServletRequest request, SignUpRequest signUpRequest) {
+        HttpSession session = request.getSession(true);
 
-        if (verificationResult.isValid()) {
-            userAccountDetailsService.save(signUpRequest);
+        session.setAttribute("signingUp", true);
+        session.setAttribute("request", signUpRequest);
+
+        emailVerificationService.sendVerification(signUpRequest.getEmail());
+
+        return null;
+    }
+
+    public SignUpResult confirmSignUp(HttpServletRequest request, Integer code) throws SQLException {
+        HttpSession session = request.getSession(false);
+
+        if (isSigningUp(session)) {
+            SignUpRequest signUpRequest = (SignUpRequest) session.getAttribute("request");
+
+            EmailVerificationResult result = emailVerificationService.confirm(signUpRequest.getEmail(), code);
+
+            if (result.isValid()) {
+                session.invalidate();
+                userAccountDetailsService.save(signUpRequest);
+
+                return new SignUpResult().setStatus(HttpStatus.OK);
+            }
+
+            return new SignUpResult().setStatus(HttpStatus.PRECONDITION_FAILED);
         }
 
-        return new SignUpResult().setEmailVerificationResult(verificationResult);
+        return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
     }
 
     public User signOut(HttpServletRequest request, HttpServletResponse response) {
@@ -187,8 +211,24 @@ public class AuthService {
         return null;
     }
 
-    public UserDetails account() {
-        return securityService.findLoggedInUser();
+    public AccountResult account(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            UserDetails userDetails = securityService.findLoggedInUser();
+
+            if (userDetails == null) {
+                return new AccountResult().setStatus(HttpStatus.NOT_FOUND);
+            }
+
+            return new AccountResult().setStatus(HttpStatus.OK).setAccount(userDetails);
+        }
+
+        if (isSigningUp(session)) {
+            return new AccountResult().setStatus(HttpStatus.PRECONDITION_REQUIRED);
+        }
+
+        return new AccountResult().setStatus(HttpStatus.PRECONDITION_FAILED);
     }
 
     public void tokenAuth(String token) {
@@ -222,5 +262,11 @@ public class AuthService {
                 SecurityContextHolder.getContext().setAuthentication(null);
             }
         }
+    }
+
+    private boolean isSigningUp(HttpSession session) {
+        Boolean signingUp = (Boolean) session.getAttribute("signingUp");
+
+        return signingUp != null && signingUp;
     }
 }

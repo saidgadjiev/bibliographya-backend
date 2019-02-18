@@ -52,7 +52,9 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userAccountDao.getByUsername(username);
 
-        user.setRoles(userRoleDao.getRoles(user.getId()));
+        if (user != null) {
+            user.setRoles(userRoleDao.getRoles(user.getId()));
+        }
 
         return user;
     }
@@ -81,7 +83,9 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     public User loadUserById(int userId) {
         User user = userAccountDao.getByUserId(userId);
 
-        user.setRoles(userRoleDao.getRoles(userId));
+        if (user != null) {
+            user.setRoles(userRoleDao.getRoles(userId));
+        }
 
         return user;
     }
@@ -95,7 +99,9 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     public User loadSocialUserById(int userId) {
         User user = socialAccountDao.getByUserId(userId);
 
-        user.setRoles(userRoleDao.getRoles(userId));
+        if (user != null) {
+            user.setRoles(userRoleDao.getRoles(userId));
+        }
 
         return user;
     }
@@ -104,7 +110,9 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     public User loadSocialUserByAccountId(ProviderType providerType, String accountId) {
         User user = socialAccountDao.getByAccountId(providerType, accountId);
 
-        user.setRoles(userRoleDao.getRoles(user.getId()));
+        if (user != null) {
+            user.setRoles(userRoleDao.getRoles(user.getId()));
+        }
 
         return user;
     }

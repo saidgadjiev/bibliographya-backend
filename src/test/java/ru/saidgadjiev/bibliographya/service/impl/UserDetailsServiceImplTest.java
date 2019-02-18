@@ -48,7 +48,7 @@ class UserDetailsServiceImplTest {
     void loadUserByUsername() {
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName("Test");
+        userAccount.setEmail("Test");
         userAccount.setUserId(1);
         userAccount.setId(1);
         userAccount.setPassword("Test");
@@ -58,7 +58,7 @@ class UserDetailsServiceImplTest {
                 "Test",
                 "Test",
                 "Test",
-                ProviderType.USERNAME_PASSWORD,
+                ProviderType.EMAIL_PASSWORD,
                 Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()),
                 userAccount,
                 null
@@ -121,7 +121,7 @@ class UserDetailsServiceImplTest {
 
         SignUpRequest signUpRequest = new SignUpRequest();
 
-        signUpRequest.setUsername("Test");
+        signUpRequest.setEmail("Test");
         signUpRequest.setPassword("Test");
         signUpRequest.setFirstName("Test");
         signUpRequest.setLastName("Test");
@@ -131,7 +131,7 @@ class UserDetailsServiceImplTest {
 
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName("Test");
+        userAccount.setEmail("Test");
         userAccount.setUserId(1);
         userAccount.setId(1);
         userAccount.setPassword("Test");
@@ -141,7 +141,7 @@ class UserDetailsServiceImplTest {
                 "Test",
                 "Test",
                 "Test",
-                ProviderType.USERNAME_PASSWORD,
+                ProviderType.EMAIL_PASSWORD,
                 Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()),
                 userAccount,
                 null
@@ -156,7 +156,7 @@ class UserDetailsServiceImplTest {
     void loadUserById() {
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setName("Test");
+        userAccount.setEmail("Test");
         userAccount.setUserId(1);
         userAccount.setId(1);
         userAccount.setPassword("Test");
@@ -166,7 +166,7 @@ class UserDetailsServiceImplTest {
                 "Test",
                 "Test",
                 "Test",
-                ProviderType.USERNAME_PASSWORD,
+                ProviderType.EMAIL_PASSWORD,
                 Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()),
                 userAccount,
                 null
@@ -183,12 +183,12 @@ class UserDetailsServiceImplTest {
 
     @Test
     void isExistUserName() {
-        Mockito.when(accountDao.isExistUsername(eq("Test"))).thenReturn(true).thenReturn(false);
+        Mockito.when(accountDao.isExistEmail(eq("Test"))).thenReturn(true).thenReturn(false);
 
-        Assertions.assertTrue(service.isExistUserName("Test"));
-        Assertions.assertFalse(service.isExistUserName("Test"));
+        Assertions.assertTrue(service.isExistEmail("Test"));
+        Assertions.assertFalse(service.isExistEmail("Test"));
 
-        Mockito.verify(accountDao, Mockito.times(2)).isExistUsername(eq("Test"));
+        Mockito.verify(accountDao, Mockito.times(2)).isExistEmail(eq("Test"));
     }
 
     @Test
@@ -333,7 +333,7 @@ class UserDetailsServiceImplTest {
             Assertions.assertNotNull(actual.getUserAccount());
 
             Assertions.assertEquals(expected.getUserAccount().getId(), actual.getUserAccount().getId());
-            Assertions.assertEquals(expected.getUserAccount().getName(), actual.getUserAccount().getName());
+            Assertions.assertEquals(expected.getUserAccount().getEmail(), actual.getUserAccount().getEmail());
         }
 
         if (expected.getSocialAccount() != null) {

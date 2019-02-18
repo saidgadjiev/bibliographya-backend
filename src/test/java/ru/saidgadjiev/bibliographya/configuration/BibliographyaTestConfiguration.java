@@ -2,8 +2,14 @@ package ru.saidgadjiev.bibliographya.configuration;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-//@TestConfiguration
+@TestConfiguration
 public class BibliographyaTestConfiguration {
 
+    @Bean
+    public JavaMailSender mailSender() {
+        return new JavaMailSenderImpl();
+    }
 }

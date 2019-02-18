@@ -1,18 +1,20 @@
 package ru.saidgadjiev.bibliographya.domain;
 
+import org.springframework.http.HttpStatus;
+
 /**
  * Created by said on 11.02.2019.
  */
 public class SignUpResult {
 
-    private EmailVerificationResult emailVerificationResult;
+    private HttpStatus status;
 
-    public EmailVerificationResult getEmailVerificationResult() {
-        return emailVerificationResult;
+    public HttpStatus getStatus() {
+        return status;
     }
 
-    public SignUpResult setEmailVerificationResult(EmailVerificationResult emailVerificationResult) {
-        this.emailVerificationResult = emailVerificationResult;
+    public SignUpResult setStatus(HttpStatus status) {
+        this.status = status;
 
         return this;
     }

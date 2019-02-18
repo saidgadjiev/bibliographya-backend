@@ -2,7 +2,7 @@ server:
   port: ${PORT}
 spring:
     datasource:
-      driver-class-email: ${DB_DRIVER_CLASS_NAME}
+      driver-class-name: ${DB_DRIVER_CLASS_NAME}
       url: ${DB_URL}
       userName: ${DB_USER_NAME}
       password: ${DB_PASSWORD}

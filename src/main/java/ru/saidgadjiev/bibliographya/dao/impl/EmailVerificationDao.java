@@ -44,7 +44,7 @@ public class EmailVerificationDao {
                         emailVerification.setId(resultSet.getInt("id"));
                         emailVerification.setEmail(resultSet.getString("email"));
                         emailVerification.setCode(resultSet.getInt("code"));
-                        emailVerification.setExpiredAt(resultSet.getTimestamp("expiredAt"));
+                        emailVerification.setExpiredAt(resultSet.getTimestamp("expired_at"));
 
                         return emailVerification;
                     }

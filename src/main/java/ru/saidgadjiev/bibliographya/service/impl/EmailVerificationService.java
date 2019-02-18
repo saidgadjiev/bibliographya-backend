@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
-import java.util.Random;
 
 /**
  * Created by said on 11.02.2019.
@@ -19,23 +18,24 @@ import java.util.Random;
 @Service
 public class EmailVerificationService {
 
-    private Random random = new Random();
+    private CodeGenerator codeGenerator;
 
     private EmailService emailService;
 
     private EmailVerificationDao emailVerificationDao;
 
     @Autowired
-    public EmailVerificationService(EmailService emailService, EmailVerificationDao emailVerificationDao) {
+    public EmailVerificationService(CodeGenerator codeGenerator, EmailService emailService, EmailVerificationDao emailVerificationDao) {
+        this.codeGenerator = codeGenerator;
         this.emailService = emailService;
         this.emailVerificationDao = emailVerificationDao;
     }
 
-    public EmailVerificationResult sendAndVerify(String email, Integer code) {
+    public void sendVerification(String email) {
         EmailVerification verification = emailVerificationDao.getByEmail(email);
 
         if (verification == null) {
-            int nextCode = nextCode();
+            int nextCode = codeGenerator.generate();
 
             emailService.sendVerificationMessage(email, nextCode);
 
@@ -50,23 +50,9 @@ public class EmailVerificationService {
             newVerification.setExpiredAt(new Timestamp(calendar.getTime().getTime()));
 
             emailVerificationDao.create(newVerification);
-
-            return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
+        } else {
+            resend(email);
         }
-
-        if (TimeUtils.isExpired(verification.getExpiredAt().getTime())) {
-            return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.EXPIRED);
-        }
-
-        boolean equals = Objects.equals(verification.getCode(), code);
-
-        if (equals) {
-            emailVerificationDao.deleteByEmail(email);
-
-            return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.VALID);
-        }
-
-        return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
     }
     
     public EmailVerificationResult verify(String email, int code) {
@@ -86,6 +72,16 @@ public class EmailVerificationService {
                 : new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
     }
 
+    public EmailVerificationResult confirm(String email, Integer code) {
+        EmailVerificationResult verificationResult = verify(email, code);
+
+        if (verificationResult.isValid()) {
+            emailVerificationDao.deleteByEmail(email);
+        }
+
+        return verificationResult;
+    }
+
     public int resend(String email) {
         EmailVerification emailVerification = emailVerificationDao.getByEmail(email);
         
@@ -93,7 +89,7 @@ public class EmailVerificationService {
             return 0;
         }
         if (TimeUtils.isExpired(emailVerification.getExpiredAt().getTime())) {
-            int nextCode = nextCode();
+            int nextCode = codeGenerator.generate();
             emailService.sendVerificationMessage(email, nextCode);
 
             emailVerificationDao.updateCode(email, nextCode);
@@ -102,9 +98,5 @@ public class EmailVerificationService {
         }
         
         return 1;
-    }
-
-    private int nextCode() {
-        return random.nextInt(9000) + 1000;
     }
 }
