@@ -1,8 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.api;
 
-import org.springframework.security.core.userdetails.UserDetails;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
 import java.sql.SQLException;
@@ -12,15 +12,15 @@ import java.sql.SQLException;
  */
 public interface BibliographyaUserDetailsService {
 
-    UserDetails save(SignUpRequest signUpRequest) throws SQLException;
+    User save(SignUpRequest signUpRequest) throws SQLException;
 
-    UserDetails loadUserById(int userId);
+    User loadUserById(int userId);
 
     boolean isExistEmail(String username);
 
-    UserDetails loadSocialUserById(int userId);
+    User loadSocialUserById(int userId);
 
-    UserDetails loadSocialUserByAccountId(ProviderType providerType, String accountId);
+    User loadSocialUserByAccountId(ProviderType providerType, String accountId);
 
-    UserDetails saveSocialUser(SocialUserInfo userInfo) throws SQLException;
+    User saveSocialUser(SocialUserInfo userInfo) throws SQLException;
 }

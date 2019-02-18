@@ -23,10 +23,10 @@ import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
-import ru.saidgadjiev.bibliographya.service.impl.TokenCookieService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
+import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,8 +46,6 @@ public class AuthService {
     private BibliographyaUserDetailsService userAccountDetailsService;
 
     private TokenService tokenService;
-
-    private TokenCookieService tokenCookieService;
 
     private SecurityService securityService;
 
@@ -86,11 +84,6 @@ public class AuthService {
     }
 
     @Autowired
-    public void setTokenCookieService(TokenCookieService tokenCookieService) {
-        this.tokenCookieService = tokenCookieService;
-    }
-
-    @Autowired
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
@@ -123,10 +116,10 @@ public class AuthService {
 
                 SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant.getAccessToken());
 
-                user = (User) userAccountDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
+                user = userAccountDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
 
                 if (user == null) {
-                    user = (User) userAccountDetailsService.saveSocialUser(userInfo);
+                    user = userAccountDetailsService.saveSocialUser(userInfo);
 
                     user.setIsNew(true);
                 }
@@ -138,10 +131,10 @@ public class AuthService {
 
                 SocialUserInfo userInfo = vkService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 
-                user = (User) userAccountDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
+                user = userAccountDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
 
                 if (user == null) {
-                    user = (User) userAccountDetailsService.saveSocialUser(userInfo);
+                    user = userAccountDetailsService.saveSocialUser(userInfo);
 
                     user.setIsNew(true);
                 }
@@ -165,7 +158,7 @@ public class AuthService {
 
         String token = tokenService.createToken(user, accessGrant);
 
-        tokenCookieService.addCookie(authContext.getRequest(), authContext.getResponse(), "X-TOKEN", token);
+        CookieUtils.addCookie(authContext.getRequest(), authContext.getResponse(), "X-TOKEN", token);
 
         return user;
     }
