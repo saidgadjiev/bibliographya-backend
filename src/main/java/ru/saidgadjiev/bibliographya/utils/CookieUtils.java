@@ -15,12 +15,15 @@ public class CookieUtils {
         cookie.setDomain(request.getServerName());
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setMaxAge(60 * 60 * 24);
         response.addCookie(cookie);
     }
 
-    public static void deleteCookie(HttpServletResponse response, String tokenName) {
+    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String tokenName) {
         Cookie cookie = new Cookie(tokenName, null);
 
+        cookie.setDomain(request.getServerName());
+        cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);
         response.addCookie(cookie);

@@ -54,7 +54,7 @@ public class AuthService {
     private EmailVerificationService emailVerificationService;
 
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
-            new CookieClearingLogoutHandler("X-TOKEN"),
+            (request, response, authentication) -> CookieUtils.deleteCookie(request, response,"X-TOKEN"),
             new SecurityContextLogoutHandler()
     );
 
