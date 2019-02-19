@@ -41,6 +41,8 @@ import java.util.Map;
 @Service
 public class AuthService {
 
+    public static final String SESSION_SIGNING_UP = "signingUp";
+
     private FacebookService facebookService;
 
     private VKService vkService;
@@ -214,21 +216,17 @@ public class AuthService {
     public AccountResult account(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
-        if (session == null) {
+        if (isSigningUp(session)) {
+            return new AccountResult().setStatus(HttpStatus.PRECONDITION_REQUIRED);
+        } else {
             UserDetails userDetails = securityService.findLoggedInUser();
 
             if (userDetails == null) {
                 return new AccountResult().setStatus(HttpStatus.NOT_FOUND);
             }
 
-            return new AccountResult().setStatus(HttpStatus.OK).setAccount(userDetails);
+            return new AccountResult().setStatus(HttpStatus.OK).setAccount((User) userDetails);
         }
-
-        if (isSigningUp(session)) {
-            return new AccountResult().setStatus(HttpStatus.PRECONDITION_REQUIRED);
-        }
-
-        return new AccountResult().setStatus(HttpStatus.PRECONDITION_FAILED);
     }
 
     public void tokenAuth(String token) {
@@ -265,7 +263,10 @@ public class AuthService {
     }
 
     private boolean isSigningUp(HttpSession session) {
-        Boolean signingUp = (Boolean) session.getAttribute("signingUp");
+        if (session == null) {
+            return false;
+        }
+        Boolean signingUp = (Boolean) session.getAttribute(SESSION_SIGNING_UP);
 
         return signingUp != null && signingUp;
     }

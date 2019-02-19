@@ -1,13 +1,12 @@
 package ru.saidgadjiev.bibliographya.domain;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public class AccountResult {
 
     private HttpStatus status;
 
-    private UserDetails account;
+    private User account;
 
     public HttpStatus getStatus() {
         return status;
@@ -19,11 +18,11 @@ public class AccountResult {
         return this;
     }
 
-    public UserDetails getAccount() {
+    public User getAccount() {
         return account;
     }
 
-    public AccountResult setAccount(UserDetails account) {
+    public AccountResult setAccount(User account) {
         this.account = account;
 
         return this;

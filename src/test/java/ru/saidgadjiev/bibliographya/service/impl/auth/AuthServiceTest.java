@@ -9,6 +9,8 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +19,7 @@ import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.configuration.BibliographyaTestConfiguration;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
@@ -27,6 +30,7 @@ import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,6 +38,7 @@ import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
+@Import(BibliographyaTestConfiguration.class)
 class AuthServiceTest {
 
     private static final String TEST_JWT_TOKEN = "TestToken";
@@ -84,7 +89,6 @@ class AuthServiceTest {
     void authWithSignUpViaFacebook() throws Exception {
     }
 
-
     @Test
     void authViaFacebook() throws Exception {
         AccessGrant accessGrant = new AccessGrant(TEST_ACCESS_TOKEN, new Date().getTime(), TEST_FACEBOOK_USER_ID);
@@ -97,7 +101,9 @@ class AuthServiceTest {
 
         Mockito.when(facebookService.createFacebookAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(accessGrant);
         Mockito.when(facebookService.getUserInfo(eq(TEST_ACCESS_TOKEN))).thenReturn(userInfo);
-        Mockito.when(userDetailsService.loadSocialUserByAccountId(eq(ProviderType.FACEBOOK), eq(userInfo.getId()))).thenReturn(null);
+
+        List<User> db = new ArrayList<>();
+
         Mockito.when(userDetailsService.saveSocialUser(any())).thenAnswer(invocation -> {
             SocialUserInfo newInfo = (SocialUserInfo) invocation.getArguments()[0];
 
@@ -107,7 +113,7 @@ class AuthServiceTest {
             socialAccount.setAccountId(newInfo.getId());
             socialAccount.setUserId(1);
 
-            return createUser(
+            db.add(createUser(
                     1,
                     newInfo.getFirstName(),
                     newInfo.getLastName(),
@@ -116,7 +122,9 @@ class AuthServiceTest {
                     Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
                     null,
                     socialAccount
-            );
+            ));
+
+            return db.get(0);
         });
 
         Mockito.when(tokenService.createToken(any(), any())).thenReturn(TEST_JWT_TOKEN);
@@ -129,15 +137,12 @@ class AuthServiceTest {
 
         List<Cookie> cookies = new ArrayList<>();
 
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                Cookie cookie = (Cookie) invocation.getArguments()[0];
+        Mockito.doAnswer(invocation -> {
+            Cookie cookie = (Cookie) invocation.getArguments()[0];
 
-                cookies.add(cookie);
+            cookies.add(cookie);
 
-                return null;
-            }
+            return null;
         }).when(response).addCookie(any());
 
         AtomicReference<Authentication> authenticationAtomicReference = new AtomicReference<>();
@@ -163,13 +168,10 @@ class AuthServiceTest {
 
         User actual = authService.auth(authContext, TEST_REDIRECT_URI);
 
-        Assertions.assertEquals(1, cookies.size());
-        Assertions.assertEquals(cookies.get(0).getName(), "X-TOKEN");
-        Assertions.assertEquals(cookies.get(0).getValue(), TEST_JWT_TOKEN);
-        Assertions.assertTrue(cookies.get(0).isHttpOnly());
-        Assertions.assertEquals(cookies.get(0).getDomain(), TEST_SERVER_NAME);
-        Assertions.assertEquals(cookies.get(0).getPath(), "/");
-
+        Assertions.assertFalse(db.isEmpty());
+        assertCoookieEquals(cookies.get(0));
+        assertUserEquals(db.get(0), actual);
+        assertUserEquals((User) authenticationAtomicReference.get().getPrincipal(), actual);
 
         Assertions.assertNotNull(authenticationAtomicReference.get());
     }
@@ -180,10 +182,63 @@ class AuthServiceTest {
 
     @Test
     void signOut() {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+
+        authService.signOut(request, response);
     }
 
     @Test
-    void account() {
+    void signedInAccount() {
+        SocialAccount socialAccount = new SocialAccount();
+
+        socialAccount.setId(1);
+        socialAccount.setAccountId(TEST_FACEBOOK_USER_ID);
+        socialAccount.setUserId(1);
+
+        User testUser = createUser(
+                1,
+                "Test",
+                "Test",
+                "Test",
+                ProviderType.FACEBOOK,
+                Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
+                null,
+                socialAccount
+        );
+
+        Mockito.when(securityService.findLoggedInUser()).thenReturn(testUser);
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        AccountResult accountResult = authService.account(request);
+
+        Assertions.assertEquals(accountResult.getStatus(), HttpStatus.OK);
+        assertUserEquals(testUser, accountResult.getAccount());
+    }
+
+    @Test
+    void anonymousAccount() {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        AccountResult accountResult = authService.account(request);
+
+        Assertions.assertEquals(accountResult.getStatus(), HttpStatus.NOT_FOUND);
+        Assertions.assertNull(accountResult.getAccount());
+    }
+
+    @Test
+    void signingUpAccount() {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        HttpSession session = Mockito.mock(HttpSession.class);
+
+        Mockito.when(request.getSession(anyBoolean())).thenReturn(session);
+        Mockito.when(session.getAttribute(eq(AuthService.SESSION_SIGNING_UP))).thenReturn(true);
+
+        AccountResult accountResult = authService.account(request);
+
+        Assertions.assertEquals(accountResult.getStatus(), HttpStatus.PRECONDITION_REQUIRED);
+        Assertions.assertNull(accountResult.getAccount());
     }
 
     @Test
