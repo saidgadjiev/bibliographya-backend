@@ -158,7 +158,7 @@ public class AuthService {
                 break;
         }
 
-        securityService.authenticate(user, user.getAuthorities());
+        securityService.authenticate(user);
 
         String token = tokenService.createToken(user, accessGrant);
 
