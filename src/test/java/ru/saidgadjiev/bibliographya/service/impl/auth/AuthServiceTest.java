@@ -81,7 +81,6 @@ class AuthServiceTest {
 
     @Test
     void authWithSignUpViaFacebook() throws Exception {
-        authService.auth(null, TEST_REDIRECT_URI);
     }
 
     @Test
