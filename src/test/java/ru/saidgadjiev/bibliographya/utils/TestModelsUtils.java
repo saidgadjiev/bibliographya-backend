@@ -3,9 +3,71 @@ package ru.saidgadjiev.bibliographya.utils;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.*;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class TestModelsUtils {
+
+    public static final String TEST_FIRST_NAME = "Test";
+
+    public static final String TEST_MIDDLE_NAME = "Test";
+
+    public static final String TEST_LAST_NAME = "Test";
+
+    public static final String TEST_EMAIL = "test@mail.ru";
+
+    public static final String TEST_SOCIAL_USER_ID = "socialUserId";
+
+    public static final Integer TEST_FACEBOOK_USER_ID = 1;
+
+    public static final Integer TEST_EMAIL_USER_ID = 1;
+
+    public static Map<Integer, User> testUsers = new HashMap<>();
+
+    static {
+        SocialAccount facebookSocialAccount = new SocialAccount();
+
+        facebookSocialAccount.setUserId(TEST_FACEBOOK_USER_ID);
+        facebookSocialAccount.setAccountId(TEST_SOCIAL_USER_ID);
+        facebookSocialAccount.setId(1);
+
+        testUsers.put(
+                TEST_FACEBOOK_USER_ID,
+                createUser(
+                        TEST_FACEBOOK_USER_ID,
+                        TEST_FIRST_NAME,
+                        TEST_LAST_NAME,
+                        TEST_MIDDLE_NAME,
+                        ProviderType.FACEBOOK,
+                        Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
+                        null,
+                        facebookSocialAccount
+
+                ));
+
+        UserAccount userAccount = new UserAccount();
+
+        userAccount.setEmail(TEST_EMAIL);
+        userAccount.setUserId(TEST_EMAIL_USER_ID);
+        userAccount.setId(1);
+        userAccount.setPassword("Test");
+
+        testUsers.put(
+                TEST_EMAIL_USER_ID,
+                createUser(
+                        TEST_EMAIL_USER_ID,
+                        TEST_FIRST_NAME,
+                        TEST_LAST_NAME,
+                        TEST_MIDDLE_NAME,
+                        ProviderType.EMAIL_PASSWORD,
+                        Collections.singleton(new Role(Role.ROLE_USER)),
+                        userAccount,
+                        null
+
+                ));
+    }
 
     private TestModelsUtils() {
     }

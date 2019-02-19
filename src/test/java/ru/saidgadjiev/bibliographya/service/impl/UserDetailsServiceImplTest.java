@@ -16,6 +16,7 @@ import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
+import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -24,6 +25,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils.assertUserEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -53,7 +55,7 @@ class UserDetailsServiceImplTest {
         userAccount.setId(1);
         userAccount.setPassword("Test");
 
-        User expected = createUser(
+        User expected = TestModelsUtils.createUser(
                 1,
                 "Test",
                 "Test",
@@ -136,7 +138,7 @@ class UserDetailsServiceImplTest {
         userAccount.setId(1);
         userAccount.setPassword("Test");
 
-        User expected = createUser(
+        User expected = TestModelsUtils.createUser(
                 1,
                 "Test",
                 "Test",
@@ -149,7 +151,7 @@ class UserDetailsServiceImplTest {
 
         Assertions.assertEquals(1, db.size());
         Assertions.assertEquals(1, roles.size());
-        assertEquals(expected, user);
+        assertUserEquals(expected, user);
     }
 
     @Test
@@ -161,7 +163,7 @@ class UserDetailsServiceImplTest {
         userAccount.setId(1);
         userAccount.setPassword("Test");
 
-        User expected = createUser(
+        User expected = TestModelsUtils.createUser(
                 1,
                 "Test",
                 "Test",
@@ -199,7 +201,7 @@ class UserDetailsServiceImplTest {
         socialAccount.setUserId(1);
         socialAccount.setId(1);
 
-        User expected = createUser(
+        User expected = TestModelsUtils.createUser(
                 1,
                 "Test",
                 "Test",
@@ -227,7 +229,7 @@ class UserDetailsServiceImplTest {
         socialAccount.setUserId(1);
         socialAccount.setId(1);
 
-        User expected = createUser(
+        User expected = TestModelsUtils.createUser(
                 1,
                 "Test",
                 "Test",
@@ -309,7 +311,7 @@ class UserDetailsServiceImplTest {
         socialAccount.setUserId(1);
         socialAccount.setId(1);
 
-        User expected = createUser(
+        User expected = TestModelsUtils.createUser(
                 1,
                 "Test",
                 "Test",
@@ -322,64 +324,6 @@ class UserDetailsServiceImplTest {
 
         Assertions.assertEquals(1, db.size());
         Assertions.assertEquals(1, roles.size());
-        assertEquals(expected, user);
-    }
-
-    private void assertEquals(User expected, User actual) {
-        Assertions.assertEquals(expected.getId(), actual.getId());
-        Assertions.assertEquals(expected.getProviderType(), actual.getProviderType());
-
-        if (expected.getUserAccount() != null) {
-            Assertions.assertNotNull(actual.getUserAccount());
-
-            Assertions.assertEquals(expected.getUserAccount().getId(), actual.getUserAccount().getId());
-            Assertions.assertEquals(expected.getUserAccount().getEmail(), actual.getUserAccount().getEmail());
-        }
-
-        if (expected.getSocialAccount() != null) {
-            Assertions.assertNotNull(actual.getSocialAccount());
-
-            Assertions.assertEquals(expected.getSocialAccount().getId(), actual.getSocialAccount().getId());
-            Assertions.assertEquals(expected.getSocialAccount().getAccountId(), actual.getSocialAccount().getAccountId());
-            Assertions.assertEquals(expected.getSocialAccount().getUserId(), actual.getSocialAccount().getUserId());
-        }
-
-        Assertions.assertEquals(expected.getRoles(), actual.getRoles());
-        Assertions.assertEquals(expected.getBiography().getId(), actual.getBiography().getId());
-        Assertions.assertEquals(expected.getBiography().getFirstName(), actual.getBiography().getFirstName());
-        Assertions.assertEquals(expected.getBiography().getLastName(), actual.getBiography().getLastName());
-        Assertions.assertEquals(expected.getBiography().getMiddleName(), actual.getBiography().getMiddleName());
-        Assertions.assertEquals(expected.getBiography().getUserId(), actual.getBiography().getUserId());
-        Assertions.assertEquals(expected.getBiography().getCreatorId(), actual.getBiography().getCreatorId());
-    }
-
-    private User createUser(int id,
-                            String firstName,
-                            String lastName,
-                            String middleName,
-                            ProviderType providerType,
-                            Set<Role> roles,
-                            UserAccount userAccount,
-                            SocialAccount socialAccount) {
-        User user = new User();
-
-        user.setId(1);
-        user.setRoles(roles);
-        user.setUserAccount(userAccount);
-        user.setSocialAccount(socialAccount);
-        user.setProviderType(providerType);
-
-        Biography biography = new Biography();
-
-        biography.setId(id);
-        biography.setFirstName(firstName);
-        biography.setLastName(lastName);
-        biography.setMiddleName(middleName);
-        biography.setUserId(id);
-        biography.setCreatorId(id);
-
-        user.setBiography(biography);
-
-        return user;
+        assertUserEquals(expected, user);
     }
 }
