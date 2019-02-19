@@ -1,11 +1,13 @@
 package ru.saidgadjiev.bibliographya.configuration;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-@TestConfiguration
+@Configuration
+@Profile("test")
 public class BibliographyaTestConfiguration {
 
     @Bean

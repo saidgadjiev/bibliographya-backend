@@ -9,31 +9,29 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.configuration.BibliographyaTestConfiguration;
 import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.model.SignUpRequest;
+import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
-import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -44,18 +42,7 @@ import static ru.saidgadjiev.bibliographya.utils.TestModelsUtils.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@Import(BibliographyaTestConfiguration.class)
 class AuthServiceTest {
-
-    private static final String TEST_JWT_TOKEN = "TestToken";
-
-    private static final String TEST_ACCESS_TOKEN = "TestAccessToken";
-
-    private static final String TEST_AUTH_CODE = "AuthCode";
-
-    private static final String TEST_REDIRECT_URI = "RedirectUri";
-
-    private static final String TEST_SERVER_NAME = "testserver";
 
     @Autowired
     private AuthService authService;
@@ -75,6 +62,9 @@ class AuthServiceTest {
     @MockBean
     private TokenService tokenService;
 
+    @MockBean
+    private EmailVerificationService emailVerificationService;
+
     @Test
     void getFacebookOauthUrl() {
         Mockito.when(facebookService.createFacebookAuthorizationUrl(eq("test"))).thenReturn("oauth:test:facebook");
@@ -91,14 +81,14 @@ class AuthServiceTest {
 
     @Test
     void authWithSignUpViaFacebook() throws Exception {
+        authService.auth(null, TEST_REDIRECT_URI);
     }
 
     @Test
     void authViaFacebook() throws Exception {
-        AccessGrant accessGrant = new AccessGrant(TEST_ACCESS_TOKEN, new Date().getTime(), TEST_SOCIAL_USER_ID);
         SocialUserInfo userInfo = socialUserInfo(ProviderType.FACEBOOK);
 
-        Mockito.when(facebookService.createFacebookAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(accessGrant);
+        Mockito.when(facebookService.createFacebookAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(TEST_ACCESS_GRANT);
         Mockito.when(facebookService.getUserInfo(eq(TEST_ACCESS_TOKEN))).thenReturn(userInfo);
 
         List<User> db = new ArrayList<>();
@@ -145,8 +135,9 @@ class AuthServiceTest {
         Mockito.when(securityService.authenticate(any())).thenAnswer(new Answer<Authentication>() {
             @Override
             public Authentication answer(InvocationOnMock invocation) throws Throwable {
+                UserDetails userDetails = (UserDetails) invocation.getArguments()[0];
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        invocation.getArguments()[0], null, (Collection<? extends GrantedAuthority>) invocation.getArguments()[1]
+                        userDetails, null, userDetails.getAuthorities()
                 );
 
                 authenticationAtomicReference.set(token);
@@ -165,7 +156,7 @@ class AuthServiceTest {
 
         Assertions.assertFalse(db.isEmpty());
 
-        assertCookieEquals(createTokenCookie(false), cookies.get(0));
+        assertCookieEquals(TEST_TOKEN_COOKIE, cookies.get(0));
         assertUserEquals(db.get(0), actual);
         assertUserEquals((User) authenticationAtomicReference.get().getPrincipal(), actual);
 
@@ -174,6 +165,126 @@ class AuthServiceTest {
 
     @Test
     void signUp() {
+        SignUpRequest signUpRequest = new SignUpRequest();
+
+        signUpRequest.setFirstName(TEST_FIRST_NAME);
+        signUpRequest.setLastName(TEST_LAST_NAME);
+        signUpRequest.setMiddleName(TEST_MIDDLE_NAME);
+        signUpRequest.setEmail(TEST_EMAIL);
+        signUpRequest.setPassword("test");
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        HttpSession session = Mockito.mock(HttpSession.class);
+
+        Mockito.when(request.getSession(eq(true))).thenReturn(session);
+
+        Map<String, Object> attrs = new HashMap<>();
+
+        Mockito.doAnswer(invocation -> {
+            String key = (String) invocation.getArguments()[0];
+            Object value = invocation.getArguments()[1];
+
+            attrs.put(key, value);
+
+            return null;
+        }).when(session).setAttribute(anyString(), any());
+
+        authService.signUp(request, signUpRequest);
+
+        Assertions.assertEquals(2, attrs.size());
+
+        Mockito.verify(emailVerificationService, Mockito.times(1)).sendVerification(eq(TEST_EMAIL));
+
+        Assertions.assertTrue((Boolean) attrs.get("signingUp"));
+
+        SignUpRequest actual = (SignUpRequest) attrs.get("request");
+
+        Assertions.assertEquals(signUpRequest.getEmail(), actual.getEmail());
+        Assertions.assertEquals(signUpRequest.getFirstName(), actual.getFirstName());
+        Assertions.assertEquals(signUpRequest.getLastName(), actual.getLastName());
+        Assertions.assertEquals(signUpRequest.getMiddleName(), actual.getMiddleName());
+        Assertions.assertEquals(signUpRequest.getPassword(), actual.getPassword());
+    }
+
+    @Test
+    void confirmSignUpWithValidCode() throws SQLException {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        HttpSession session = Mockito.mock(HttpSession.class);
+
+        Mockito.when(request.getSession(eq(false))).thenReturn(session);
+        Mockito.when(session.getAttribute(eq(AuthService.SESSION_SIGNING_UP))).thenReturn(true);
+
+        SignUpRequest signUpRequest = signUpRequest();
+
+        Mockito.when(session.getAttribute(eq("request"))).thenReturn(signUpRequest);
+        Mockito.when(emailVerificationService.confirm(eq(TEST_EMAIL), eq(1024)))
+                .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.VALID));
+
+        List<User> db = new ArrayList<>();
+
+        Mockito.doAnswer(invocation -> {
+            SignUpRequest req = (SignUpRequest) invocation.getArguments()[0];
+
+            UserAccount account = new UserAccount();
+
+            account.setPassword(req.getPassword());
+            account.setEmail(req.getEmail());
+            account.setUserId(1);
+            account.setId(1);
+
+            db.add(createUser(
+                    1,
+                    req.getFirstName(),
+                    req.getLastName(),
+                    req.getMiddleName(),
+                    ProviderType.EMAIL_PASSWORD,
+                    Collections.singleton(new Role(Role.ROLE_USER)),
+                    account,
+                    null
+            ));
+
+            return null;
+        }).when(userDetailsService).save(any(SignUpRequest.class));
+
+        SignUpResult signUpResult = authService.confirmSignUp(request, 1024);
+
+        Assertions.assertEquals(HttpStatus.OK, signUpResult.getStatus());
+        Assertions.assertFalse(db.isEmpty());
+        Mockito.verify(session, Mockito.times(1)).invalidate();
+    }
+
+    @Test
+    void confirmSignUpWithInValidCode() throws SQLException {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        HttpSession session = Mockito.mock(HttpSession.class);
+
+        Mockito.when(request.getSession(eq(false))).thenReturn(session);
+        Mockito.when(session.getAttribute(eq(AuthService.SESSION_SIGNING_UP))).thenReturn(true);
+
+        SignUpRequest signUpRequest = signUpRequest();
+
+        Mockito.when(session.getAttribute(eq("request"))).thenReturn(signUpRequest);
+        Mockito.when(emailVerificationService.confirm(eq(TEST_EMAIL), eq(1024)))
+                .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID));
+
+        SignUpResult signUpResult = authService.confirmSignUp(request, 1024);
+
+        Assertions.assertEquals(HttpStatus.PRECONDITION_FAILED, signUpResult.getStatus());
+        Mockito.verify(session, Mockito.never()).invalidate();
+        Mockito.verify(userDetailsService, Mockito.never()).save(any(SignUpRequest.class));
+    }
+
+    @Test
+    void confirmSignUpWithoutSession() throws SQLException {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        Mockito.when(emailVerificationService.confirm(eq(TEST_EMAIL), eq(1024)))
+                .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID));
+
+        SignUpResult signUpResult = authService.confirmSignUp(request, 1024);
+
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, signUpResult.getStatus());
+        Mockito.verify(userDetailsService, Mockito.never()).save(any(SignUpRequest.class));
     }
 
     @Test
@@ -193,7 +304,7 @@ class AuthServiceTest {
             return null;
         }).when(response).addCookie(any(Cookie.class));
 
-        User testUser = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
+        User testUser = TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Authentication authentication = authenticate(testUser);
 
@@ -203,7 +314,7 @@ class AuthServiceTest {
 
         Assertions.assertFalse(cookies.isEmpty());
 
-        assertCookieEquals(createTokenCookie(true), cookies.get(0));
+        assertCookieEquals(TEST_TOKEN_REMOVE_COOKIE, cookies.get(0));
         assertUserEquals(testUser, actual);
         Assertions.assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
@@ -219,7 +330,7 @@ class AuthServiceTest {
 
     @Test
     void signedInAccount() {
-        User testUser = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
+        User testUser = TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Mockito.when(securityService.findLoggedInUser()).thenReturn(testUser);
 
@@ -268,26 +379,15 @@ class AuthServiceTest {
         return authentication;
     }
 
-    private Cookie createTokenCookie(boolean delete) {
-        Cookie cookie = new Cookie("X-TOKEN", delete ? null : TEST_JWT_TOKEN);
+    private SignUpRequest signUpRequest() {
+        SignUpRequest signUpRequest = new SignUpRequest();
 
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setDomain(TEST_SERVER_NAME);
-        cookie.setMaxAge(delete ? 0 : 60 * 60 * 24 * 30);
+        signUpRequest.setFirstName(TEST_FIRST_NAME);
+        signUpRequest.setLastName(TEST_LAST_NAME);
+        signUpRequest.setMiddleName(TEST_MIDDLE_NAME);
+        signUpRequest.setEmail(TEST_EMAIL);
+        signUpRequest.setPassword("test");
 
-        return cookie;
-    }
-
-    private SocialUserInfo socialUserInfo(ProviderType providerType) {
-        SocialUserInfo userInfo = new SocialUserInfo();
-
-        userInfo.setId(TEST_SOCIAL_USER_ID);
-        userInfo.setProviderId(providerType.getId());
-        userInfo.setFirstName(TEST_FIRST_NAME);
-        userInfo.setLastName(TEST_LAST_NAME);
-        userInfo.setMiddleName(TEST_MIDDLE_NAME);
-
-        return userInfo;
+        return signUpRequest;
     }
 }

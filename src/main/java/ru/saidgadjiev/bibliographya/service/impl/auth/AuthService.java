@@ -167,15 +167,13 @@ public class AuthService {
         return user;
     }
 
-    public SignUpResult signUp(HttpServletRequest request, SignUpRequest signUpRequest) {
+    public void signUp(HttpServletRequest request, SignUpRequest signUpRequest) {
         HttpSession session = request.getSession(true);
 
         session.setAttribute("signingUp", true);
         session.setAttribute("request", signUpRequest);
 
         emailVerificationService.sendVerification(signUpRequest.getEmail());
-
-        return null;
     }
 
     public SignUpResult confirmSignUp(HttpServletRequest request, Integer code) throws SQLException {

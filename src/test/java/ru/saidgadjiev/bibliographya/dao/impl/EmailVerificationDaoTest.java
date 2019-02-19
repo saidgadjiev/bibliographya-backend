@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@Import(BibliographyaTestConfiguration.class)
 class EmailVerificationDaoTest {
 
     @Autowired

@@ -103,7 +103,7 @@ public class UserAccountDao {
                         "  u.id AS u_id,\n" +
                         "  u.provider_id AS u_provider_id,\n" +
                         "  ua.id AS ua_id,\n" +
-                        "  ua.name AS ua_name,\n" +
+                        "  ua.email AS ua_email,\n" +
                         "  ua.password AS ua_password,\n" +
                         "  b.id AS b_id,\n" +
                         "  b.first_name AS b_first_name,\n" +

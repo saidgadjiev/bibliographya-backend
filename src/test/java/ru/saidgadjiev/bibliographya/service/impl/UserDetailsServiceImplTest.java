@@ -74,9 +74,9 @@ class UserDetailsServiceImplTest {
                 .thenAnswer(invocationOnMock -> {
                     User user = (User) invocationOnMock.getArguments()[0];
 
-                    user.setId(1);
+                    user.setId(TEST_EMAIL_USER_ID);
                     user.getUserAccount().setId(1);
-                    user.getUserAccount().setUserId(1);
+                    user.getUserAccount().setUserId(TEST_EMAIL_USER_ID);
 
                     db.add(user);
 
@@ -84,7 +84,7 @@ class UserDetailsServiceImplTest {
                 });
 
         Mockito
-                .when(userRoleDao.addRoles(eq(1), eq(Collections.singleton(new Role(Role.ROLE_USER)))))
+                .when(userRoleDao.addRoles(eq(TEST_EMAIL_USER_ID), eq(Collections.singleton(new Role(Role.ROLE_USER)))))
                 .thenAnswer(invocationOnMock -> {
                     Collection<Role> createRoles = (Collection<Role>) invocationOnMock.getArguments()[1];
 
@@ -100,7 +100,7 @@ class UserDetailsServiceImplTest {
                     User user = (User) invocationOnMock.getArguments()[0];
                     Biography biography = new Biography();
 
-                    biography.setId(1);
+                    biography.setId(TEST_EMAIL_USER_ID);
                     biography.setFirstName(request.getFirstName());
                     biography.setLastName(request.getLastName());
                     biography.setMiddleName(request.getMiddleName());
@@ -112,11 +112,11 @@ class UserDetailsServiceImplTest {
 
         SignUpRequest signUpRequest = new SignUpRequest();
 
-        signUpRequest.setEmail("Test");
+        signUpRequest.setEmail(TestModelsUtils.TEST_EMAIL);
         signUpRequest.setPassword("Test");
-        signUpRequest.setFirstName("Test");
-        signUpRequest.setLastName("Test");
-        signUpRequest.setMiddleName("Test");
+        signUpRequest.setFirstName(TestModelsUtils.TEST_FIRST_NAME);
+        signUpRequest.setLastName(TestModelsUtils.TEST_LAST_NAME);
+        signUpRequest.setMiddleName(TestModelsUtils.TEST_MIDDLE_NAME);
 
         User user = service.save(signUpRequest);
 
@@ -224,11 +224,11 @@ class UserDetailsServiceImplTest {
 
         SocialUserInfo socialUserInfo = new SocialUserInfo();
 
-        socialUserInfo.setFirstName("Test");
-        socialUserInfo.setLastName("Test");
-        socialUserInfo.setMiddleName("Test");
+        socialUserInfo.setFirstName(TestModelsUtils.TEST_FIRST_NAME);
+        socialUserInfo.setLastName(TestModelsUtils.TEST_LAST_NAME);
+        socialUserInfo.setMiddleName(TestModelsUtils.TEST_MIDDLE_NAME);
         socialUserInfo.setProviderId(ProviderType.FACEBOOK.getId());
-        socialUserInfo.setId("testId");
+        socialUserInfo.setId(TestModelsUtils.TEST_SOCIAL_USER_ID);
 
         User user = service.saveSocialUser(socialUserInfo);
 

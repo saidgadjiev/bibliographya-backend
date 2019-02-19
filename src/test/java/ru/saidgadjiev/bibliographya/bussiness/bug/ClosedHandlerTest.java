@@ -10,7 +10,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.PendingOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 import java.sql.SQLException;
@@ -86,12 +85,5 @@ class ClosedHandlerTest {
         }});
 
         Assertions.assertTrue(actions.isEmpty());
-    }
-
-    private void assertEquals(Bug expected, Bug actual) {
-        Assertions.assertEquals(expected.getId(), actual.getId());
-        Assertions.assertEquals(expected.getStatus(), actual.getStatus());
-        Assertions.assertEquals(expected.getFixerId(), actual.getFixerId());
-        Assertions.assertEquals(expected.getInfo(), actual.getInfo());
     }
 }

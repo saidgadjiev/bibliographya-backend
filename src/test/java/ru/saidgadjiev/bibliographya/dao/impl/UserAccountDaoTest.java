@@ -124,7 +124,7 @@ class UserAccountDaoTest {
         jdbcTemplate.execute(
                 "CREATE TABLE IF NOT EXISTS \"user_account\" (\n" +
                         "  id SERIAL PRIMARY KEY,\n" +
-                        "  name VARCHAR(128) UNIQUE NOT NULL,\n" +
+                        "  email VARCHAR(128) UNIQUE NOT NULL,\n" +
                         "  password VARCHAR(1024) NOT NULL,\n" +
                         "  user_id INTEGER NOT NULL REFERENCES \"user\"(id)\n" +
                         ")"
