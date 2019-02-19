@@ -74,11 +74,11 @@ class UserAccountDaoTest {
         Assertions.assertEquals(result.getUserAccount().getId(), 1);
         Assertions.assertEquals(result.getId(), 1);
 
-        Assertions.assertNull(userAccountDao.getByUsername("test"));
+        Assertions.assertNull(userAccountDao.getByEmail("test"));
 
         createUserBiography();
 
-        assertEquals(result, userAccountDao.getByUsername("test"));
+        assertEquals(result, userAccountDao.getByEmail("test"));
     }
 
     @Test

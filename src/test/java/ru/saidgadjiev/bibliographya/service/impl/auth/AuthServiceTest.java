@@ -40,23 +40,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.mockito.ArgumentMatchers.*;
 import static ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils.assertCookieEquals;
 import static ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils.assertUserEquals;
+import static ru.saidgadjiev.bibliographya.utils.TestModelsUtils.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @Import(BibliographyaTestConfiguration.class)
 class AuthServiceTest {
 
-    private static final String TEST_FIRST_NAME = "Test";
-
-    private static final String TEST_MIDDLE_NAME = "Test";
-
-    private static final String TEST_LAST_NAME = "Test";
-
     private static final String TEST_JWT_TOKEN = "TestToken";
 
     private static final String TEST_ACCESS_TOKEN = "TestAccessToken";
-
-    private static final String TEST_SOCIAL_USER_ID = "socialUserId";
 
     private static final String TEST_AUTH_CODE = "AuthCode";
 
@@ -119,7 +112,7 @@ class AuthServiceTest {
             socialAccount.setAccountId(newInfo.getId());
             socialAccount.setUserId(1);
 
-            db.add(createUser(
+            db.add(createTestUser(
                     ProviderType.fromId(newInfo.getProviderId()),
                     Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
                     null,
@@ -200,14 +193,7 @@ class AuthServiceTest {
             return null;
         }).when(response).addCookie(any(Cookie.class));
 
-        SocialAccount socialAccount = socialAccount();
-
-        User testUser = createUser(
-                ProviderType.FACEBOOK,
-                Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
-                null,
-                socialAccount
-        );
+        User testUser = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Authentication authentication = authenticate(testUser);
 
@@ -233,14 +219,7 @@ class AuthServiceTest {
 
     @Test
     void signedInAccount() {
-        SocialAccount socialAccount = socialAccount();
-
-        User testUser = createUser(
-                ProviderType.FACEBOOK,
-                Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
-                null,
-                socialAccount
-        );
+        User testUser = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Mockito.when(securityService.findLoggedInUser()).thenReturn(testUser);
 
@@ -289,13 +268,6 @@ class AuthServiceTest {
         return authentication;
     }
 
-    private User createUser(ProviderType providerType,
-                            Set<Role> roles,
-                            UserAccount userAccount,
-                            SocialAccount socialAccount) {
-        return TestModelsUtils.createUser(1, TEST_FIRST_NAME, TEST_LAST_NAME, TEST_MIDDLE_NAME, providerType, roles, userAccount, socialAccount);
-    }
-
     private Cookie createTokenCookie(boolean delete) {
         Cookie cookie = new Cookie("X-TOKEN", delete ? null : TEST_JWT_TOKEN);
 
@@ -317,15 +289,5 @@ class AuthServiceTest {
         userInfo.setMiddleName(TEST_MIDDLE_NAME);
 
         return userInfo;
-    }
-
-    private SocialAccount socialAccount() {
-        SocialAccount socialAccount = new SocialAccount();
-
-        socialAccount.setUserId(1);
-        socialAccount.setAccountId(TEST_SOCIAL_USER_ID);
-        socialAccount.setId(1);
-
-        return socialAccount;
     }
 }

@@ -49,8 +49,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userAccountDao.getByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userAccountDao.getByEmail(email);
 
         if (user != null) {
             user.setRoles(userRoleDao.getRoles(user.getId()));

@@ -24,7 +24,7 @@ public class TestModelsUtils {
 
     public static final Integer TEST_EMAIL_USER_ID = 1;
 
-    public static Map<Integer, User> testUsers = new HashMap<>();
+    public static final Map<Integer, User> TEST_USERS = new HashMap<>();
 
     static {
         SocialAccount facebookSocialAccount = new SocialAccount();
@@ -33,7 +33,7 @@ public class TestModelsUtils {
         facebookSocialAccount.setAccountId(TEST_SOCIAL_USER_ID);
         facebookSocialAccount.setId(1);
 
-        testUsers.put(
+        TEST_USERS.put(
                 TEST_FACEBOOK_USER_ID,
                 createUser(
                         TEST_FACEBOOK_USER_ID,
@@ -54,7 +54,7 @@ public class TestModelsUtils {
         userAccount.setId(1);
         userAccount.setPassword("Test");
 
-        testUsers.put(
+        TEST_USERS.put(
                 TEST_EMAIL_USER_ID,
                 createUser(
                         TEST_EMAIL_USER_ID,
@@ -100,5 +100,31 @@ public class TestModelsUtils {
         user.setBiography(biography);
 
         return user;
+    }
+
+    public static User createTestUser(ProviderType providerType,
+                                      Set<Role> roles,
+                                      UserAccount userAccount,
+                                      SocialAccount socialAccount) {
+        return TestModelsUtils.createUser(
+                1,
+                TEST_FIRST_NAME,
+                TEST_LAST_NAME,
+                TEST_MIDDLE_NAME,
+                providerType,
+                roles,
+                userAccount,
+                socialAccount
+        );
+    }
+
+    public static SocialAccount socialAccount(int id, int userId) {
+        SocialAccount socialAccount = new SocialAccount();
+
+        socialAccount.setUserId(userId);
+        socialAccount.setAccountId(TEST_SOCIAL_USER_ID);
+        socialAccount.setId(id);
+
+        return socialAccount;
     }
 }

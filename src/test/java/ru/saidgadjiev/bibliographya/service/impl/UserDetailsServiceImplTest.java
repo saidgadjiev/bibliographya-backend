@@ -13,19 +13,24 @@ import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.dao.impl.SocialAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
-import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.domain.Biography;
+import ru.saidgadjiev.bibliographya.domain.Role;
+import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
 import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils.assertUserEquals;
+import static ru.saidgadjiev.bibliographya.utils.TestModelsUtils.TEST_EMAIL_USER_ID;
+import static ru.saidgadjiev.bibliographya.utils.TestModelsUtils.TEST_FACEBOOK_USER_ID;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -48,28 +53,12 @@ class UserDetailsServiceImplTest {
 
     @Test
     void loadUserByUsername() {
-        UserAccount userAccount = new UserAccount();
+        User expected = TestModelsUtils.TEST_USERS.get(TEST_EMAIL_USER_ID);
 
-        userAccount.setEmail("Test");
-        userAccount.setUserId(1);
-        userAccount.setId(1);
-        userAccount.setPassword("Test");
+        Mockito.when(accountDao.getByEmail(eq(TestModelsUtils.TEST_EMAIL))).thenReturn(expected);
+        Mockito.when(userRoleDao.getRoles(eq(TEST_EMAIL_USER_ID))).thenReturn(Collections.singleton(new Role(Role.ROLE_USER)));
 
-        User expected = TestModelsUtils.createUser(
-                1,
-                "Test",
-                "Test",
-                "Test",
-                ProviderType.EMAIL_PASSWORD,
-                Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()),
-                userAccount,
-                null
-        );
-
-        Mockito.when(accountDao.getByUsername(eq("Test"))).thenReturn(expected);
-        Mockito.when(userRoleDao.getRoles(eq(1))).thenReturn(Collections.singleton(new Role(Role.ROLE_USER)));
-
-        User actual = (User) service.loadUserByUsername("Test");
+        User actual = (User) service.loadUserByUsername(TestModelsUtils.TEST_EMAIL);
 
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(expected, actual);
@@ -131,23 +120,7 @@ class UserDetailsServiceImplTest {
 
         User user = service.save(signUpRequest);
 
-        UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail("Test");
-        userAccount.setUserId(1);
-        userAccount.setId(1);
-        userAccount.setPassword("Test");
-
-        User expected = TestModelsUtils.createUser(
-                1,
-                "Test",
-                "Test",
-                "Test",
-                ProviderType.EMAIL_PASSWORD,
-                Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()),
-                userAccount,
-                null
-        );
+        User expected = TestModelsUtils.TEST_USERS.get(TEST_EMAIL_USER_ID);
 
         Assertions.assertEquals(1, db.size());
         Assertions.assertEquals(1, roles.size());
@@ -156,23 +129,7 @@ class UserDetailsServiceImplTest {
 
     @Test
     void loadUserById() {
-        UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail("Test");
-        userAccount.setUserId(1);
-        userAccount.setId(1);
-        userAccount.setPassword("Test");
-
-        User expected = TestModelsUtils.createUser(
-                1,
-                "Test",
-                "Test",
-                "Test",
-                ProviderType.EMAIL_PASSWORD,
-                Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()),
-                userAccount,
-                null
-        );
+        User expected = TestModelsUtils.TEST_USERS.get(TEST_EMAIL_USER_ID);
 
         Mockito.when(accountDao.getByUserId(eq(1))).thenReturn(expected);
         Mockito.when(userRoleDao.getRoles(eq(1))).thenReturn(Collections.singleton(new Role(Role.ROLE_USER)));
@@ -195,22 +152,7 @@ class UserDetailsServiceImplTest {
 
     @Test
     void loadSocialUserById() {
-        SocialAccount socialAccount = new SocialAccount();
-
-        socialAccount.setAccountId("testId");
-        socialAccount.setUserId(1);
-        socialAccount.setId(1);
-
-        User expected = TestModelsUtils.createUser(
-                1,
-                "Test",
-                "Test",
-                "Test",
-                ProviderType.FACEBOOK,
-                Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()),
-                null,
-                socialAccount
-        );
+        User expected = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Mockito.when(socialAccountDao.getByUserId(eq(1))).thenReturn(expected);
         Mockito.when(userRoleDao.getRoles(eq(1))).thenReturn(Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)));
@@ -223,22 +165,7 @@ class UserDetailsServiceImplTest {
 
     @Test
     void loadSocialUserByAccountId() {
-        SocialAccount socialAccount = new SocialAccount();
-
-        socialAccount.setAccountId("testId");
-        socialAccount.setUserId(1);
-        socialAccount.setId(1);
-
-        User expected = TestModelsUtils.createUser(
-                1,
-                "Test",
-                "Test",
-                "Test",
-                ProviderType.FACEBOOK,
-                Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()),
-                null,
-                socialAccount
-        );
+        User expected = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Mockito.when(socialAccountDao.getByAccountId(eq(ProviderType.FACEBOOK), eq("testId"))).thenReturn(expected);
         Mockito.when(userRoleDao.getRoles(eq(1))).thenReturn(Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)));
@@ -305,22 +232,7 @@ class UserDetailsServiceImplTest {
 
         User user = service.saveSocialUser(socialUserInfo);
 
-        SocialAccount socialAccount = new SocialAccount();
-
-        socialAccount.setAccountId("testId");
-        socialAccount.setUserId(1);
-        socialAccount.setId(1);
-
-        User expected = TestModelsUtils.createUser(
-                1,
-                "Test",
-                "Test",
-                "Test",
-                ProviderType.FACEBOOK,
-                Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()),
-                null,
-                socialAccount
-        );
+        User expected = TestModelsUtils.TEST_USERS.get(TEST_FACEBOOK_USER_ID);
 
         Assertions.assertEquals(1, db.size());
         Assertions.assertEquals(1, roles.size());

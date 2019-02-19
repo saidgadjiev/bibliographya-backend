@@ -73,7 +73,7 @@ public class UserAccountDao {
         return user;
     }
 
-    public User getByUsername(String name) {
+    public User getByEmail(String email) {
         return jdbcTemplate.query(
                 "SELECT\n" +
                         "  u.id AS u_id,\n" +
@@ -85,8 +85,8 @@ public class UserAccountDao {
                         "  b.first_name AS b_first_name,\n" +
                         "  b.last_name AS b_last_name\n" +
                         "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE ua.name = ?",
-                ps -> ps.setString(1, name),
+                        "WHERE ua.email = ?",
+                ps -> ps.setString(1, email),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
