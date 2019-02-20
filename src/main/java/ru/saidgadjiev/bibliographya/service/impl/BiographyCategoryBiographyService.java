@@ -3,11 +3,11 @@ package ru.saidgadjiev.bibliographya.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCategoryBiographyDao;
-import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Created by said on 01.12.2018.

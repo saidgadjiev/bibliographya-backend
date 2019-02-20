@@ -1,9 +1,5 @@
 package ru.saidgadjiev.bibliographya.model;
 
-import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
-
-import java.util.Collection;
-
 /**
  * Created by said on 30.01.2019.
  */

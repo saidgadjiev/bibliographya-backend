@@ -15,13 +15,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import ru.saidgadjiev.bibliographya.security.filter.JwtFilter;
 import ru.saidgadjiev.bibliographya.security.handler.Http401UnAuthorizedEntryPoint;
 import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
-import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 /**

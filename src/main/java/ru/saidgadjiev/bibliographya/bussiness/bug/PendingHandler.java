@@ -4,8 +4,6 @@ import ru.saidgadjiev.bibliographya.bussiness.bug.operation.AssignMeOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.CloseOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.IgnoreOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
-import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 

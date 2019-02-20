@@ -2,12 +2,8 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.domain.EmailVerification;
-
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 /**
  * Created by said on 11.02.2019.

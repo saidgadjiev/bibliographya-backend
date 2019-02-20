@@ -9,7 +9,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.dao.dialect.H2Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.domain.Bug;

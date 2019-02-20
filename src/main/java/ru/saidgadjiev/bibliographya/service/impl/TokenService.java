@@ -1,8 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
+import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import java.util.HashMap;

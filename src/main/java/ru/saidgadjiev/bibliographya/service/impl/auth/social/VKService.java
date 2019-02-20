@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.auth.social.TokenInfo;
 import ru.saidgadjiev.bibliographya.auth.social.vk.OAuthVKTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.vk.UserProfileOperations;
 import ru.saidgadjiev.bibliographya.auth.social.vk.VK;
@@ -23,8 +22,7 @@ public class VKService {
     public VKService(VKProperties vkProperties) {
         oAuthTemplate = new OAuthVKTemplate(
                 vkProperties.getAppId(),
-                vkProperties.getAppSecret(),
-                vkProperties.getAppToken()
+                vkProperties.getAppSecret()
         );
     }
 
@@ -59,9 +57,5 @@ public class VKService {
         userInfo.setProviderId(ProviderType.VK.getId());
 
         return userInfo;
-    }
-
-    public TokenInfo checkToken(AccessGrant accessGrant) {
-        return oAuthTemplate.checkToken(accessGrant.getAccessToken());
     }
 }

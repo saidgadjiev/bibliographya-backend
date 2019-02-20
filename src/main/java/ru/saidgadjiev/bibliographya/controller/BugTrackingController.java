@@ -20,10 +20,8 @@ import ru.saidgadjiev.bibliographya.service.impl.BugService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/api/bugs")

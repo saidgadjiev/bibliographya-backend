@@ -29,7 +29,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -193,7 +194,7 @@ class BugServiceTest {
 
     @Test
     void completeReleaseFromIgnored() throws SQLException {
-        IgnoredHandler ignoredHandler = Mockito.mock(IgnoredHandler.class);
+        ClosedIgnoredHandler ignoredHandler = Mockito.mock(ClosedIgnoredHandler.class);
 
         Bug current = createMockBug(Bug.BugStatus.IGNORED, 1);
 
@@ -224,12 +225,12 @@ class BugServiceTest {
 
     @Test
     void completeReleaseFromClosed() throws SQLException {
-        ClosedHandler closedHandler = Mockito.mock(ClosedHandler.class);
+        ClosedIgnoredHandler closedIgnoredHandler = Mockito.mock(ClosedIgnoredHandler.class);
 
         Bug current = createMockBug(Bug.BugStatus.CLOSED, 1);
 
-        Mockito.when(handlerMap.get(Bug.BugStatus.CLOSED)).thenReturn(closedHandler);
-        Mockito.when(closedHandler.handle(Handler.Signal.RELEASE, new HashMap<String, Object>() {{
+        Mockito.when(handlerMap.get(Bug.BugStatus.CLOSED)).thenReturn(closedIgnoredHandler);
+        Mockito.when(closedIgnoredHandler.handle(Handler.Signal.RELEASE, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
             put("info", null);
@@ -289,7 +290,7 @@ class BugServiceTest {
 
     @Test
     void getIgnoredActions() {
-        IgnoredHandler ignoredHandler = Mockito.mock(IgnoredHandler.class);
+        ClosedIgnoredHandler ignoredHandler = Mockito.mock(ClosedIgnoredHandler.class);
         Mockito.when(handlerMap.get(Bug.BugStatus.IGNORED)).thenReturn(ignoredHandler);
         Mockito.when(ignoredHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
@@ -306,9 +307,9 @@ class BugServiceTest {
 
     @Test
     void getClosedActions() {
-        ClosedHandler closedHandler = Mockito.mock(ClosedHandler.class);
-        Mockito.when(handlerMap.get(Bug.BugStatus.CLOSED)).thenReturn(closedHandler);
-        Mockito.when(closedHandler.getActions(new HashMap<String, Object>() {{
+        ClosedIgnoredHandler closedIgnoredHandler = Mockito.mock(ClosedIgnoredHandler.class);
+        Mockito.when(handlerMap.get(Bug.BugStatus.CLOSED)).thenReturn(closedIgnoredHandler);
+        Mockito.when(closedIgnoredHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
             put("user", testUser);
             put("bugStatus", Bug.BugStatus.CLOSED);

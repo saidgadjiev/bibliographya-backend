@@ -1,7 +1,5 @@
 package ru.saidgadjiev.bibliographya.model;
 
-import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;

@@ -12,7 +12,6 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -30,6 +29,7 @@ import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
  */
 @Repository
 @Qualifier("sql")
+@SuppressWarnings("CPD-START")
 public class BiographyDaoImpl implements BiographyDao {
 
     private final JdbcTemplate jdbcTemplate;
@@ -344,7 +344,7 @@ public class BiographyDaoImpl implements BiographyDao {
         }
         builder.append(" ").append("FROM biography ");
 
-        String clause = FilterUtils.toClause(criteria, null);
+        String clause = toClause(criteria, null);
 
         if (StringUtils.isNotBlank(clause)) {
             builder.append("WHERE ").append(clause);
