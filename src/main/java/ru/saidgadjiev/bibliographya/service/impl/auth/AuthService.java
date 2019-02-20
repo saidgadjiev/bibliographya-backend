@@ -63,38 +63,20 @@ public class AuthService {
     );
 
     @Autowired
-    public void setEmailVerificationService(EmailVerificationService emailVerificationService) {
-        this.emailVerificationService = emailVerificationService;
-    }
-
-    @Autowired
-    public void setFacebookService(FacebookService facebookService) {
+    public AuthService(FacebookService facebookService,
+                       VKService vkService,
+                       BibliographyaUserDetailsService userAccountDetailsService,
+                       TokenService tokenService,
+                       SecurityService securityService,
+                       AuthenticationManager authenticationManager,
+                       EmailVerificationService emailVerificationService) {
         this.facebookService = facebookService;
-    }
-
-    @Autowired
-    public void setVkService(VKService vkService) {
         this.vkService = vkService;
-    }
-
-    @Autowired
-    public void setUserAccountDetailsService(BibliographyaUserDetailsService userAccountDetailsService) {
         this.userAccountDetailsService = userAccountDetailsService;
-    }
-
-    @Autowired
-    public void setTokenService(TokenService tokenService) {
         this.tokenService = tokenService;
-    }
-
-    @Autowired
-    public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    @Autowired
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
+        this.emailVerificationService = emailVerificationService;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri) {
@@ -148,7 +130,7 @@ public class AuthService {
             case EMAIL_PASSWORD:
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(
-                                authContext.getSignInRequest().getUsername(),
+                                authContext.getSignInRequest().getEmail(),
                                 authContext.getSignInRequest().getPassword()
                         );
                 Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);

@@ -4,12 +4,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +18,7 @@ import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -65,6 +65,9 @@ class AuthServiceTest {
     @MockBean
     private EmailVerificationService emailVerificationService;
 
+    @MockBean
+    private AuthenticationManager authenticationManager;
+
     @Test
     void getFacebookOauthUrl() {
         Mockito.when(facebookService.createFacebookAuthorizationUrl(eq("test"))).thenReturn("oauth:test:facebook");
@@ -79,12 +82,7 @@ class AuthServiceTest {
         Assertions.assertEquals("oauth:test:vk", authService.getOauthUrl(ProviderType.VK, "test"));
     }
 
-    @Test
-    void authWithSignUpViaFacebook() throws Exception {
-    }
-
-    @Test
-    void authViaFacebook() throws Exception {
+    private void facebookAuthTest(boolean signUp) throws SQLException {
         SocialUserInfo userInfo = socialUserInfo(ProviderType.FACEBOOK);
 
         Mockito.when(facebookService.createFacebookAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(TEST_ACCESS_GRANT);
@@ -92,24 +90,34 @@ class AuthServiceTest {
 
         List<User> db = new ArrayList<>();
 
-        Mockito.when(userDetailsService.saveSocialUser(any())).thenAnswer(invocation -> {
-            SocialUserInfo newInfo = (SocialUserInfo) invocation.getArguments()[0];
+        if (signUp) {
+            Mockito.when(userDetailsService.saveSocialUser(any())).thenAnswer(invocation -> {
+                SocialUserInfo newInfo = (SocialUserInfo) invocation.getArguments()[0];
 
-            SocialAccount socialAccount = new SocialAccount();
+                SocialAccount socialAccount = new SocialAccount();
 
-            socialAccount.setId(1);
-            socialAccount.setAccountId(newInfo.getId());
-            socialAccount.setUserId(1);
+                socialAccount.setId(1);
+                socialAccount.setAccountId(newInfo.getId());
+                socialAccount.setUserId(1);
 
-            db.add(createTestUser(
-                    ProviderType.fromId(newInfo.getProviderId()),
-                    Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
-                    null,
-                    socialAccount
-            ));
+                db.add(createTestUser(
+                        ProviderType.fromId(newInfo.getProviderId()),
+                        Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
+                        null,
+                        socialAccount
+                ));
 
-            return db.get(0);
-        });
+                return db.get(0);
+            });
+        } else {
+            User testSocialUser = TEST_USERS.get(TEST_FACEBOOK_USER_ID);
+
+            db.add(testSocialUser);
+            Mockito
+                    .when(userDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, TEST_SOCIAL_USER_ID))
+                    .thenReturn(testSocialUser);
+
+        }
 
         Mockito.when(tokenService.createToken(any(), any())).thenReturn(TEST_JWT_TOKEN);
 
@@ -131,18 +139,15 @@ class AuthServiceTest {
 
         AtomicReference<Authentication> authenticationAtomicReference = new AtomicReference<>();
 
-        Mockito.when(securityService.authenticate(any())).thenAnswer(new Answer<Authentication>() {
-            @Override
-            public Authentication answer(InvocationOnMock invocation) throws Throwable {
-                UserDetails userDetails = (UserDetails) invocation.getArguments()[0];
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
+        Mockito.when(securityService.authenticate(any())).thenAnswer(invocation -> {
+            UserDetails userDetails = (UserDetails) invocation.getArguments()[0];
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+            );
 
-                authenticationAtomicReference.set(token);
+            authenticationAtomicReference.set(token);
 
-                return token;
-            }
+            return token;
         });
 
         AuthContext authContext = new AuthContext()
@@ -159,6 +164,77 @@ class AuthServiceTest {
         assertUserEquals(db.get(0), actual);
         assertUserEquals((User) authenticationAtomicReference.get().getPrincipal(), actual);
 
+        if (signUp) {
+            Assertions.assertTrue(actual.getIsNew());
+        }
+
+        Assertions.assertNotNull(authenticationAtomicReference.get());
+    }
+
+    @Test
+    void authWithoutSignUpViaFacebook() throws Exception {
+        facebookAuthTest(false);
+    }
+
+    @Test
+    void authViaFacebook() throws Exception {
+        facebookAuthTest(true);
+    }
+
+    @Test
+    void authViaEmailPassword() throws Exception {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        Mockito.when(request.getServerName()).thenReturn(TEST_SERVER_NAME);
+
+        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+        SignInRequest signInRequest = new SignInRequest();
+
+        signInRequest.setEmail(TEST_EMAIL);
+        signInRequest.setPassword("Test");
+
+        AuthContext authContext = new AuthContext()
+                .setProviderType(ProviderType.EMAIL_PASSWORD)
+                .setResponse(response)
+                .setRequest(request)
+                .setSignInRequest(signInRequest);
+
+        User testUser = TEST_USERS.get(TEST_EMAIL_USER_ID);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                testUser,
+                null,
+                testUser.getAuthorities()
+        );
+
+        Mockito.when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authenticationToken);
+        AtomicReference<Authentication> authenticationAtomicReference = new AtomicReference<>();
+
+        Mockito.when(securityService.authenticate(any())).thenAnswer(invocation -> {
+            UserDetails userDetails = (UserDetails) invocation.getArguments()[0];
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+            );
+
+            authenticationAtomicReference.set(token);
+
+            return token;
+        });
+
+        Mockito.when(tokenService.createToken(any(), any())).thenReturn(TEST_JWT_TOKEN);
+        List<Cookie> cookies = new ArrayList<>();
+
+        Mockito.doAnswer(invocation -> {
+            Cookie cookie = (Cookie) invocation.getArguments()[0];
+
+            cookies.add(cookie);
+
+            return null;
+        }).when(response).addCookie(any());
+
+        User actual = authService.auth(authContext, null);
+
+        assertCookieEquals(TEST_TOKEN_COOKIE, cookies.get(0));
+        assertUserEquals((User) authenticationAtomicReference.get().getPrincipal(), actual);
         Assertions.assertNotNull(authenticationAtomicReference.get());
     }
 
