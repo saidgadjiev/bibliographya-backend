@@ -11,13 +11,14 @@ import ru.saidgadjiev.bibliographya.auth.social.facebook.OAuthFacebookTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.PermissionOperations;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.UserProfileOperations;
 import ru.saidgadjiev.bibliographya.properties.FacebookProperties;
+import ru.saidgadjiev.bibliographya.service.api.SocialService;
 
 
 /**
  * Created by said on 23.12.2018.
  */
 @Service
-public class FacebookService {
+public class FacebookService implements SocialService {
 
     private final OAuthFacebookTemplate oAuthTemplate;
 
@@ -29,11 +30,13 @@ public class FacebookService {
         );
     }
 
-    public String createFacebookAuthorizationUrl(String redirectUri) {
+    @Override
+    public String createOAuth2Url(String redirectUri) {
         return oAuthTemplate.buildOAuthUrl(redirectUri, null);
     }
 
-    public AccessGrant createFacebookAccessToken(String code, String redirectUri) {
+    @Override
+    public AccessGrant createAccessToken(String code, String redirectUri) {
         return oAuthTemplate.exchangeForAccess(
                 code,
                 redirectUri,
@@ -41,7 +44,8 @@ public class FacebookService {
         );
     }
 
-    public SocialUserInfo getUserInfo(String accessToken) {
+    @Override
+    public SocialUserInfo getUserInfo(String userId, String accessToken) {
         Facebook facebook = new Facebook(accessToken);
         UserProfileOperations userProfileOperations = facebook.getUserProfileOperations();
 

@@ -20,13 +20,13 @@ import ru.saidgadjiev.bibliographya.domain.AccountResult;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
+import ru.saidgadjiev.bibliographya.service.api.SocialService;
 import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
-import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
-import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,9 +43,7 @@ public class AuthService {
 
     public static final String SESSION_SIGNING_UP = "signingUp";
 
-    private FacebookService facebookService;
-
-    private VKService vkService;
+    private final SocialServiceFactory socialServiceFactory;
 
     private BibliographyaUserDetailsService userAccountDetailsService;
 
@@ -63,15 +61,13 @@ public class AuthService {
     );
 
     @Autowired
-    public AuthService(FacebookService facebookService,
-                       VKService vkService,
+    public AuthService(SocialServiceFactory socialServiceFactory,
                        BibliographyaUserDetailsService userAccountDetailsService,
                        TokenService tokenService,
                        SecurityService securityService,
                        AuthenticationManager authenticationManager,
                        EmailVerificationService emailVerificationService) {
-        this.facebookService = facebookService;
-        this.vkService = vkService;
+        this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
@@ -80,44 +76,29 @@ public class AuthService {
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri) {
-        switch (providerType) {
-            case FACEBOOK:
-                return facebookService.createFacebookAuthorizationUrl(redirectUri);
-            case VK:
-                return vkService.createVKAuthorizationUrl(redirectUri);
-            case EMAIL_PASSWORD:
-                break;
+        SocialService socialService = socialServiceFactory.getService(providerType);
+
+        if (socialService == null) {
+            return null;
         }
 
-        return null;
+        return socialService.createOAuth2Url(redirectUri);
     }
 
     public User auth(AuthContext authContext, String redirectUri) throws SQLException {
         User user = null;
         AccessGrant accessGrant = null;
 
+        SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
+
         switch (authContext.getProviderType()) {
+            case VK:
             case FACEBOOK: {
-                accessGrant = facebookService.createFacebookAccessToken(authContext.getCode(), redirectUri);
+                accessGrant = socialService.createAccessToken(authContext.getCode(), redirectUri);
 
-                SocialUserInfo userInfo = facebookService.getUserInfo(accessGrant.getAccessToken());
+                SocialUserInfo userInfo = socialService.getUserInfo(null, accessGrant.getAccessToken());
 
-                user = userAccountDetailsService.loadSocialUserByAccountId(ProviderType.FACEBOOK, userInfo.getId());
-
-                if (user == null) {
-                    user = userAccountDetailsService.saveSocialUser(userInfo);
-
-                    user.setIsNew(true);
-                }
-
-                break;
-            }
-            case VK: {
-                accessGrant = vkService.createAccessToken(authContext.getCode(), redirectUri);
-
-                SocialUserInfo userInfo = vkService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
-
-                user = userAccountDetailsService.loadSocialUserByAccountId(ProviderType.VK, userInfo.getId());
+                user = userAccountDetailsService.loadSocialUserByAccountId(authContext.getProviderType(), userInfo.getId());
 
                 if (user == null) {
                     user = userAccountDetailsService.saveSocialUser(userInfo);

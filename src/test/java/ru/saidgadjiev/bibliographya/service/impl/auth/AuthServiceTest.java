@@ -86,7 +86,7 @@ class AuthServiceTest {
         SocialUserInfo userInfo = socialUserInfo(ProviderType.FACEBOOK);
 
         Mockito.when(facebookService.createFacebookAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(TEST_ACCESS_GRANT);
-        Mockito.when(facebookService.getUserInfo(eq(TEST_ACCESS_TOKEN))).thenReturn(userInfo);
+        Mockito.when(facebookService.getUserInfo(null, eq(TEST_ACCESS_TOKEN))).thenReturn(userInfo);
 
         List<User> db = new ArrayList<>();
 
