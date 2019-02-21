@@ -39,6 +39,16 @@ public class UserAccountDao {
         );
     }
 
+    public int updateEmail(String oldEmail, String email) {
+        return jdbcTemplate.update(
+                "UPDATE user_account SET email = ? WHERE email = ?",
+                preparedStatement -> {
+                    preparedStatement.setString(1, oldEmail);
+                    preparedStatement.setString(2, email);
+                }
+        );
+    }
+
     public User save(User user) {
         KeyHolder keyHolderUser = new GeneratedKeyHolder();
 

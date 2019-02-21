@@ -2,8 +2,10 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.domain.SaveEmail;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
@@ -33,6 +35,7 @@ public class UserAccountController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-password")
     public ResponseEntity<?> savePassword(@Valid @RequestBody SavePassword savePassword, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -60,5 +63,17 @@ public class UserAccountController {
         HttpStatus restoreStatus = userAccountDetailsService.restorePassword(restorePassword);
 
         return ResponseEntity.status(restoreStatus).build();
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @PostMapping("/save-email")
+    public ResponseEntity<?> saveEmail(@Valid @RequestBody SaveEmail saveEmail, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        HttpStatus status = userAccountDetailsService.saveEmail(saveEmail);
+
+        return ResponseEntity.status(status).build();
     }
 }

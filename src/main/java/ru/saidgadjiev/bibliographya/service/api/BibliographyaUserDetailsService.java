@@ -3,9 +3,10 @@ package ru.saidgadjiev.bibliographya.service.api;
 import org.springframework.http.HttpStatus;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.domain.SaveEmail;
 import ru.saidgadjiev.bibliographya.domain.User;
-import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
+import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
 import java.sql.SQLException;
@@ -32,4 +33,6 @@ public interface BibliographyaUserDetailsService {
     HttpStatus restorePassword(String email);
 
     HttpStatus restorePassword(RestorePassword restorePassword);
+
+    HttpStatus saveEmail(SaveEmail saveEmail);
 }

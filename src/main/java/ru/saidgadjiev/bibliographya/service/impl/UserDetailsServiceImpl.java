@@ -15,8 +15,8 @@ import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
-import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
+import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
@@ -153,20 +153,15 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     @Override
     public HttpStatus savePassword(SavePassword savePassword) {
         User user = (User) securityService.findLoggedInUser();
+        User actual = loadUserById(user.getId());
 
-        if (user.getProviderType().equals(ProviderType.EMAIL_PASSWORD)) {
-            User actual = loadUserById(user.getId());
+        if (passwordEncoder.matches(savePassword.getOldPassword(), actual.getPassword())) {
+            userAccountDao.updatePassword(actual.getUsername(), savePassword.getNewPassword());
 
-            if (passwordEncoder.matches(savePassword.getOldPassword(), actual.getPassword())) {
-                userAccountDao.updatePassword(actual.getUsername(), savePassword.getNewPassword());
-
-                return HttpStatus.OK;
-            }
-
-            return HttpStatus.PRECONDITION_FAILED;
+            return HttpStatus.OK;
         }
 
-        return HttpStatus.BAD_REQUEST;
+        return HttpStatus.PRECONDITION_FAILED;
     }
 
     @Override
@@ -183,25 +178,47 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public HttpStatus restorePassword(RestorePassword restorePassword) {
-        if (isExistEmail(restorePassword.getEmail())) {
-            EmailVerificationResult verificationResult = emailVerificationService.confirm(
+        EmailVerificationResult verificationResult = emailVerificationService.confirm(
+                restorePassword.getEmail(),
+                restorePassword.getCode()
+        );
+
+        if (verificationResult.isValid()) {
+            int updated = userAccountDao.updatePassword(
                     restorePassword.getEmail(),
-                    restorePassword.getCode()
+                    passwordEncoder.encode(restorePassword.getNewPassword())
             );
 
-            if (verificationResult.isValid()) {
-                userAccountDao.updatePassword(
-                        restorePassword.getEmail(),
-                        passwordEncoder.encode(restorePassword.getNewPassword())
-                );
-
-                return HttpStatus.OK;
+            if (updated == 0) {
+                return HttpStatus.NOT_FOUND;
             }
 
-            return HttpStatus.PRECONDITION_FAILED;
+            return HttpStatus.OK;
         }
 
-        return HttpStatus.NOT_FOUND;
+        return HttpStatus.PRECONDITION_FAILED;
+    }
+
+    @Override
+    public HttpStatus saveEmail(SaveEmail saveEmail) {
+        User actual = (User) securityService.findLoggedInUser();
+
+        if (isExistEmail(saveEmail.getNewEmail())) {
+            return HttpStatus.CONFLICT;
+        }
+        EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(actual.getUsername(), saveEmail.getCode());
+
+        if (emailVerificationResult.isValid()) {
+            int updated = userAccountDao.updateEmail(actual.getUsername(), saveEmail.getNewEmail());
+
+            if (updated == 0) {
+                return HttpStatus.NOT_FOUND;
+            }
+
+            return HttpStatus.OK;
+        }
+
+        return HttpStatus.PRECONDITION_FAILED;
     }
 
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {
