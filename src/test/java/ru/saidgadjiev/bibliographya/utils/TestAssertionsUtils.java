@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.utils;
 
 import org.junit.jupiter.api.Assertions;
+import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 import javax.servlet.http.Cookie;
@@ -8,6 +9,17 @@ import javax.servlet.http.Cookie;
 public class TestAssertionsUtils {
 
     private TestAssertionsUtils() {
+    }
+
+    public static void assertLikeEquals(BiographyLike expected, BiographyLike actual) {
+        Assertions.assertEquals(expected.getUserId(), actual.getUserId());
+        Assertions.assertEquals(expected.getBiographyId(), actual.getBiographyId());
+
+        if (expected.getUser() != null) {
+            Assertions.assertEquals(expected.getUser().getId(), actual.getUser().getId());
+            Assertions.assertEquals(expected.getUser().getFirstName(), actual.getUser().getFirstName());
+            Assertions.assertEquals(expected.getUser().getLastName(), actual.getUser().getLastName());
+        }
     }
 
     public static void assertUserEquals(User expected, User actual) {

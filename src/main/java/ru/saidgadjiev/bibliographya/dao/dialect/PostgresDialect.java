@@ -5,4 +5,9 @@ public class PostgresDialect implements Dialect {
     public boolean supportReturning() {
         return true;
     }
+
+    @Override
+    public boolean supportOnConflict() {
+        return true;
+    }
 }

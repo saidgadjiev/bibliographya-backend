@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.dao.api;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,4 +23,6 @@ public interface BiographyLikeDao {
     Map<Integer, Integer> getLikesCountByBiographies(Collection<Integer> biographiesIds);
 
     long countOff();
+
+    List<BiographyLike> getLikes(int biographyId, int pageSize, long offset);
 }

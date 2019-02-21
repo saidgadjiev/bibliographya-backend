@@ -2,13 +2,17 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyLikeDao;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 import ru.saidgadjiev.bibliographya.domain.LikesStats;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -88,5 +92,11 @@ public class BiographyLikeService {
         likesStats.setCount(biographyLikeDao.countOff());
 
         return likesStats;
+    }
+
+    public Page<BiographyLike> getBiographyLikes(int biographyId, OffsetLimitPageRequest pageRequest) {
+        List<BiographyLike> likeList = biographyLikeDao.getLikes(biographyId, pageRequest.getPageSize(), pageRequest.getOffset());
+
+        return new PageImpl<>(likeList, pageRequest, likeList.size());
     }
 }

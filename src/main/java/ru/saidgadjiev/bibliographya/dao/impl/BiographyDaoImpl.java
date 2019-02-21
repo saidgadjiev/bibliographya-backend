@@ -208,49 +208,6 @@ public class BiographyDaoImpl implements BiographyDao {
         });
     }
 
-    private Biography mapFull(ResultSet rs, boolean mapCreator, boolean mapModerator) throws SQLException {
-        Biography biography = new Biography();
-
-        biography.setId(rs.getInt("id"));
-        biography.setFirstName(rs.getString("first_name"));
-        biography.setLastName(rs.getString("last_name"));
-        biography.setMiddleName(rs.getString("middle_name"));
-
-        biography.setCreatorId(ResultSetUtils.intOrNull(rs, "creator_id"));
-        biography.setUserId(ResultSetUtils.intOrNull(rs, "user_id"));
-        biography.setUpdatedAt(rs.getTimestamp("updated_at"));
-        biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("moderation_status")));
-        biography.setModeratedAt(rs.getTimestamp("moderated_at"));
-
-        biography.setModeratorId(ResultSetUtils.intOrNull(rs, "moderator_id"));
-        biography.setBiography(rs.getString("biography"));
-        biography.setModerationInfo(rs.getString("moderation_info"));
-        biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
-
-        if (biography.getModeratorId() != null && mapModerator) {
-            Biography moderatorBiography = new Biography();
-
-            moderatorBiography.setId(rs.getInt("m_id"));
-            moderatorBiography.setFirstName(rs.getString("m_first_name"));
-            moderatorBiography.setLastName(rs.getString("m_last_name"));
-            moderatorBiography.setUserId(biography.getModeratorId());
-
-            biography.setModerator(moderatorBiography);
-        }
-
-        if (mapCreator) {
-            Biography creator = new Biography();
-
-            creator.setId(rs.getInt("cb_id"));
-            creator.setFirstName(rs.getString("cb_first_name"));
-            creator.setLastName(rs.getString("cb_last_name"));
-
-            biography.setCreator(creator);
-        }
-
-        return biography;
-    }
-
     @Override
     public Biography getById(int id) {
         return jdbcTemplate.query(
@@ -404,5 +361,48 @@ public class BiographyDaoImpl implements BiographyDao {
         selectList.append("cb.last_name as cb_last_name");
 
         return selectList.toString();
+    }
+
+    private Biography mapFull(ResultSet rs, boolean mapCreator, boolean mapModerator) throws SQLException {
+        Biography biography = new Biography();
+
+        biography.setId(rs.getInt("id"));
+        biography.setFirstName(rs.getString("first_name"));
+        biography.setLastName(rs.getString("last_name"));
+        biography.setMiddleName(rs.getString("middle_name"));
+
+        biography.setCreatorId(ResultSetUtils.intOrNull(rs, "creator_id"));
+        biography.setUserId(ResultSetUtils.intOrNull(rs, "user_id"));
+        biography.setUpdatedAt(rs.getTimestamp("updated_at"));
+        biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("moderation_status")));
+        biography.setModeratedAt(rs.getTimestamp("moderated_at"));
+
+        biography.setModeratorId(ResultSetUtils.intOrNull(rs, "moderator_id"));
+        biography.setBiography(rs.getString("biography"));
+        biography.setModerationInfo(rs.getString("moderation_info"));
+        biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
+
+        if (biography.getModeratorId() != null && mapModerator) {
+            Biography moderatorBiography = new Biography();
+
+            moderatorBiography.setId(rs.getInt("m_id"));
+            moderatorBiography.setFirstName(rs.getString("m_first_name"));
+            moderatorBiography.setLastName(rs.getString("m_last_name"));
+            moderatorBiography.setUserId(biography.getModeratorId());
+
+            biography.setModerator(moderatorBiography);
+        }
+
+        if (mapCreator) {
+            Biography creator = new Biography();
+
+            creator.setId(rs.getInt("cb_id"));
+            creator.setFirstName(rs.getString("cb_first_name"));
+            creator.setLastName(rs.getString("cb_last_name"));
+
+            biography.setCreator(creator);
+        }
+
+        return biography;
     }
 }

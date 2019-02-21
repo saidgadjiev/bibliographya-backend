@@ -7,12 +7,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyLikeDao;
+import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
+import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,9 +28,12 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
 
     private JdbcTemplate jdbcTemplate;
 
+    private Dialect dialect;
+
     @Autowired
-    public BiographyLikeDaoImpl(JdbcTemplate jdbcTemplate) {
+    public BiographyLikeDaoImpl(JdbcTemplate jdbcTemplate, Dialect dialect) {
         this.jdbcTemplate = jdbcTemplate;
+        this.dialect = dialect;
     }
 
     @Override
@@ -38,7 +44,7 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
                         "VALUES('" +
                         like.getUserId() + "','" +
                         like.getBiographyId() +
-                        "') ON CONFLICT DO NOTHING"
+                        "')" + (dialect.supportOnConflict() ? " ON CONFLICT DO NOTHING" : "")
         );
     }
 
@@ -152,5 +158,50 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
                     return 0L;
                 }
         );
+    }
+
+    @Override
+    public List<BiographyLike> getLikes(int biographyId, int pageSize, long offset) {
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ")
+                .append(selectList())
+                .append(" FROM biography_like bl INNER JOIN biography b ON bl.user_id = b.user_id WHERE bl.biography_id = ? LIMIT ? OFFSET ?");
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                preparedStatement -> {
+                    preparedStatement.setInt(1, biographyId);
+                    preparedStatement.setInt(2, pageSize);
+                    preparedStatement.setLong(3, offset);
+                },
+                (resultSet, i) -> map(resultSet)
+        );
+    }
+
+    private BiographyLike map(ResultSet resultSet) throws SQLException {
+        BiographyLike like = new BiographyLike();
+
+        Biography biography = new Biography();
+
+        biography.setId(resultSet.getInt("b_id"));
+        biography.setFirstName(resultSet.getString("b_first_name"));
+        biography.setLastName(resultSet.getString("b_last_name"));
+
+        like.setUser(biography);
+
+        return like;
+    }
+
+    private String selectList() {
+        StringBuilder selectList = new StringBuilder();
+
+        selectList
+                .append("b.id as b_id,")
+                .append("b.first_name as b_first_name,")
+                .append("b.last_name as b_last_name");
+
+        return selectList.toString();
     }
 }
