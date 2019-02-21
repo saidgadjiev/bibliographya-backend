@@ -2,12 +2,13 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.model.RestorePassword;
+import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
+import javax.validation.Valid;
 import java.sql.SQLException;
 
 /**
@@ -30,5 +31,34 @@ public class UserAccountController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/save-password")
+    public ResponseEntity<?> savePassword(@Valid @RequestBody SavePassword savePassword, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        HttpStatus changeStatus = userAccountDetailsService.savePassword(savePassword);
+
+        return ResponseEntity.status(changeStatus).build();
+    }
+
+    @PostMapping("/restore-password")
+    public ResponseEntity<?> restorePassword(@RequestParam("email") String email) {
+        HttpStatus restoreResult = userAccountDetailsService.restorePassword(email);
+
+        return ResponseEntity.status(restoreResult).build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody RestorePassword restorePassword, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        HttpStatus restoreStatus = userAccountDetailsService.restorePassword(restorePassword);
+
+        return ResponseEntity.status(restoreStatus).build();
     }
 }

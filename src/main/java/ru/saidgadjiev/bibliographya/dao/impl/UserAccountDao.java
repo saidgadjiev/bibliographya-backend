@@ -29,6 +29,16 @@ public class UserAccountDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public int updatePassword(String email, String password) {
+        return jdbcTemplate.update(
+                "UPDATE user_account SET password = ? WHERE email = ?",
+                preparedStatement -> {
+                    preparedStatement.setString(1, password);
+                    preparedStatement.setString(2, email);
+                }
+        );
+    }
+
     public User save(User user) {
         KeyHolder keyHolderUser = new GeneratedKeyHolder();
 

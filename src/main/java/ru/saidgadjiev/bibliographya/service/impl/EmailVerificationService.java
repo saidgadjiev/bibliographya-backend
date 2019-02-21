@@ -51,7 +51,7 @@ public class EmailVerificationService {
 
             emailVerificationDao.create(newVerification);
         } else {
-            resend(email);
+            resendCode(verification);
         }
     }
     
@@ -84,19 +84,24 @@ public class EmailVerificationService {
 
     public int resend(String email) {
         EmailVerification emailVerification = emailVerificationDao.getByEmail(email);
-        
+
         if (emailVerification == null) {
             return 0;
         }
+
+        resendCode(emailVerification);
+
+        return 1;
+    }
+
+    private void resendCode(EmailVerification emailVerification) {
         if (TimeUtils.isExpired(emailVerification.getExpiredAt().getTime())) {
             int nextCode = codeGenerator.generate();
-            emailService.sendVerificationMessage(email, nextCode);
+            emailService.sendVerificationMessage(emailVerification.getEmail(), nextCode);
 
-            emailVerificationDao.updateCode(email, nextCode);
+            emailVerificationDao.updateCode(emailVerification.getEmail(), nextCode);
         } else {
-            emailService.sendVerificationMessage(email, emailVerification.getCode());
+            emailService.sendVerificationMessage(emailVerification.getEmail(), emailVerification.getCode());
         }
-        
-        return 1;
     }
 }

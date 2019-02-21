@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +15,8 @@ import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
+import ru.saidgadjiev.bibliographya.model.SavePassword;
+import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
@@ -37,15 +40,25 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     private final PasswordEncoder passwordEncoder;
 
+    private final EmailVerificationService emailVerificationService;
+
+    private final SecurityService securityService;
+
     @Autowired
     public UserDetailsServiceImpl(UserAccountDao userAccountDao,
                                   SocialAccountDao socialAccountDao,
                                   UserRoleDao userRoleDao,
-                                  PasswordEncoder passwordEncoder) {
+                                  BiographyService biographyService,
+                                  PasswordEncoder passwordEncoder,
+                                  EmailVerificationService emailVerificationService,
+                                  SecurityService securityService) {
         this.userAccountDao = userAccountDao;
         this.socialAccountDao = socialAccountDao;
         this.userRoleDao = userRoleDao;
+        this.biographyService = biographyService;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerificationService = emailVerificationService;
+        this.securityService = securityService;
     }
 
     @Override
@@ -91,8 +104,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public boolean isExistEmail(String username) {
-        return userAccountDao.isExistEmail(username);
+    public boolean isExistEmail(String email) {
+        return userAccountDao.isExistEmail(email);
     }
 
     @Override
@@ -137,9 +150,58 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         return user;
     }
 
-    @Autowired
-    public void setBiographyService(BiographyService biographyService) {
-        this.biographyService = biographyService;
+    @Override
+    public HttpStatus savePassword(SavePassword savePassword) {
+        User user = (User) securityService.findLoggedInUser();
+
+        if (user.getProviderType().equals(ProviderType.EMAIL_PASSWORD)) {
+            User actual = loadUserById(user.getId());
+
+            if (passwordEncoder.matches(savePassword.getOldPassword(), actual.getPassword())) {
+                userAccountDao.updatePassword(actual.getUsername(), savePassword.getNewPassword());
+
+                return HttpStatus.OK;
+            }
+
+            return HttpStatus.PRECONDITION_FAILED;
+        }
+
+        return HttpStatus.BAD_REQUEST;
+    }
+
+    @Override
+    public HttpStatus restorePassword(String email) {
+        User actual = (User) loadUserByUsername(email);
+
+        if (actual == null) {
+            return HttpStatus.NOT_FOUND;
+        }
+        emailVerificationService.sendVerification(email);
+
+        return HttpStatus.OK;
+    }
+
+    @Override
+    public HttpStatus restorePassword(RestorePassword restorePassword) {
+        if (isExistEmail(restorePassword.getEmail())) {
+            EmailVerificationResult verificationResult = emailVerificationService.confirm(
+                    restorePassword.getEmail(),
+                    restorePassword.getCode()
+            );
+
+            if (verificationResult.isValid()) {
+                userAccountDao.updatePassword(
+                        restorePassword.getEmail(),
+                        passwordEncoder.encode(restorePassword.getNewPassword())
+                );
+
+                return HttpStatus.OK;
+            }
+
+            return HttpStatus.PRECONDITION_FAILED;
+        }
+
+        return HttpStatus.NOT_FOUND;
     }
 
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {
