@@ -39,7 +39,7 @@ public class EmailVerificationService {
         if (verification == null) {
             int nextCode = codeGenerator.generate();
 
-            emailService.sendVerificationMessage(email, nextCode);
+            emailService.sendEmail(email, nextCode);
 
             EmailVerification newVerification = new EmailVerification();
             Calendar calendar = Calendar.getInstance();
@@ -99,11 +99,11 @@ public class EmailVerificationService {
     private void resendCode(EmailVerification emailVerification) {
         if (TimeUtils.isExpired(emailVerification.getExpiredAt().getTime())) {
             int nextCode = codeGenerator.generate();
-            emailService.sendVerificationMessage(emailVerification.getEmail(), nextCode);
+            emailService.sendEmail(emailVerification.getEmail(), nextCode);
 
             emailVerificationDao.updateCode(emailVerification.getEmail(), nextCode);
         } else {
-            emailService.sendVerificationMessage(emailVerification.getEmail(), emailVerification.getCode());
+            emailService.sendEmail(emailVerification.getEmail(), emailVerification.getCode());
         }
     }
 }

@@ -31,7 +31,7 @@ public class SessionEmailVerificationService {
         HttpSession session = request.getSession(true);
         int code = codeGenerator.generate();
 
-        emailService.sendVerificationMessage(email, code);
+        emailService.sendEmail(email, code);
 
         session.setAttribute("code", code);
         Calendar calendar = Calendar.getInstance();

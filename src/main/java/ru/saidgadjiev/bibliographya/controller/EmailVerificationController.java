@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +33,7 @@ public class EmailVerificationController {
         }
         
         if (verificationResult.isInvalid()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
         }
         
         return ResponseEntity.ok().build();

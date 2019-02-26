@@ -54,7 +54,7 @@ class EmailVerificationServiceTest {
 
         verificationService.sendVerification("test");
 
-        Mockito.verify(emailService, Mockito.times(1)).sendVerificationMessage(eq("test"), anyInt());
+        Mockito.verify(emailService, Mockito.times(1)).sendEmail(eq("test"), anyInt());
 
         Assertions.assertEquals(1, db.size());
         Assertions.assertEquals(db.get(0).getEmail(), "test");
@@ -95,7 +95,7 @@ class EmailVerificationServiceTest {
 
         verificationService.resend("test");
 
-        Mockito.verify(emailService, Mockito.times(1)).sendVerificationMessage(eq("test"), eq(1024));
+        Mockito.verify(emailService, Mockito.times(1)).sendEmail(eq("test"), eq(1024));
     }
 
     private EmailVerification createTestVerification() {
