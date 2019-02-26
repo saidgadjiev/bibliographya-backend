@@ -24,8 +24,8 @@ import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
-import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
+import ru.saidgadjiev.bibliographya.service.impl.SessionEmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
@@ -53,7 +53,7 @@ public class AuthService {
 
     private AuthenticationManager authenticationManager;
 
-    private EmailVerificationService emailVerificationService;
+    private SessionEmailVerificationService emailVerificationService;
 
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
             (request, response, authentication) -> CookieUtils.deleteCookie(request, response,"X-TOKEN"),
@@ -65,14 +65,17 @@ public class AuthService {
                        BibliographyaUserDetailsService userAccountDetailsService,
                        TokenService tokenService,
                        SecurityService securityService,
-                       AuthenticationManager authenticationManager,
-                       EmailVerificationService emailVerificationService) {
+                       SessionEmailVerificationService emailVerificationService) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
-        this.authenticationManager = authenticationManager;
         this.emailVerificationService = emailVerificationService;
+    }
+
+    @Autowired
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri) {
@@ -130,13 +133,18 @@ public class AuthService {
         return user;
     }
 
-    public void signUp(HttpServletRequest request, SignUpRequest signUpRequest) {
+    public HttpStatus signUp(HttpServletRequest request, SignUpRequest signUpRequest) {
+        if (userAccountDetailsService.isExistEmail(signUpRequest.getEmail())) {
+            return HttpStatus.CONFLICT;
+        }
         HttpSession session = request.getSession(true);
 
         session.setAttribute("signingUp", true);
         session.setAttribute("request", signUpRequest);
 
-        emailVerificationService.sendVerification(signUpRequest.getEmail());
+        emailVerificationService.sendVerification(request, signUpRequest.getEmail());
+
+        return HttpStatus.OK;
     }
 
     public SignUpResult confirmSignUp(HttpServletRequest request, Integer code) throws SQLException {
@@ -145,10 +153,9 @@ public class AuthService {
         if (isSigningUp(session)) {
             SignUpRequest signUpRequest = (SignUpRequest) session.getAttribute("request");
 
-            EmailVerificationResult result = emailVerificationService.confirm(signUpRequest.getEmail(), code);
+            EmailVerificationResult result = emailVerificationService.confirm(request, signUpRequest.getEmail(), code);
 
             if (result.isValid()) {
-                session.invalidate();
                 userAccountDetailsService.save(signUpRequest);
 
                 return new SignUpResult().setStatus(HttpStatus.OK);
@@ -174,11 +181,16 @@ public class AuthService {
         return null;
     }
 
-    public AccountResult account(HttpServletRequest request) {
+    public AccountResult<?> account(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
         if (isSigningUp(session)) {
-            return new AccountResult().setStatus(HttpStatus.PRECONDITION_REQUIRED);
+            SignUpRequest signUpRequest = (SignUpRequest) session.getAttribute("request");
+            SignUpRequest result = new SignUpRequest();
+
+            result.setEmail(signUpRequest.getEmail());
+
+            return new AccountResult<SignUpRequest>().setBody(result).setStatus(HttpStatus.PRECONDITION_REQUIRED);
         } else {
             UserDetails userDetails = securityService.findLoggedInUser();
 
@@ -186,7 +198,7 @@ public class AuthService {
                 return new AccountResult().setStatus(HttpStatus.NOT_FOUND);
             }
 
-            return new AccountResult().setStatus(HttpStatus.OK).setAccount((User) userDetails);
+            return new AccountResult<UserDetails>().setStatus(HttpStatus.OK).setBody(userDetails);
         }
     }
 
@@ -230,5 +242,13 @@ public class AuthService {
         Boolean signingUp = (Boolean) session.getAttribute(SESSION_SIGNING_UP);
 
         return signingUp != null && signingUp;
+    }
+
+    public void cancelSignUp(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.invalidate();
+        }
     }
 }

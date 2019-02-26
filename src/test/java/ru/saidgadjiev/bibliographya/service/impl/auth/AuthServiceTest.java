@@ -70,14 +70,14 @@ class AuthServiceTest {
 
     @Test
     void getFacebookOauthUrl() {
-        Mockito.when(facebookService.createFacebookAuthorizationUrl(eq("test"))).thenReturn("oauth:test:facebook");
+        Mockito.when(facebookService.createOAuth2Url(eq("test"))).thenReturn("oauth:test:facebook");
 
         Assertions.assertEquals("oauth:test:facebook", authService.getOauthUrl(ProviderType.FACEBOOK, "test"));
     }
 
     @Test
     void getVkOauthUrl() {
-        Mockito.when(vkService.createVKAuthorizationUrl(eq("test"))).thenReturn("oauth:test:vk");
+        Mockito.when(vkService.createOAuth2Url(eq("test"))).thenReturn("oauth:test:vk");
 
         Assertions.assertEquals("oauth:test:vk", authService.getOauthUrl(ProviderType.VK, "test"));
     }
@@ -85,7 +85,7 @@ class AuthServiceTest {
     private void facebookAuthTest(boolean signUp) throws SQLException {
         SocialUserInfo userInfo = socialUserInfo(ProviderType.FACEBOOK);
 
-        Mockito.when(facebookService.createFacebookAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(TEST_ACCESS_GRANT);
+        Mockito.when(facebookService.createAccessToken(TEST_AUTH_CODE, TEST_REDIRECT_URI)).thenReturn(TEST_ACCESS_GRANT);
         Mockito.when(facebookService.getUserInfo(null, eq(TEST_ACCESS_TOKEN))).thenReturn(userInfo);
 
         List<User> db = new ArrayList<>();
@@ -414,7 +414,7 @@ class AuthServiceTest {
         AccountResult accountResult = authService.account(request);
 
         Assertions.assertEquals(accountResult.getStatus(), HttpStatus.OK);
-        assertUserEquals(testUser, accountResult.getAccount());
+        assertUserEquals(testUser, (User) accountResult.getBody());
     }
 
     @Test
@@ -424,7 +424,7 @@ class AuthServiceTest {
         AccountResult accountResult = authService.account(request);
 
         Assertions.assertEquals(accountResult.getStatus(), HttpStatus.NOT_FOUND);
-        Assertions.assertNull(accountResult.getAccount());
+        Assertions.assertNull(accountResult.getBody());
     }
 
     @Test
@@ -438,7 +438,7 @@ class AuthServiceTest {
         AccountResult accountResult = authService.account(request);
 
         Assertions.assertEquals(accountResult.getStatus(), HttpStatus.PRECONDITION_REQUIRED);
-        Assertions.assertNull(accountResult.getAccount());
+        Assertions.assertNull(accountResult.getBody());
     }
 
     @Test

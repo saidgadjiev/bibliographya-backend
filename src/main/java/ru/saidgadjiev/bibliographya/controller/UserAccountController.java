@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.sql.SQLException;
 
@@ -48,31 +49,31 @@ public class UserAccountController {
     }
 
     @PostMapping("/restore-password")
-    public ResponseEntity<?> restorePassword(@RequestParam("email") String email) {
-        HttpStatus restoreResult = userAccountDetailsService.restorePassword(email);
+    public ResponseEntity<?> restorePassword(HttpServletRequest request, @RequestParam("email") String email) {
+        HttpStatus restoreResult = userAccountDetailsService.restorePassword(request, email);
 
         return ResponseEntity.status(restoreResult).build();
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody RestorePassword restorePassword, BindingResult bindingResult) {
+    public ResponseEntity<?> changePassword(HttpServletRequest request, @RequestBody RestorePassword restorePassword, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        HttpStatus restoreStatus = userAccountDetailsService.restorePassword(restorePassword);
+        HttpStatus restoreStatus = userAccountDetailsService.restorePassword(request, restorePassword);
 
         return ResponseEntity.status(restoreStatus).build();
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email")
-    public ResponseEntity<?> saveEmail(@Valid @RequestBody SaveEmail saveEmail, BindingResult bindingResult) {
+    public ResponseEntity<?> saveEmail(HttpServletRequest request, @Valid @RequestBody SaveEmail saveEmail, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        HttpStatus status = userAccountDetailsService.saveEmail(saveEmail);
+        HttpStatus status = userAccountDetailsService.saveEmail(request, saveEmail);
 
         return ResponseEntity.status(status).build();
     }

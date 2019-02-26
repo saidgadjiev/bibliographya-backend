@@ -2,28 +2,28 @@ package ru.saidgadjiev.bibliographya.domain;
 
 import org.springframework.http.HttpStatus;
 
-public class AccountResult {
+public class AccountResult<T> {
 
     private HttpStatus status;
 
-    private User account;
+    private T body;
 
     public HttpStatus getStatus() {
         return status;
     }
 
-    public AccountResult setStatus(HttpStatus status) {
+    public AccountResult<T> setStatus(HttpStatus status) {
         this.status = status;
 
         return this;
     }
 
-    public User getAccount() {
-        return account;
+    public T getBody() {
+        return body;
     }
 
-    public AccountResult setAccount(User account) {
-        this.account = account;
+    public AccountResult<T> setBody(T body) {
+        this.body = body;
 
         return this;
     }

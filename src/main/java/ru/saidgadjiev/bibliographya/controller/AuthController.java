@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
@@ -58,9 +57,9 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        authService.signUp(request, signUpRequest);
+        HttpStatus status = authService.signUp(request, signUpRequest);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(status).build();
     }
 
     @PostMapping("/signUp/confirm")
@@ -71,6 +70,13 @@ public class AuthController {
         SignUpResult signUpResult = authService.confirmSignUp(request, code);
 
         return ResponseEntity.status(signUpResult.getStatus()).build();
+    }
+
+    @PostMapping("/signUp/cancel")
+    public ResponseEntity<?> cancelSignUp(HttpServletRequest request) throws SQLException {
+        authService.cancelSignUp(request);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping(value = "/signIn/{providerId}", params = "code")
@@ -144,9 +150,9 @@ public class AuthController {
     }
 
     @GetMapping("/account")
-    public ResponseEntity<UserDetails> getAccount(HttpServletRequest request) {
+    public ResponseEntity<?> getAccount(HttpServletRequest request) {
         AccountResult accountResult = authService.account(request);
 
-        return ResponseEntity.status(accountResult.getStatus()).body(accountResult.getAccount());
+        return ResponseEntity.status(accountResult.getStatus()).body(accountResult.getBody());
     }
 }
