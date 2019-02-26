@@ -8,25 +8,11 @@ import javax.validation.constraints.Size;
  */
 public class BiographyCommentRequest {
 
-    private Integer id;
-
     @NotNull
     @Size(min = 1)
     private String content;
 
-    private String firstName;
-
-    private int biographyId;
-
-    private BiographyCommentRequest parent;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    private Integer parentId;
 
     public String getContent() {
         return content;
@@ -36,27 +22,11 @@ public class BiographyCommentRequest {
         this.content = content;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public Integer getParentId() {
+        return parentId;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public BiographyCommentRequest getParent() {
-        return parent;
-    }
-
-    public void setParent(BiographyCommentRequest parent) {
-        this.parent = parent;
-    }
-
-    public int getBiographyId() {
-        return biographyId;
-    }
-
-    public void setBiographyId(int biographyId) {
-        this.biographyId = biographyId;
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
     }
 }
