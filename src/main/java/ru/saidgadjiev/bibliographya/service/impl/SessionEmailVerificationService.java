@@ -67,7 +67,8 @@ public class SessionEmailVerificationService {
         EmailVerificationResult verificationResult = verify(request, email, code);
 
         if (verificationResult.isValid()) {
-            session.invalidate();
+            session.removeAttribute("code");
+            session.removeAttribute("expiredAt");
         }
 
         return verificationResult;

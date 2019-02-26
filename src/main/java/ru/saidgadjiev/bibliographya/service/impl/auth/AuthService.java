@@ -21,6 +21,7 @@ import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
@@ -40,8 +41,6 @@ import java.util.Map;
  */
 @Service
 public class AuthService {
-
-    public static final String SESSION_SIGNING_UP = "signingUp";
 
     private final SocialServiceFactory socialServiceFactory;
 
@@ -139,7 +138,7 @@ public class AuthService {
         }
         HttpSession session = request.getSession(true);
 
-        session.setAttribute("signingUp", true);
+        session.setAttribute("state", SessionState.SIGN_UP_CONFIRM);
         session.setAttribute("request", signUpRequest);
 
         emailVerificationService.sendVerification(request, signUpRequest.getEmail());
@@ -157,6 +156,8 @@ public class AuthService {
 
             if (result.isValid()) {
                 userAccountDetailsService.save(signUpRequest);
+                session.removeAttribute("state");
+                session.removeAttribute("request");
 
                 return new SignUpResult().setStatus(HttpStatus.OK);
             }
@@ -239,9 +240,9 @@ public class AuthService {
         if (session == null) {
             return false;
         }
-        Boolean signingUp = (Boolean) session.getAttribute(SESSION_SIGNING_UP);
+        SessionState sessionState = (SessionState) session.getAttribute("state");
 
-        return signingUp != null && signingUp;
+        return sessionState != null && sessionState.equals(SessionState.SIGN_UP_CONFIRM);
     }
 
     public void cancelSignUp(HttpServletRequest request) {
