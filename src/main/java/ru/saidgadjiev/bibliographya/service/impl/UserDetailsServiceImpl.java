@@ -20,6 +20,7 @@ import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +41,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     private final PasswordEncoder passwordEncoder;
 
-    private final EmailVerificationService emailVerificationService;
+    private final SessionEmailVerificationService emailVerificationService;
 
     private final SecurityService securityService;
 
@@ -50,7 +51,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
-                                  EmailVerificationService emailVerificationService,
+                                  SessionEmailVerificationService emailVerificationService,
                                   SecurityService securityService) {
         this.userAccountDao = userAccountDao;
         this.socialAccountDao = socialAccountDao;
@@ -165,20 +166,21 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public HttpStatus restorePassword(String email) {
+    public HttpStatus restorePassword(HttpServletRequest request, String email) {
         User actual = (User) loadUserByUsername(email);
 
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
         }
-        emailVerificationService.sendVerification(email);
+        emailVerificationService.sendVerification(request, email);
 
         return HttpStatus.OK;
     }
 
     @Override
-    public HttpStatus restorePassword(RestorePassword restorePassword) {
+    public HttpStatus restorePassword(HttpServletRequest request, RestorePassword restorePassword) {
         EmailVerificationResult verificationResult = emailVerificationService.confirm(
+                request,
                 restorePassword.getEmail(),
                 restorePassword.getCode()
         );
@@ -200,13 +202,17 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public HttpStatus saveEmail(SaveEmail saveEmail) {
+    public HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail) {
         User actual = (User) securityService.findLoggedInUser();
 
         if (isExistEmail(saveEmail.getNewEmail())) {
             return HttpStatus.CONFLICT;
         }
-        EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(actual.getUsername(), saveEmail.getCode());
+        EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(
+                request,
+                actual.getUsername(),
+                saveEmail.getCode()
+        );
 
         if (emailVerificationResult.isValid()) {
             int updated = userAccountDao.updateEmail(actual.getUsername(), saveEmail.getNewEmail());

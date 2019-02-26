@@ -9,6 +9,7 @@ import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 
 /**
@@ -30,9 +31,9 @@ public interface BibliographyaUserDetailsService {
 
     HttpStatus savePassword(SavePassword savePassword);
 
-    HttpStatus restorePassword(String email);
+    HttpStatus restorePassword(HttpServletRequest request, String email);
 
-    HttpStatus restorePassword(RestorePassword restorePassword);
+    HttpStatus restorePassword(HttpServletRequest request, RestorePassword restorePassword);
 
-    HttpStatus saveEmail(SaveEmail saveEmail);
+    HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail);
 }

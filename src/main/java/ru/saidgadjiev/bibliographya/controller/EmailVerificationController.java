@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
-import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
+import ru.saidgadjiev.bibliographya.service.impl.SessionEmailVerificationService;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by said on 11.02.2019.
@@ -15,15 +17,15 @@ import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 @RequestMapping("/api/emails")
 public class EmailVerificationController {
     
-    private final EmailVerificationService verificationService;
+    private final SessionEmailVerificationService verificationService;
     
-    public EmailVerificationController(EmailVerificationService verificationService) {
+    public EmailVerificationController(SessionEmailVerificationService verificationService) {
         this.verificationService = verificationService;
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verify(@RequestParam("email") String email, @RequestParam("code") Integer code) {
-        EmailVerificationResult verificationResult = verificationService.verify(email, code);
+    public ResponseEntity<?> verify(HttpServletRequest request, @RequestParam("email") String email, @RequestParam("code") Integer code) {
+        EmailVerificationResult verificationResult = verificationService.verify(request, email, code);
         
         if (verificationResult.isExpired()) {
             return ResponseEntity.status(498).build();
@@ -37,13 +39,9 @@ public class EmailVerificationController {
     }
     
     @PostMapping("/resend")
-    public ResponseEntity<?> resend(@RequestParam("email") String email) {
-        int resend = verificationService.resend(email);
-        
-        if (resend == 0) {
-            return ResponseEntity.badRequest().build();
-        }
-        
+    public ResponseEntity<?> resend(HttpServletRequest request, @RequestParam("email") String email) {
+        verificationService.sendVerification(request, email);
+
         return ResponseEntity.ok().build();
     }
 }

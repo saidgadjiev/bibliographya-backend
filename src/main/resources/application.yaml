@@ -13,12 +13,12 @@ spring:
       port: ${MAIL_PORT}
       username: ${MAIL_USERNAME}
       password: ${MAIL_PASSWORD}
-      protocol: smtps
+      protocol: smtp
       properties:
         mail:
           transport:
-            protocol: smtps
-          smtps:
+            protocol: smtp
+          smtp:
             auth: true
             starttls:
               enable: true
@@ -38,8 +38,6 @@ app:
   upload:
     root: ${UPLOAD_DIR}
     category-root: ${UPLOAD_CATEGORY_DIR}
-  support:
-    email: ${SUPPORT_EMAIL}
 management:
   endpoints:
     web:

@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.EmailVerificationDao;
 import ru.saidgadjiev.bibliographya.domain.EmailVerification;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
@@ -31,6 +32,7 @@ public class EmailVerificationService {
         this.emailVerificationDao = emailVerificationDao;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void sendVerification(String email) {
         EmailVerification verification = emailVerificationDao.getByEmail(email);
 

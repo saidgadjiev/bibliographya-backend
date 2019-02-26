@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -14,12 +13,9 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
 
-    private Environment env;
-
     @Autowired
-    public EmailService(JavaMailSender javaMailSender, Environment environment) {
+    public EmailService(JavaMailSender javaMailSender) {
         this.javaMailSender = javaMailSender;
-        this.env = environment;
     }
 
     public void sendVerificationMessage(String email, int code) {
@@ -27,7 +23,6 @@ public class EmailService {
 
         mailMessage.setSubject("Подтверждение почты");
         mailMessage.setTo(email);
-        mailMessage.setFrom(env.getProperty("support.email"));
         mailMessage.setText("Введите код: " + code + " для подтверждения почты!");
 
         javaMailSender.send(mailMessage);
