@@ -33,16 +33,20 @@ public class SessionEmailVerificationService {
     }
 
     public void sendVerification(HttpServletRequest request, String email) {
-        int code = codeGenerator.generate();
+        SessionState sessionState = sessionManager.getState(request);
 
-        emailService.sendEmail(email, sessionManager.getEmailSubject(request), sessionManager.getEmailMessage(request));
+        if (!Objects.equals(sessionState, SessionState.NONE)) {
+            int code = codeGenerator.generate();
 
-        Calendar calendar = Calendar.getInstance();
+            emailService.sendEmail(email, sessionManager.getEmailSubject(request), sessionManager.getEmailMessage(request));
 
-        calendar.setTime(new Date());
-        calendar.add(Calendar.DATE, 1);
+            Calendar calendar = Calendar.getInstance();
 
-        sessionManager.setCode(request, code, calendar.getTimeInMillis());
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DATE, 1);
+
+            sessionManager.setCode(request, code, calendar.getTimeInMillis());
+        }
     }
 
     public EmailVerificationResult verify(HttpServletRequest request, String email, int code) {
