@@ -18,12 +18,12 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-    public void sendVerificationMessage(String email, int code) {
+    public void sendEmail(String email, String subject, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
 
-        mailMessage.setSubject("Подтверждение почты");
+        mailMessage.setSubject(subject);
         mailMessage.setTo(email);
-        mailMessage.setText("Введите код: " + code + " для подтверждения почты!");
+        mailMessage.setText(message);
 
         javaMailSender.send(mailMessage);
     }

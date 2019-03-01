@@ -9,6 +9,6 @@ class EmailServiceTest {
     private EmailService emailService;
 
     void sendVerificationMessage() {
-        emailService.sendVerificationMessage("g.said.alievich@mail.ru", 1234);
+        emailService.sendEmail("g.said.alievich@mail.ru", 1234);
     }
 }
