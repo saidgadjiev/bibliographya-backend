@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.service.impl.SessionEmailVerificationService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 /**
  * Created by said on 11.02.2019.
@@ -40,9 +41,7 @@ public class EmailVerificationController {
     }
     
     @PostMapping("/resend")
-    public ResponseEntity<?> resend(HttpServletRequest request, @RequestParam("email") String email) {
-        verificationService.sendVerification(request, email);
-
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> resend(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+        return ResponseEntity.status(verificationService.sendVerification(request, locale, email)).build();
     }
 }

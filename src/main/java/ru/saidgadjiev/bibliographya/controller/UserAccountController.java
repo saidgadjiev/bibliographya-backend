@@ -13,6 +13,7 @@ import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * Created by said on 02.01.2019.
@@ -49,8 +50,8 @@ public class UserAccountController {
     }
 
     @PostMapping("/restore-password")
-    public ResponseEntity<?> restorePassword(HttpServletRequest request, @RequestParam("email") String email) {
-        HttpStatus restoreResult = userAccountDetailsService.restorePassword(request, email);
+    public ResponseEntity<?> restorePassword(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+        HttpStatus restoreResult = userAccountDetailsService.restorePassword(request, locale, email);
 
         return ResponseEntity.status(restoreResult).build();
     }
@@ -80,8 +81,8 @@ public class UserAccountController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/change-email")
-    public ResponseEntity<?> changeEmail(HttpServletRequest request, @RequestParam("newEmail") String newEmail) {
-        HttpStatus status = userAccountDetailsService.changeEmail(request, newEmail);
+    public ResponseEntity<?> changeEmail(HttpServletRequest request, Locale locale, @RequestParam("newEmail") String newEmail) {
+        HttpStatus status = userAccountDetailsService.changeEmail(request, locale, newEmail);
 
         return ResponseEntity.status(status).build();
     }

@@ -22,6 +22,7 @@ import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,6 +46,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     private final SecurityService securityService;
 
+    private final SessionManager sessionManager;
+
     @Autowired
     public UserDetailsServiceImpl(UserAccountDao userAccountDao,
                                   SocialAccountDao socialAccountDao,
@@ -52,7 +55,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
                                   SessionEmailVerificationService emailVerificationService,
-                                  SecurityService securityService) {
+                                  SecurityService securityService,
+                                  SessionManager sessionManager) {
         this.userAccountDao = userAccountDao;
         this.socialAccountDao = socialAccountDao;
         this.userRoleDao = userRoleDao;
@@ -60,6 +64,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
         this.securityService = securityService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -166,13 +171,14 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public HttpStatus restorePassword(HttpServletRequest request, String email) {
+    public HttpStatus restorePassword(HttpServletRequest request, Locale locale, String email) {
         User actual = (User) loadUserByUsername(email);
 
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
         }
-        emailVerificationService.sendVerification(request, email);
+        sessionManager.setRestorePassword(request, actual);
+        emailVerificationService.sendVerification(request, locale, email);
 
         return HttpStatus.OK;
     }
@@ -195,6 +201,8 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
                 return HttpStatus.NOT_FOUND;
             }
 
+            sessionManager.removeRestorePassword(request);
+
             return HttpStatus.OK;
         }
 
@@ -210,7 +218,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         }
         EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(
                 request,
-                actual.getUsername(),
+                saveEmail.getNewEmail(),
                 saveEmail.getCode()
         );
 
@@ -220,6 +228,10 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
             if (updated == 0) {
                 return HttpStatus.NOT_FOUND;
             }
+            sessionManager.removeChangeEmail(request);
+
+            userAccountDao.updateVerified(actual.getUsername(), false);
+            userAccountDao.updateVerifiedById(actual.getUserAccount().getId(), true);
 
             return HttpStatus.OK;
         }
@@ -228,12 +240,12 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
     }
 
     @Override
-    public HttpStatus changeEmail(HttpServletRequest request, String newEmail) {
-        if (isExistEmail(newEmail)) {
-            return HttpStatus.CONFLICT;
-        }
+    public HttpStatus changeEmail(HttpServletRequest request, Locale locale, String newEmail) {
+        sessionManager.setChangeEmail(request, newEmail);
+
         emailVerificationService.sendVerification(
                 request,
+                locale,
                 newEmail
         );
 

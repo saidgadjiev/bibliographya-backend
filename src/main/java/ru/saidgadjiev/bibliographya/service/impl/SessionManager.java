@@ -25,6 +25,40 @@ public class SessionManager {
         this.securityService = securityService;
     }
 
+    public void setRestorePassword(HttpServletRequest request, User user) {
+        HttpSession session = request.getSession(true);
+
+        session.setAttribute("state", SessionState.RESTORE_PASSWORD);
+        session.setAttribute("firstName", user.getBiography().getFirstName());
+        session.setAttribute("email", user.getUserAccount().getEmail());
+    }
+
+    public void removeRestorePassword(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.removeAttribute("state");
+            session.removeAttribute("firstName");
+            session.removeAttribute("email");
+        }
+    }
+
+    public void setChangeEmail(HttpServletRequest request, String email) {
+        HttpSession session = request.getSession(true);
+
+        session.setAttribute("state", SessionState.CHANGE_EMAIL);
+        session.setAttribute("email", email);
+    }
+
+    public void removeChangeEmail(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.removeAttribute("state");
+            session.removeAttribute("email");
+        }
+    }
+
     public void setSignUp(HttpServletRequest request, SignUpRequest signUpRequest) {
         HttpSession session = request.getSession(true);
 
@@ -73,7 +107,9 @@ public class SessionManager {
             return SessionState.NONE;
         }
 
-        return (SessionState) session.getAttribute("state");
+        SessionState sessionState = (SessionState) session.getAttribute("state");
+
+        return sessionState == null ? SessionState.NONE : sessionState;
     }
 
     public void setCode(HttpServletRequest request, int code, long expiredAt) {
@@ -108,6 +144,16 @@ public class SessionManager {
         return (Integer) session.getAttribute("code");
     }
 
+    public String getEmail(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return null;
+        }
+
+        return (String) session.getAttribute("email");
+    }
+
     public Long getExpiredAt(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
@@ -118,31 +164,50 @@ public class SessionManager {
         return (Long) session.getAttribute("expiredAt");
     }
 
-    public String getEmailSubject(HttpServletRequest request) {
+    public String getEmailSubject(HttpServletRequest request, Locale locale) {
         SessionState sessionState = getState(request);
 
+        if (sessionState == null) {
+            return null;
+        }
         switch (sessionState) {
+            case RESTORE_PASSWORD:
+                return messageSource.getMessage("confirm.restorePassword.subject", new Object[] {}, locale);
             case CHANGE_EMAIL:
-                return messageSource.getMessage("confirm.changeEmail.subject", new Object[] {}, Locale.getDefault());
+                return messageSource.getMessage("confirm.changeEmail.subject", new Object[] {}, locale);
             case SIGN_UP_CONFIRM:
-                return messageSource.getMessage("confirm.signUp.subject", new Object[] {}, Locale.getDefault());
+                return messageSource.getMessage("confirm.signUp.subject", new Object[] {}, locale);
+            case NONE:
+                break;
         }
 
         return null;
     }
 
-    public String getEmailMessage(HttpServletRequest request) {
+    public String getEmailMessage(HttpServletRequest request, Locale locale) {
         SessionState sessionState = getState(request);
-        Integer code = getCode(request);
+
+        if (sessionState == null) {
+            return null;
+        }
+        String code = String.valueOf(getCode(request));
 
         switch (sessionState) {
+            case RESTORE_PASSWORD:
+                String firstName = (String) request.getSession(false).getAttribute("firstName");
+
+                return messageSource.getMessage(
+                        "confirm.restorePassword.message",
+                        new Object[]{ firstName, code },
+                        locale
+                );
             case CHANGE_EMAIL:
                 User user = (User) securityService.findLoggedInUser();
 
                 return messageSource.getMessage(
                         "confirm.changeEmail.message",
                         new Object[]{ user.getBiography().getFirstName(), code },
-                        Locale.getDefault()
+                        locale
                 );
             case SIGN_UP_CONFIRM:
                 SignUpRequest signUpRequest = getSignUp(request);
@@ -150,8 +215,10 @@ public class SessionManager {
                 return messageSource.getMessage(
                         "confirm.signUp.message",
                         new Object[]{ signUpRequest.getFirstName(), code },
-                        Locale.getDefault()
+                        locale
                 );
+            case NONE:
+                break;
         }
 
         return null;

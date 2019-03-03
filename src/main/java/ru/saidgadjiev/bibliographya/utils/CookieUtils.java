@@ -9,20 +9,20 @@ public class CookieUtils {
     private CookieUtils() { }
 
 
-    public static void addCookie(HttpServletRequest request, HttpServletResponse response, String tokenName, String token) {
+    public static void addCookie(HttpServletResponse response, String serverName, String tokenName, String token) {
         Cookie cookie = new Cookie(tokenName, token);
 
-        cookie.setDomain(request.getServerName());
+        cookie.setDomain(serverName);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(60 * 60 * 24 * 30); // one month
         response.addCookie(cookie);
     }
 
-    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String tokenName) {
+    public static void deleteCookie(HttpServletResponse response, String serverName, String tokenName) {
         Cookie cookie = new Cookie(tokenName, null);
 
-        cookie.setDomain(request.getServerName());
+        cookie.setDomain(serverName);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);

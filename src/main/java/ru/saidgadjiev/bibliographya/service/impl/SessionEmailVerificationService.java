@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.model.SessionState;
@@ -9,6 +10,7 @@ import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -32,13 +34,11 @@ public class SessionEmailVerificationService {
         this.emailService = emailService;
     }
 
-    public void sendVerification(HttpServletRequest request, String email) {
+    public HttpStatus sendVerification(HttpServletRequest request, Locale locale, String email) {
         SessionState sessionState = sessionManager.getState(request);
 
         if (!Objects.equals(sessionState, SessionState.NONE)) {
             int code = codeGenerator.generate();
-
-            emailService.sendEmail(email, sessionManager.getEmailSubject(request), sessionManager.getEmailMessage(request));
 
             Calendar calendar = Calendar.getInstance();
 
@@ -46,13 +46,29 @@ public class SessionEmailVerificationService {
             calendar.add(Calendar.DATE, 1);
 
             sessionManager.setCode(request, code, calendar.getTimeInMillis());
+
+            emailService.sendEmail(
+                    email,
+                    sessionManager.getEmailSubject(request, locale),
+                    sessionManager.getEmailMessage(request, locale)
+            );
+
+            return HttpStatus.OK;
         }
+
+        return HttpStatus.BAD_REQUEST;
     }
 
     public EmailVerificationResult verify(HttpServletRequest request, String email, int code) {
         SessionState sessionState = sessionManager.getState(request);
 
-        if (sessionState == null) {
+        if (Objects.equals(sessionState, SessionState.NONE)) {
+            return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
+        }
+
+        String currentEmail = sessionManager.getEmail(request);
+
+        if (!Objects.equals(currentEmail, email)) {
             return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
         }
 

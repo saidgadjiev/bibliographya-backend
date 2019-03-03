@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * Created by said on 22.10.2018.
@@ -52,12 +53,13 @@ public class AuthController {
 
     @PostMapping("/signUp")
     public ResponseEntity<?> signUp(HttpServletRequest request,
+                                    Locale locale,
                                     @Valid @RequestBody SignUpRequest signUpRequest,
                                     BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        HttpStatus status = authService.signUp(request, signUpRequest);
+        HttpStatus status = authService.signUp(request, locale, signUpRequest);
 
         return ResponseEntity.status(status).build();
     }

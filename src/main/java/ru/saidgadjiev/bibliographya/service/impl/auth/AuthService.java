@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.service.impl.auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
@@ -23,6 +24,7 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
+import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -33,8 +35,8 @@ import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -56,10 +58,12 @@ public class AuthService {
 
     private SessionEmailVerificationService emailVerificationService;
 
+    private UIProperties uiProperties;
+
     private SessionManager sessionManager;
 
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
-            (request, response, authentication) -> CookieUtils.deleteCookie(request, response,"X-TOKEN"),
+            (request, response, authentication) -> CookieUtils.deleteCookie(response, uiProperties.getName(), "X-TOKEN"),
             new SecurityContextLogoutHandler()
     );
 
@@ -69,12 +73,14 @@ public class AuthService {
                        TokenService tokenService,
                        SecurityService securityService,
                        SessionEmailVerificationService emailVerificationService,
+                       UIProperties uiProperties,
                        SessionManager sessionManager) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
         this.emailVerificationService = emailVerificationService;
+        this.uiProperties = uiProperties;
         this.sessionManager = sessionManager;
     }
 
@@ -133,18 +139,18 @@ public class AuthService {
 
         String token = tokenService.createToken(user, accessGrant);
 
-        CookieUtils.addCookie(authContext.getRequest(), authContext.getResponse(), "X-TOKEN", token);
+        CookieUtils.addCookie(authContext.getResponse(), uiProperties.getName(), "X-TOKEN", token);
 
         return user;
     }
 
-    public HttpStatus signUp(HttpServletRequest request, SignUpRequest signUpRequest) {
+    public HttpStatus signUp(HttpServletRequest request, Locale locale, SignUpRequest signUpRequest) {
         if (userAccountDetailsService.isExistEmail(signUpRequest.getEmail())) {
             return HttpStatus.CONFLICT;
         }
         sessionManager.setSignUp(request, signUpRequest);
 
-        emailVerificationService.sendVerification(request, signUpRequest.getEmail());
+        emailVerificationService.sendVerification(request, locale, signUpRequest.getEmail());
 
         return HttpStatus.OK;
     }
@@ -220,6 +226,10 @@ public class AuthService {
                     break;
                 case EMAIL_PASSWORD:
                     userDetails = userAccountDetailsService.loadUserById(userId);
+
+                    if (!userDetails.isEnabled()) {
+                        throw new DisabledException("User is disabled");
+                    }
                     break;
             }
 
@@ -234,5 +244,10 @@ public class AuthService {
                 SecurityContextHolder.getContext().setAuthentication(null);
             }
         }
+    }
+
+    public void cancelSignUp(HttpServletRequest request) {
+        sessionManager.removeSignUp(request);
+        sessionManager.removeCode(request);
     }
 }

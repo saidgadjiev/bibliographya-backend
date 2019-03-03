@@ -265,7 +265,7 @@ class AuthServiceTest {
             return null;
         }).when(session).setAttribute(anyString(), any());
 
-        authService.signUp(request, signUpRequest);
+        authService.signUp(request, Locale.getDefault(), signUpRequest);
 
         Assertions.assertEquals(2, attrs.size());
 

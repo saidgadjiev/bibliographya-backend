@@ -49,6 +49,26 @@ public class UserAccountDao {
         );
     }
 
+    public int updateVerified(String email, boolean verified) {
+        return jdbcTemplate.update(
+                "UPDATE user_account SET verified = ? WHERE email = ?",
+                preparedStatement -> {
+                    preparedStatement.setBoolean(1, verified);
+                    preparedStatement.setString(2, email);
+                }
+        );
+    }
+
+    public int updateVerifiedById(int id, boolean verified) {
+        return jdbcTemplate.update(
+                "UPDATE user_account SET verified = ? WHERE id = ?",
+                preparedStatement -> {
+                    preparedStatement.setBoolean(1, verified);
+                    preparedStatement.setInt(2, id);
+                }
+        );
+    }
+
     public User save(User user) {
         KeyHolder keyHolderUser = new GeneratedKeyHolder();
 
@@ -75,13 +95,14 @@ public class UserAccountDao {
         jdbcTemplate.update(
                 con -> {
                     PreparedStatement ps = con.prepareStatement(
-                            "INSERT INTO user_account(email, password, user_id) VALUES(?, ?, ?)",
+                            "INSERT INTO user_account(email, verified, password, user_id) VALUES(?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS
                     );
 
                     ps.setString(1, user.getUsername());
-                    ps.setString(2, user.getPassword());
-                    ps.setInt(3, user.getId());
+                    ps.setBoolean(2, user.getUserAccount().isVerified());
+                    ps.setString(3, user.getPassword());
+                    ps.setInt(4, user.getId());
 
                     return ps;
                 },
@@ -99,14 +120,7 @@ public class UserAccountDao {
     public User getByEmail(String email) {
         return jdbcTemplate.query(
                 "SELECT\n" +
-                        "  u.id AS u_id,\n" +
-                        "  u.provider_id AS u_provider_id,\n" +
-                        "  ua.id AS ua_id,\n" +
-                        "  ua.email AS ua_email,\n" +
-                        "  ua.password AS ua_password,\n" +
-                        "  b.id AS b_id,\n" +
-                        "  b.first_name AS b_first_name,\n" +
-                        "  b.last_name AS b_last_name\n" +
+                        selectList() +
                         "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
                         "WHERE ua.email = ?",
                 ps -> ps.setString(1, email),
@@ -123,14 +137,7 @@ public class UserAccountDao {
     public User getByUserId(int userId) {
         return jdbcTemplate.query(
                 "SELECT\n" +
-                        "  u.id AS u_id,\n" +
-                        "  u.provider_id AS u_provider_id,\n" +
-                        "  ua.id AS ua_id,\n" +
-                        "  ua.email AS ua_email,\n" +
-                        "  ua.password AS ua_password,\n" +
-                        "  b.id AS b_id,\n" +
-                        "  b.first_name AS b_first_name,\n" +
-                        "  b.last_name AS b_last_name\n" +
+                        selectList() +
                         "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
                         "WHERE u.id = ?",
                 ps -> ps.setInt(1, userId),
@@ -160,6 +167,7 @@ public class UserAccountDao {
         UserAccount userAccount = new UserAccount();
 
         userAccount.setId(rs.getInt("ua_id"));
+        userAccount.setVerified(rs.getBoolean("ua_verified"));
         userAccount.setEmail(rs.getString("ua_email"));
         userAccount.setPassword(rs.getString("ua_password"));
         userAccount.setUserId(user.getId());
@@ -175,5 +183,17 @@ public class UserAccountDao {
         user.setBiography(biography);
 
         return user;
+    }
+
+    private String selectList() {
+        return "  u.id AS u_id,\n" +
+                "  u.provider_id AS u_provider_id,\n" +
+                "  ua.id AS ua_id,\n" +
+                "  ua.verified as ua_verified,\n" +
+                "  ua.email AS ua_email,\n" +
+                "  ua.password AS ua_password,\n" +
+                "  b.id AS b_id,\n" +
+                "  b.first_name AS b_first_name,\n" +
+                "  b.last_name AS b_last_name\n";
     }
 }

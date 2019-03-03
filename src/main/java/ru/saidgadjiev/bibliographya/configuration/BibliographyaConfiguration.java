@@ -9,10 +9,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.H2Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
+import ru.saidgadjiev.bibliographya.properties.UIProperties;
 
 import java.util.Locale;
 
@@ -22,10 +23,13 @@ import java.util.Locale;
 @Configuration
 public class BibliographyaConfiguration {
 
+    private UIProperties uiProperties;
+
     private DataSourceProperties dataSourceProperties;
 
     @Autowired
-    public BibliographyaConfiguration(DataSourceProperties dataSourceProperties) {
+    public BibliographyaConfiguration(UIProperties uiProperties, DataSourceProperties dataSourceProperties) {
+        this.uiProperties = uiProperties;
         this.dataSourceProperties = dataSourceProperties;
     }
 
@@ -46,8 +50,12 @@ public class BibliographyaConfiguration {
 
     @Bean
     public LocaleResolver localeResolver() {
-        SessionLocaleResolver slr = new SessionLocaleResolver();
+        CookieLocaleResolver slr = new CookieLocaleResolver();
+
         slr.setDefaultLocale(new Locale("ru", "RU"));
+        slr.setCookieDomain(uiProperties.getName());
+        slr.setCookieName("localeInfo");
+
         return slr;
     }
 }

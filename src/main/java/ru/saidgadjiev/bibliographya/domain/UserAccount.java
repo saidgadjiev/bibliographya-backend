@@ -9,6 +9,8 @@ public class UserAccount {
 
     private String email;
 
+    private boolean verified;
+
     private String password;
 
     private int userId;
@@ -27,6 +29,14 @@ public class UserAccount {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 
     public String getPassword() {

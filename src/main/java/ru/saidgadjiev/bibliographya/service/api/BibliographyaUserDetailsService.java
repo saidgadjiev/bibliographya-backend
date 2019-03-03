@@ -11,6 +11,7 @@ import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * Created by said on 22.10.2018.
@@ -31,11 +32,11 @@ public interface BibliographyaUserDetailsService {
 
     HttpStatus savePassword(SavePassword savePassword);
 
-    HttpStatus restorePassword(HttpServletRequest request, String email);
+    HttpStatus restorePassword(HttpServletRequest request, Locale locale, String email);
 
     HttpStatus restorePassword(HttpServletRequest request, RestorePassword restorePassword);
 
     HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail);
 
-    HttpStatus changeEmail(HttpServletRequest request, String newEmail);
+    HttpStatus changeEmail(HttpServletRequest request, Locale locale, String newEmail);
 }

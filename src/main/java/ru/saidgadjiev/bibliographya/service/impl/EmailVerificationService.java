@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.EmailVerificationDao;
 import ru.saidgadjiev.bibliographya.domain.EmailVerification;
@@ -16,6 +15,7 @@ import java.util.Objects;
 /**
  * Created by said on 11.02.2019.
  */
+@SuppressWarnings("PMD")
 public class EmailVerificationService {
 
     private CodeGenerator codeGenerator;
