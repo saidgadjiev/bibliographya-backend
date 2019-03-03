@@ -53,24 +53,13 @@ public class BiographyCommentService {
 
         biographyComment.setUser(biography);
 
-        if (commentRequest.getParent() != null) {
-            biographyComment.setParentId(commentRequest.getParent().getId());
-            BiographyComment parent = new BiographyComment();
-
-            parent.setId(commentRequest.getParent().getId());
-
-            Biography replyTo = new Biography();
-
-            replyTo.setId(commentRequest.getParent().getBiographyId());
-            replyTo.setFirstName(commentRequest.getParent().getFirstName());
-
-            parent.setUser(replyTo);
-            parent.setBiographyId(commentRequest.getParent().getBiographyId());
-
-            biographyComment.setParent(parent);
+        if (commentRequest.getParentId() != null) {
+            biographyComment.setParentId(commentRequest.getParentId());
         }
 
-        return biographyCommentDao.create(biographyComment);
+        BiographyComment comment = biographyCommentDao.create(biographyComment);
+
+        return biographyCommentDao.getById(comment.getId());
     }
 
     @Transactional

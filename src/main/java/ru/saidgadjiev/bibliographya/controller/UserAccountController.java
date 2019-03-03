@@ -77,4 +77,12 @@ public class UserAccountController {
 
         return ResponseEntity.status(status).build();
     }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @PostMapping("/change-email")
+    public ResponseEntity<?> changeEmail(HttpServletRequest request, @RequestParam("newEmail") String newEmail) {
+        HttpStatus status = userAccountDetailsService.changeEmail(request, newEmail);
+
+        return ResponseEntity.status(status).build();
+    }
 }

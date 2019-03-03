@@ -21,11 +21,13 @@ import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.SessionEmailVerificationService;
+import ru.saidgadjiev.bibliographya.service.impl.SessionManager;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
@@ -34,14 +36,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by said on 24.12.2018.
  */
 @Service
 public class AuthService {
-
-    public static final String SESSION_SIGNING_UP = "signingUp";
 
     private final SocialServiceFactory socialServiceFactory;
 
@@ -55,6 +56,8 @@ public class AuthService {
 
     private SessionEmailVerificationService emailVerificationService;
 
+    private SessionManager sessionManager;
+
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
             (request, response, authentication) -> CookieUtils.deleteCookie(request, response,"X-TOKEN"),
             new SecurityContextLogoutHandler()
@@ -65,12 +68,14 @@ public class AuthService {
                        BibliographyaUserDetailsService userAccountDetailsService,
                        TokenService tokenService,
                        SecurityService securityService,
-                       SessionEmailVerificationService emailVerificationService) {
+                       SessionEmailVerificationService emailVerificationService,
+                       SessionManager sessionManager) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
         this.emailVerificationService = emailVerificationService;
+        this.sessionManager = sessionManager;
     }
 
     @Autowired
@@ -137,10 +142,7 @@ public class AuthService {
         if (userAccountDetailsService.isExistEmail(signUpRequest.getEmail())) {
             return HttpStatus.CONFLICT;
         }
-        HttpSession session = request.getSession(true);
-
-        session.setAttribute("signingUp", true);
-        session.setAttribute("request", signUpRequest);
+        sessionManager.setSignUp(request, signUpRequest);
 
         emailVerificationService.sendVerification(request, signUpRequest.getEmail());
 
@@ -148,15 +150,14 @@ public class AuthService {
     }
 
     public SignUpResult confirmSignUp(HttpServletRequest request, Integer code) throws SQLException {
-        HttpSession session = request.getSession(false);
+        SignUpRequest signUpRequest = sessionManager.getSignUp(request);
 
-        if (isSigningUp(session)) {
-            SignUpRequest signUpRequest = (SignUpRequest) session.getAttribute("request");
-
+        if (signUpRequest != null) {
             EmailVerificationResult result = emailVerificationService.confirm(request, signUpRequest.getEmail(), code);
 
             if (result.isValid()) {
                 userAccountDetailsService.save(signUpRequest);
+                sessionManager.removeSignUp(request);
 
                 return new SignUpResult().setStatus(HttpStatus.OK);
             }
@@ -182,10 +183,10 @@ public class AuthService {
     }
 
     public AccountResult<?> account(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+        SessionState sessionState = sessionManager.getState(request);
 
-        if (isSigningUp(session)) {
-            SignUpRequest signUpRequest = (SignUpRequest) session.getAttribute("request");
+        if (Objects.equals(sessionState, SessionState.SIGN_UP_CONFIRM)) {
+            SignUpRequest signUpRequest = sessionManager.getSignUp(request);
             SignUpRequest result = new SignUpRequest();
 
             result.setEmail(signUpRequest.getEmail());
@@ -232,23 +233,6 @@ public class AuthService {
             } else {
                 SecurityContextHolder.getContext().setAuthentication(null);
             }
-        }
-    }
-
-    private boolean isSigningUp(HttpSession session) {
-        if (session == null) {
-            return false;
-        }
-        Boolean signingUp = (Boolean) session.getAttribute(SESSION_SIGNING_UP);
-
-        return signingUp != null && signingUp;
-    }
-
-    public void cancelSignUp(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            session.invalidate();
         }
     }
 }

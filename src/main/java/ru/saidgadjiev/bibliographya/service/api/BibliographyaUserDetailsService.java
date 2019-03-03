@@ -36,4 +36,6 @@ public interface BibliographyaUserDetailsService {
     HttpStatus restorePassword(HttpServletRequest request, RestorePassword restorePassword);
 
     HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail);
+
+    HttpStatus changeEmail(HttpServletRequest request, String newEmail);
 }

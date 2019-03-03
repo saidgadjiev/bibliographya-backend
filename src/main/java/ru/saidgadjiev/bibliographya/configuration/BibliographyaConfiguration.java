@@ -8,9 +8,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.H2Dialect;
 import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
+
+import java.util.Locale;
 
 /**
  * Created by said on 16.11.2018.
@@ -38,5 +42,12 @@ public class BibliographyaConfiguration {
         }
 
         return new PostgresDialect();
+    }
+
+    @Bean
+    public LocaleResolver localeResolver() {
+        SessionLocaleResolver slr = new SessionLocaleResolver();
+        slr.setDefaultLocale(new Locale("ru", "RU"));
+        return slr;
     }
 }

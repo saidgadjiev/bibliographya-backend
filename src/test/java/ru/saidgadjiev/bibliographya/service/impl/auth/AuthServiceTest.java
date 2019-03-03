@@ -18,6 +18,7 @@ import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
@@ -287,7 +288,7 @@ class AuthServiceTest {
         HttpSession session = Mockito.mock(HttpSession.class);
 
         Mockito.when(request.getSession(eq(false))).thenReturn(session);
-        Mockito.when(session.getAttribute(eq(AuthService.SESSION_SIGNING_UP))).thenReturn(true);
+        Mockito.when(session.getAttribute(eq("state"))).thenReturn(SessionState.SIGN_UP_CONFIRM);
 
         SignUpRequest signUpRequest = signUpRequest();
 
@@ -334,7 +335,7 @@ class AuthServiceTest {
         HttpSession session = Mockito.mock(HttpSession.class);
 
         Mockito.when(request.getSession(eq(false))).thenReturn(session);
-        Mockito.when(session.getAttribute(eq(AuthService.SESSION_SIGNING_UP))).thenReturn(true);
+        Mockito.when(session.getAttribute(eq("state"))).thenReturn(SessionState.SIGN_UP_CONFIRM);
 
         SignUpRequest signUpRequest = signUpRequest();
 
@@ -433,7 +434,7 @@ class AuthServiceTest {
         HttpSession session = Mockito.mock(HttpSession.class);
 
         Mockito.when(request.getSession(anyBoolean())).thenReturn(session);
-        Mockito.when(session.getAttribute(eq(AuthService.SESSION_SIGNING_UP))).thenReturn(true);
+        Mockito.when(session.getAttribute(eq("state"))).thenReturn(SessionState.SIGN_UP_CONFIRM);
 
         AccountResult accountResult = authService.account(request);
 

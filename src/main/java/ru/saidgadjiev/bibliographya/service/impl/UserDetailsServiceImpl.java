@@ -227,6 +227,19 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
         return HttpStatus.PRECONDITION_FAILED;
     }
 
+    @Override
+    public HttpStatus changeEmail(HttpServletRequest request, String newEmail) {
+        if (isExistEmail(newEmail)) {
+            return HttpStatus.CONFLICT;
+        }
+        emailVerificationService.sendVerification(
+                request,
+                newEmail
+        );
+
+        return HttpStatus.OK;
+    }
+
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {
         userRoleDao.addRoles(user.getId(), user.getRoles());
 

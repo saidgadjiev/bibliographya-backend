@@ -3,10 +3,10 @@ package ru.saidgadjiev.bibliographya.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -17,40 +17,47 @@ import java.util.Objects;
 @Service
 public class SessionEmailVerificationService {
 
+    private SessionManager sessionManager;
+
     private final CodeGenerator codeGenerator;
 
     private final EmailService emailService;
 
     @Autowired
-    public SessionEmailVerificationService(CodeGenerator codeGenerator, EmailService emailService) {
+    public SessionEmailVerificationService(SessionManager sessionManager,
+                                           CodeGenerator codeGenerator,
+                                           EmailService emailService) {
+        this.sessionManager = sessionManager;
         this.codeGenerator = codeGenerator;
         this.emailService = emailService;
     }
 
     public void sendVerification(HttpServletRequest request, String email) {
-        HttpSession session = request.getSession(true);
-        int code = codeGenerator.generate();
+        SessionState sessionState = sessionManager.getState(request);
 
-        emailService.sendEmail(email, code);
+        if (!Objects.equals(sessionState, SessionState.NONE)) {
+            int code = codeGenerator.generate();
 
-        session.setAttribute("code", code);
-        Calendar calendar = Calendar.getInstance();
+            emailService.sendEmail(email, sessionManager.getEmailSubject(request), sessionManager.getEmailMessage(request));
 
-        calendar.setTime(new Date());
-        calendar.add(Calendar.DATE, 1);
+            Calendar calendar = Calendar.getInstance();
 
-        session.setAttribute("expiredAt", calendar.getTimeInMillis());
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DATE, 1);
+
+            sessionManager.setCode(request, code, calendar.getTimeInMillis());
+        }
     }
 
     public EmailVerificationResult verify(HttpServletRequest request, String email, int code) {
-        HttpSession session = request.getSession(false);
+        SessionState sessionState = sessionManager.getState(request);
 
-        if (session == null) {
+        if (sessionState == null) {
             return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
         }
 
-        int currentCode = (int) session.getAttribute("code");
-        long expiredAt = (long) session.getAttribute("expiredAt");
+        int currentCode = sessionManager.getCode(request);
+        long expiredAt = sessionManager.getExpiredAt(request);
 
         if (TimeUtils.isExpired(expiredAt)) {
             return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.EXPIRED);
@@ -63,11 +70,10 @@ public class SessionEmailVerificationService {
     }
 
     public EmailVerificationResult confirm(HttpServletRequest request, String email, Integer code) {
-        HttpSession session = request.getSession(false);
         EmailVerificationResult verificationResult = verify(request, email, code);
 
         if (verificationResult.isValid()) {
-            session.invalidate();
+            sessionManager.removeCode(request);
         }
 
         return verificationResult;

@@ -1,14 +1,9 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.util.PropertyPlaceholderHelper;
-
-import javax.mail.internet.MimeMessage;
 
 /**
  * Created by said on 11.02.2019.
@@ -18,23 +13,17 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
 
-    private MessageSource messageSource;
-
     @Autowired
-    public EmailService(JavaMailSender javaMailSender, MessageSource messageSource) {
+    public EmailService(JavaMailSender javaMailSender) {
         this.javaMailSender = javaMailSender;
-        this.messageSource = messageSource;
     }
 
-    public void sendEmail(String email, String message, String subject, int code) {
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+    public void sendEmail(String email, String subject, String message) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
 
-        mailMessage.setSubject("Подтверждение почты");
+        mailMessage.setSubject(subject);
         mailMessage.setTo(email);
         mailMessage.setText(message);
-
-        messageSource.getMessage()
 
         javaMailSender.send(mailMessage);
     }

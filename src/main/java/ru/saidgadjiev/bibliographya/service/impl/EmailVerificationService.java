@@ -16,7 +16,6 @@ import java.util.Objects;
 /**
  * Created by said on 11.02.2019.
  */
-@Service
 public class EmailVerificationService {
 
     private CodeGenerator codeGenerator;
@@ -39,7 +38,7 @@ public class EmailVerificationService {
         if (verification == null) {
             int nextCode = codeGenerator.generate();
 
-            emailService.sendEmail(email, nextCode);
+            emailService.sendEmail(null, null, null);
 
             EmailVerification newVerification = new EmailVerification();
             Calendar calendar = Calendar.getInstance();
@@ -99,11 +98,11 @@ public class EmailVerificationService {
     private void resendCode(EmailVerification emailVerification) {
         if (TimeUtils.isExpired(emailVerification.getExpiredAt().getTime())) {
             int nextCode = codeGenerator.generate();
-            emailService.sendEmail(emailVerification.getEmail(), nextCode);
+            emailService.sendEmail(null, null, null);
 
             emailVerificationDao.updateCode(emailVerification.getEmail(), nextCode);
         } else {
-            emailService.sendEmail(emailVerification.getEmail(), emailVerification.getCode());
+            emailService.sendEmail(null, null, null);
         }
     }
 }
