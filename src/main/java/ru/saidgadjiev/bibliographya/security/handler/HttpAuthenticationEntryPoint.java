@@ -41,6 +41,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
         } else if (authException instanceof DisabledException) {
             ObjectNode objectNode = objectMapper.createObjectNode();
 
+            objectNode.put("state", sessionManager.getState(request).name());
             objectNode.put("email", sessionManager.getEmail(request));
 
             ResponseUtils.sendResponseMessage(

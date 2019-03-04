@@ -145,6 +145,8 @@ public class SessionManager {
                 return messageSource.getMessage("confirm.changeEmail.subject", new Object[] {}, locale);
             case SIGN_UP_CONFIRM:
                 return messageSource.getMessage("confirm.signUp.subject", new Object[] {}, locale);
+            case EMAIL_CONFIRM:
+                return messageSource.getMessage("confirm.email.subject", new Object[] {}, locale);
             case NONE:
                 break;
         }
@@ -161,30 +163,42 @@ public class SessionManager {
         String code = String.valueOf(getCode(request));
 
         switch (sessionState) {
-            case RESTORE_PASSWORD:
+            case EMAIL_CONFIRM: {
+                String firstName = (String) request.getSession(false).getAttribute("firstName");
+
+                return messageSource.getMessage(
+                        "confirm.email.message",
+                        new Object[]{ firstName, code },
+                        locale
+                );
+            }
+            case RESTORE_PASSWORD: {
                 String firstName = (String) request.getSession(false).getAttribute("firstName");
 
                 return messageSource.getMessage(
                         "confirm.restorePassword.message",
-                        new Object[]{ firstName, code },
+                        new Object[]{firstName, code},
                         locale
                 );
-            case CHANGE_EMAIL:
+            }
+            case CHANGE_EMAIL: {
                 User user = (User) securityService.findLoggedInUser();
 
                 return messageSource.getMessage(
                         "confirm.changeEmail.message",
-                        new Object[]{ user.getBiography().getFirstName(), code },
+                        new Object[]{user.getBiography().getFirstName(), code},
                         locale
                 );
-            case SIGN_UP_CONFIRM:
+            }
+            case SIGN_UP_CONFIRM: {
                 SignUpRequest signUpRequest = getSignUp(request);
 
                 return messageSource.getMessage(
                         "confirm.signUp.message",
-                        new Object[]{ signUpRequest.getFirstName(), code },
+                        new Object[]{signUpRequest.getFirstName(), code},
                         locale
                 );
+            }
             case NONE:
                 break;
         }
