@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +31,7 @@ import java.util.stream.Stream;
  * Created by said on 21.10.2018.
  */
 @Service("userDetailsService")
-public class UserDetailsServiceImpl implements UserDetailsService, BibliographyaUserDetailsService {
+public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final UserAccountDao userAccountDao;
 
@@ -201,7 +202,7 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
                 return HttpStatus.NOT_FOUND;
             }
 
-            sessionManager.removeRestorePassword(request);
+            sessionManager.removeState(request);
 
             return HttpStatus.OK;
         }
@@ -228,10 +229,10 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
             if (updated == 0) {
                 return HttpStatus.NOT_FOUND;
             }
-            sessionManager.removeChangeEmail(request);
+            sessionManager.removeState(request);
 
-            userAccountDao.updateVerified(actual.getUsername(), false);
-            userAccountDao.updateVerifiedById(actual.getUserAccount().getId(), true);
+            userAccountDao.updateEmailVerified(actual.getUsername(), false);
+            userAccountDao.updateEmailVerifiedById(actual.getUserAccount().getId(), true);
 
             return HttpStatus.OK;
         }
@@ -241,7 +242,9 @@ public class UserDetailsServiceImpl implements UserDetailsService, Bibliographya
 
     @Override
     public HttpStatus changeEmail(HttpServletRequest request, Locale locale, String newEmail) {
-        sessionManager.setChangeEmail(request, newEmail);
+        User user = (User) securityService.findLoggedInUser();
+
+        sessionManager.setChangeEmail(request, newEmail, user);
 
         emailVerificationService.sendVerification(
                 request,

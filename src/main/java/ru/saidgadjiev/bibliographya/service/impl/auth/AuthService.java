@@ -128,9 +128,17 @@ public class AuthService {
                                 authContext.getSignInRequest().getEmail(),
                                 authContext.getSignInRequest().getPassword()
                         );
-                Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+                try {
+                    Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 
-                user = (User) authentication.getPrincipal();
+                    user = (User) authentication.getPrincipal();
+                } catch (DisabledException ex) {
+                    User actual = (User) userAccountDetailsService.loadUserByUsername(authContext.getSignInRequest().getEmail());
+
+                    sessionManager.setEmailConfirmRequired(authContext.getRequest(), actual);
+
+                    throw ex;
+                }
 
                 break;
         }
@@ -163,7 +171,7 @@ public class AuthService {
 
             if (result.isValid()) {
                 userAccountDetailsService.save(signUpRequest);
-                sessionManager.removeSignUp(request);
+                sessionManager.removeState(request);
 
                 return new SignUpResult().setStatus(HttpStatus.OK);
             }
@@ -247,7 +255,6 @@ public class AuthService {
     }
 
     public void cancelSignUp(HttpServletRequest request) {
-        sessionManager.removeSignUp(request);
-        sessionManager.removeCode(request);
+        sessionManager.removeState(request);
     }
 }

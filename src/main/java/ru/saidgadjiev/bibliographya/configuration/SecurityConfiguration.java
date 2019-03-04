@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +18,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import ru.saidgadjiev.bibliographya.security.filter.JwtFilter;
-import ru.saidgadjiev.bibliographya.security.handler.Http401UnAuthorizedEntryPoint;
+import ru.saidgadjiev.bibliographya.security.handler.HttpAuthenticationEntryPoint;
 import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
+import ru.saidgadjiev.bibliographya.service.impl.SessionManager;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 /**
@@ -35,11 +37,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private PasswordEncoder passwordEncoder;
 
+    private SessionManager sessionManager;
+
+    private ObjectMapper objectMapper;
+
     @Autowired
     public SecurityConfiguration(UserDetailsService userDetailsService,
-                                 PasswordEncoder passwordEncoder) {
+                                 PasswordEncoder passwordEncoder,
+                                 SessionManager sessionManager,
+                                 ObjectMapper objectMapper) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.sessionManager = sessionManager;
+        this.objectMapper = objectMapper;
     }
 
     @Autowired
@@ -62,7 +72,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterAfter(new JwtFilter(authService), BasicAuthenticationFilter.class)
                 .exceptionHandling()
-                .authenticationEntryPoint(new Http401UnAuthorizedEntryPoint())
+                .authenticationEntryPoint(new HttpAuthenticationEntryPoint(sessionManager, objectMapper))
                 .accessDeniedHandler(new Http403AccessDeniedEntryPoint())
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

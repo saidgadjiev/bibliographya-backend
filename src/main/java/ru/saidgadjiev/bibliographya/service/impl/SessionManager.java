@@ -9,8 +9,8 @@ import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.BiConsumer;
 
 @Service
 public class SessionManager {
@@ -25,38 +25,20 @@ public class SessionManager {
         this.securityService = securityService;
     }
 
+    public void setEmailConfirmRequired(HttpServletRequest request, User user) {
+        setState(request, SessionState.EMAIL_CONFIRM, user, new HashMap<String, Object>() {{
+            put("email", user.getUserAccount().getEmail());
+        }});
+    }
+
     public void setRestorePassword(HttpServletRequest request, User user) {
-        HttpSession session = request.getSession(true);
-
-        session.setAttribute("state", SessionState.RESTORE_PASSWORD);
-        session.setAttribute("firstName", user.getBiography().getFirstName());
-        session.setAttribute("email", user.getUserAccount().getEmail());
+        setState(request, SessionState.RESTORE_PASSWORD, user, null);
     }
 
-    public void removeRestorePassword(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            session.removeAttribute("state");
-            session.removeAttribute("firstName");
-            session.removeAttribute("email");
-        }
-    }
-
-    public void setChangeEmail(HttpServletRequest request, String email) {
-        HttpSession session = request.getSession(true);
-
-        session.setAttribute("state", SessionState.CHANGE_EMAIL);
-        session.setAttribute("email", email);
-    }
-
-    public void removeChangeEmail(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            session.removeAttribute("state");
-            session.removeAttribute("email");
-        }
+    public void setChangeEmail(HttpServletRequest request, String email, User user) {
+        setState(request, SessionState.CHANGE_EMAIL, user, new HashMap<String, Object>() {{
+            put("email", email);
+        }});
     }
 
     public void setSignUp(HttpServletRequest request, SignUpRequest signUpRequest) {
@@ -87,19 +69,6 @@ public class SessionManager {
         return signUpRequest;
     }
 
-    public void removeSignUp(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            session.removeAttribute("state");
-            session.removeAttribute("email");
-            session.removeAttribute("firstName");
-            session.removeAttribute("lastName");
-            session.removeAttribute("middleName");
-            session.removeAttribute("password");
-        }
-    }
-
     public SessionState getState(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
@@ -121,17 +90,6 @@ public class SessionManager {
 
         session.setAttribute("code", code);
         session.setAttribute("expiredAt", expiredAt);
-    }
-
-    public void removeCode(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session == null) {
-            return;
-        }
-
-        session.removeAttribute("code");
-        session.removeAttribute("expiredAt");
     }
 
     public Integer getCode(HttpServletRequest request) {
@@ -162,6 +120,16 @@ public class SessionManager {
         }
 
         return (Long) session.getAttribute("expiredAt");
+    }
+
+    public void removeState(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            for (Enumeration<String> attrNames = session.getAttributeNames(); attrNames.hasMoreElements();) {
+                session.removeAttribute(attrNames.nextElement());
+            }
+        }
     }
 
     public String getEmailSubject(HttpServletRequest request, Locale locale) {
@@ -222,5 +190,20 @@ public class SessionManager {
         }
 
         return null;
+    }
+
+    private void setState(HttpServletRequest request, SessionState state, User user, Map<String, Object> args) {
+        HttpSession session = request.getSession(true);
+
+        session.setAttribute("state", state);
+
+        if (user != null) {
+            session.setAttribute("firstName", user.getBiography().getFirstName());
+            session.setAttribute("email", user.getUserAccount().getEmail());
+        }
+
+        if (args != null) {
+            args.forEach(session::setAttribute);
+        }
     }
 }

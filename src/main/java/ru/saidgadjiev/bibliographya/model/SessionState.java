@@ -8,5 +8,7 @@ public enum SessionState {
 
     SIGN_UP_CONFIRM,
 
+    EMAIL_CONFIRM,
+
     NONE
 }

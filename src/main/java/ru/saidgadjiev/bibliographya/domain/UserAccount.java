@@ -9,7 +9,7 @@ public class UserAccount {
 
     private String email;
 
-    private boolean verified;
+    private boolean emailVerified;
 
     private String password;
 
@@ -31,12 +31,12 @@ public class UserAccount {
         this.email = email;
     }
 
-    public boolean isVerified() {
-        return verified;
+    public boolean isEmailVerified() {
+        return emailVerified;
     }
 
-    public void setVerified(boolean verified) {
-        this.verified = verified;
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public String getPassword() {

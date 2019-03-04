@@ -49,9 +49,9 @@ public class UserAccountDao {
         );
     }
 
-    public int updateVerified(String email, boolean verified) {
+    public int updateEmailVerified(String email, boolean verified) {
         return jdbcTemplate.update(
-                "UPDATE user_account SET verified = ? WHERE email = ?",
+                "UPDATE user_account SET email_verified = ? WHERE email = ?",
                 preparedStatement -> {
                     preparedStatement.setBoolean(1, verified);
                     preparedStatement.setString(2, email);
@@ -59,9 +59,9 @@ public class UserAccountDao {
         );
     }
 
-    public int updateVerifiedById(int id, boolean verified) {
+    public int updateEmailVerifiedById(int id, boolean verified) {
         return jdbcTemplate.update(
-                "UPDATE user_account SET verified = ? WHERE id = ?",
+                "UPDATE user_account SET email_verified = ? WHERE id = ?",
                 preparedStatement -> {
                     preparedStatement.setBoolean(1, verified);
                     preparedStatement.setInt(2, id);
@@ -95,12 +95,12 @@ public class UserAccountDao {
         jdbcTemplate.update(
                 con -> {
                     PreparedStatement ps = con.prepareStatement(
-                            "INSERT INTO user_account(email, verified, password, user_id) VALUES(?, ?, ?, ?)",
+                            "INSERT INTO user_account(email, email_verified, password, user_id) VALUES(?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS
                     );
 
                     ps.setString(1, user.getUsername());
-                    ps.setBoolean(2, user.getUserAccount().isVerified());
+                    ps.setBoolean(2, user.getUserAccount().isEmailVerified());
                     ps.setString(3, user.getPassword());
                     ps.setInt(4, user.getId());
 
@@ -167,7 +167,7 @@ public class UserAccountDao {
         UserAccount userAccount = new UserAccount();
 
         userAccount.setId(rs.getInt("ua_id"));
-        userAccount.setVerified(rs.getBoolean("ua_verified"));
+        userAccount.setEmailVerified(rs.getBoolean("ua_verified"));
         userAccount.setEmail(rs.getString("ua_email"));
         userAccount.setPassword(rs.getString("ua_password"));
         userAccount.setUserId(user.getId());
@@ -189,7 +189,7 @@ public class UserAccountDao {
         return "  u.id AS u_id,\n" +
                 "  u.provider_id AS u_provider_id,\n" +
                 "  ua.id AS ua_id,\n" +
-                "  ua.verified as ua_verified,\n" +
+                "  ua.email_verified as ua_verified,\n" +
                 "  ua.email AS ua_email,\n" +
                 "  ua.password AS ua_password,\n" +
                 "  b.id AS b_id,\n" +

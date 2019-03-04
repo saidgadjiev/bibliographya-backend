@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.api;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.SaveEmail;
@@ -16,7 +17,7 @@ import java.util.Locale;
 /**
  * Created by said on 22.10.2018.
  */
-public interface BibliographyaUserDetailsService {
+public interface BibliographyaUserDetailsService extends UserDetailsService {
 
     User save(SignUpRequest signUpRequest) throws SQLException;
 
