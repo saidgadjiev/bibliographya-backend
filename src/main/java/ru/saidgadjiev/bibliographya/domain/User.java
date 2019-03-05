@@ -63,10 +63,6 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public boolean isEnabled() {
-        if (userAccount != null) {
-            return userAccount.isEmailVerified();
-        }
-
         return true;
     }
 

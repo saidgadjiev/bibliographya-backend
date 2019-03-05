@@ -134,11 +134,7 @@ public class AuthService {
                 break;
         }
 
-        securityService.authenticate(user);
-
-        String token = tokenService.createToken(user, accessGrant);
-
-        CookieUtils.addCookie(authContext.getResponse(), uiProperties.getName(), "X-TOKEN", token);
+        auth(authContext.getResponse(), user, accessGrant);
 
         return user;
     }
@@ -154,17 +150,19 @@ public class AuthService {
         return HttpStatus.OK;
     }
 
-    public SignUpResult confirmSignUp(HttpServletRequest request, Integer code) throws SQLException {
-        SignUpRequest signUpRequest = sessionManager.getSignUp(request);
+    public SignUpResult confirmSignUp(AuthContext authContext, Integer code) throws SQLException {
+        SignUpRequest signUpRequest = sessionManager.getSignUp(authContext.getRequest());
 
         if (signUpRequest != null) {
-            EmailVerificationResult result = emailVerificationService.verify(request, signUpRequest.getEmail(), code);
+            EmailVerificationResult result = emailVerificationService.verify(authContext.getRequest(), signUpRequest.getEmail(), code);
 
             if (result.isValid()) {
-                userAccountDetailsService.save(signUpRequest);
-                sessionManager.removeState(request);
+                User user = userAccountDetailsService.save(signUpRequest);
+                sessionManager.removeState(authContext.getRequest());
 
-                return new SignUpResult().setStatus(HttpStatus.OK);
+                auth(authContext.getResponse(), user, null);
+
+                return new SignUpResult().setStatus(HttpStatus.OK).setUser(user);
             }
 
             return new SignUpResult().setStatus(HttpStatus.PRECONDITION_FAILED);
@@ -249,5 +247,14 @@ public class AuthService {
 
     public void cancelSignUp(HttpServletRequest request) {
         sessionManager.removeState(request);
+    }
+
+    private void auth(HttpServletResponse response, User user, AccessGrant accessGrant) {
+        securityService.authenticate(user);
+
+        String token = tokenService.createToken(user, accessGrant);
+
+        CookieUtils.addCookie(response, uiProperties.getName(), "X-TOKEN", token);
+
     }
 }

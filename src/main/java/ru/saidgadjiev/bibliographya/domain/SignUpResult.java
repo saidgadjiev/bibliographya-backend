@@ -9,12 +9,24 @@ public class SignUpResult {
 
     private HttpStatus status;
 
+    private User user;
+
     public HttpStatus getStatus() {
         return status;
     }
 
     public SignUpResult setStatus(HttpStatus status) {
         this.status = status;
+
+        return this;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public SignUpResult setUser(User user) {
+        this.user = user;
 
         return this;
     }
