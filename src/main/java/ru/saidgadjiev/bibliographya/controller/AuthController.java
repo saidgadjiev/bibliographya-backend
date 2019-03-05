@@ -127,17 +127,13 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        try {
-            AuthContext authContext = new AuthContext()
-                    .setProviderType(ProviderType.EMAIL_PASSWORD)
-                    .setResponse(response)
-                    .setRequest(request)
-                    .setSignInRequest(signInRequest);
+        AuthContext authContext = new AuthContext()
+                .setProviderType(ProviderType.EMAIL_PASSWORD)
+                .setResponse(response)
+                .setRequest(request)
+                .setSignInRequest(signInRequest);
 
-            return ResponseEntity.ok(authService.auth(authContext, null));
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(authService.auth(authContext, null));
     }
 
     @PostMapping("/signOut")

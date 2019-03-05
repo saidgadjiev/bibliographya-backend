@@ -1,10 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -72,9 +70,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userAccountDao.getByEmail(email);
 
-        if (user != null) {
-            user.setRoles(userRoleDao.getRoles(user.getId()));
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
         }
+
+        user.setRoles(userRoleDao.getRoles(user.getId()));
 
         return user;
     }
@@ -253,6 +253,15 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         );
 
         return HttpStatus.OK;
+    }
+
+    @Override
+    public void verifyEmail(HttpServletRequest request, String email, Integer code) {
+        EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(request, email, code);
+
+        if (emailVerificationResult.isValid()) {
+            userAccountDao.updateEmailVerified(email, false);
+        }
     }
 
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {

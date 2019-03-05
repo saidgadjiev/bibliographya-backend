@@ -2,8 +2,8 @@ package ru.saidgadjiev.bibliographya.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.log4j.Logger;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
@@ -21,7 +21,7 @@ import java.io.IOException;
  */
 public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private static final Logger LOGGER = Logger.getLogger(HttpAuthenticationEntryPoint.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpAuthenticationEntryPoint.class);
 
     private final SessionManager sessionManager;
 
@@ -37,7 +37,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
         LOGGER.error(authException.getMessage(), authException);
 
         if (authException instanceof BadCredentialsException) {
-            ResponseUtils.sendResponseMessage(response, HttpServletResponse.SC_BAD_REQUEST);
+            ResponseUtils.sendResponseMessage(response, HttpServletResponse.SC_UNAUTHORIZED);
         } else if (authException instanceof DisabledException) {
             ObjectNode objectNode = objectMapper.createObjectNode();
 
@@ -46,7 +46,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
             ResponseUtils.sendResponseMessage(
                     response,
-                    HttpStatus.PRECONDITION_REQUIRED.value(),
+                    HttpServletResponse.SC_FORBIDDEN,
                     objectMapper.writeValueAsString(objectNode)
             );
         }

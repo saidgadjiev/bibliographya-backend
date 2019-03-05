@@ -10,7 +10,6 @@ import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
-import java.util.function.BiConsumer;
 
 @Service
 public class SessionManager {

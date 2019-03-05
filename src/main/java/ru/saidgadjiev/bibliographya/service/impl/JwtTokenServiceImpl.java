@@ -1,7 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import io.jsonwebtoken.Jwts;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.Map;
 @Qualifier("customTokenService")
 public class JwtTokenServiceImpl implements TokenService {
 
-    private static final Logger LOGGER = Logger.getLogger(JwtTokenServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenServiceImpl.class);
 
     private JwtProperties jwtProperties;
 

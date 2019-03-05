@@ -89,7 +89,7 @@ public class SessionEmailVerificationService {
         EmailVerificationResult verificationResult = verify(request, email, code);
 
         if (verificationResult.isValid()) {
-            sessionManager.removeCode(request);
+            sessionManager.removeState(request);
         }
 
         return verificationResult;

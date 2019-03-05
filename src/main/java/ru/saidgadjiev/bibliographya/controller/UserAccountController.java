@@ -9,6 +9,7 @@ import ru.saidgadjiev.bibliographya.domain.SaveEmail;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
+import ru.saidgadjiev.bibliographya.utils.ResponseUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -85,5 +86,10 @@ public class UserAccountController {
         HttpStatus status = userAccountDetailsService.changeEmail(request, locale, newEmail);
 
         return ResponseEntity.status(status).build();
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestParam("email") String email, @RequestParam("code") Integer code) {
+        userAccountDetailsService.verifyEmail(email, code);
     }
 }

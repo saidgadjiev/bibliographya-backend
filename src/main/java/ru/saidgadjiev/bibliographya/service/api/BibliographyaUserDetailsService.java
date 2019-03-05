@@ -40,4 +40,6 @@ public interface BibliographyaUserDetailsService extends UserDetailsService {
     HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail);
 
     HttpStatus changeEmail(HttpServletRequest request, Locale locale, String newEmail);
+
+    void verifyEmail(HttpServletRequest request, String email, Integer code);
 }

@@ -122,8 +122,11 @@ public class UserAccountDao {
                 "SELECT\n" +
                         selectList() +
                         "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE ua.email = ?",
-                ps -> ps.setString(1, email),
+                        "WHERE ua.email = ? AND ua.email_verified = ?",
+                ps -> {
+                    ps.setString(1, email);
+                    ps.setBoolean(2, true);
+                },
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
@@ -153,7 +156,11 @@ public class UserAccountDao {
 
     public boolean isExistEmail(String email) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM user_account WHERE email ='" + email + "'",
+                "SELECT COUNT(*) as cnt FROM user_account WHERE email = ? AND email_verified = ?",
+                preparedStatement -> {
+                    preparedStatement.setString(1, email);
+                    preparedStatement.setBoolean(2, true);
+                },
                 rs -> rs.next() && rs.getLong("cnt") > 0
         );
     }
