@@ -9,7 +9,6 @@ import ru.saidgadjiev.bibliographya.domain.SaveEmail;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
-import ru.saidgadjiev.bibliographya.utils.ResponseUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -50,46 +49,61 @@ public class UserAccountController {
         return ResponseEntity.status(changeStatus).build();
     }
 
-    @PostMapping("/restore-password")
+    @PostMapping("/restore-password/start")
     public ResponseEntity<?> restorePassword(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
-        HttpStatus restoreResult = userAccountDetailsService.restorePassword(request, locale, email);
+        HttpStatus restoreResult = userAccountDetailsService.restorePasswordStart(request, locale, email);
 
         return ResponseEntity.status(restoreResult).build();
     }
 
-    @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(HttpServletRequest request, @RequestBody RestorePassword restorePassword, BindingResult bindingResult) {
+    @PostMapping("/restore-password/finish")
+    public ResponseEntity<?> changePassword(HttpServletRequest request,
+                                            @RequestBody RestorePassword restorePassword,
+                                            BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        HttpStatus restoreStatus = userAccountDetailsService.restorePassword(request, restorePassword);
+        HttpStatus restoreStatus = userAccountDetailsService.restorePasswordFinish(request, restorePassword);
 
         return ResponseEntity.status(restoreStatus).build();
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
-    @PostMapping("/save-email")
+    @PostMapping("/save-email/finish")
     public ResponseEntity<?> saveEmail(HttpServletRequest request, @Valid @RequestBody SaveEmail saveEmail, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        HttpStatus status = userAccountDetailsService.saveEmail(request, saveEmail);
+        HttpStatus status = userAccountDetailsService.saveEmailFinish(request, saveEmail);
 
         return ResponseEntity.status(status).build();
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
-    @PostMapping("/change-email")
-    public ResponseEntity<?> changeEmail(HttpServletRequest request, Locale locale, @RequestParam("newEmail") String newEmail) {
-        HttpStatus status = userAccountDetailsService.changeEmail(request, locale, newEmail);
+    @PostMapping("/save-email/start")
+    public ResponseEntity<?> changeEmail(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+        HttpStatus status = userAccountDetailsService.saveEmailStart(request, locale, email);
 
         return ResponseEntity.status(status).build();
     }
 
-    @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestParam("email") String email, @RequestParam("code") Integer code) {
-        userAccountDetailsService.verifyEmail(email, code);
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @PostMapping("/verify-email/start")
+    public ResponseEntity<?> verifyEmail(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+        HttpStatus status = userAccountDetailsService.verifyEmailStart(request, locale, email);
+
+        return ResponseEntity.status(status).build();
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @PostMapping("/verify-email/finish")
+    public ResponseEntity<?> verifyEmail(HttpServletRequest request,
+                                         Locale locale,
+                                         @RequestBody SaveEmail saveEmail) {
+        HttpStatus status = userAccountDetailsService.verifyEmailFinish(request, locale, saveEmail);
+
+        return ResponseEntity.status(status).build();
     }
 }

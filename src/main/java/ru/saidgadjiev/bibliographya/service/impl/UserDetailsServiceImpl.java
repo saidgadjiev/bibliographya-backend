@@ -12,6 +12,9 @@ import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.dao.impl.SocialAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
+import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
@@ -20,7 +23,10 @@ import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,11 +106,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public User loadUserById(int userId) {
-        User user = userAccountDao.getByUserId(userId);
+    public User loadUserAccountById(int id) {
+        User user = userAccountDao.getById(id);
 
         if (user != null) {
-            user.setRoles(userRoleDao.getRoles(userId));
+            user.setRoles(userRoleDao.getRoles(user.getId()));
         }
 
         return user;
@@ -160,10 +166,31 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Override
     public HttpStatus savePassword(SavePassword savePassword) {
         User user = (User) securityService.findLoggedInUser();
-        User actual = loadUserById(user.getId());
+        User actual = loadUserAccountById(user.getId());
 
         if (passwordEncoder.matches(savePassword.getOldPassword(), actual.getPassword())) {
-            userAccountDao.updatePassword(actual.getUsername(), savePassword.getNewPassword());
+            List<UpdateValue> values = new ArrayList<>();
+
+            values.add(
+                    new UpdateValue<>(
+                            UserAccount.PASSWORD,
+                            passwordEncoder.encode(savePassword.getNewPassword()),
+                            PreparedStatement::setString
+                    )
+            );
+            List<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<Integer>()
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(user.getId())
+                            .needPreparedSet(true)
+                            .propertyName(UserAccount.ID)
+                            .valueSetter(PreparedStatement::setInt)
+                            .build()
+            );
+
+            userAccountDao.update(values, criteria);
 
             return HttpStatus.OK;
         }
@@ -172,7 +199,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus restorePassword(HttpServletRequest request, Locale locale, String email) {
+    public HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) {
         User actual = (User) loadUserByUsername(email);
 
         if (actual == null) {
@@ -185,18 +212,45 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus restorePassword(HttpServletRequest request, RestorePassword restorePassword) {
-        EmailVerificationResult verificationResult = emailVerificationService.confirm(
+    public HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword) {
+        EmailVerificationResult verificationResult = emailVerificationService.verify(
                 request,
                 restorePassword.getEmail(),
                 restorePassword.getCode()
         );
 
         if (verificationResult.isValid()) {
-            int updated = userAccountDao.updatePassword(
-                    restorePassword.getEmail(),
-                    passwordEncoder.encode(restorePassword.getNewPassword())
+            List<UpdateValue> values = new ArrayList<>();
+
+            values.add(
+                    new UpdateValue<>(
+                            UserAccount.PASSWORD,
+                            passwordEncoder.encode(restorePassword.getPassword()),
+                            PreparedStatement::setString
+                    )
             );
+            List<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<String>()
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(restorePassword.getEmail())
+                            .needPreparedSet(true)
+                            .propertyName(UserAccount.EMAIL)
+                            .valueSetter(PreparedStatement::setString)
+                            .build()
+            );
+            criteria.add(
+                    new FilterCriteria.Builder<Boolean>()
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(true)
+                            .needPreparedSet(true)
+                            .propertyName(UserAccount.EMAIL_VERIFIED)
+                            .valueSetter(PreparedStatement::setBoolean)
+                            .build()
+            );
+
+            int updated = userAccountDao.update(values, criteria);
 
             if (updated == 0) {
                 return HttpStatus.NOT_FOUND;
@@ -211,28 +265,75 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail) {
+    public HttpStatus saveEmailFinish(HttpServletRequest request, SaveEmail saveEmail) {
         User actual = (User) securityService.findLoggedInUser();
 
-        if (isExistEmail(saveEmail.getNewEmail())) {
-            return HttpStatus.CONFLICT;
-        }
-        EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(
+        EmailVerificationResult emailVerificationResult = emailVerificationService.verify(
                 request,
-                saveEmail.getNewEmail(),
+                saveEmail.getEmail(),
                 saveEmail.getCode()
         );
 
         if (emailVerificationResult.isValid()) {
-            int updated = userAccountDao.updateEmail(actual.getUsername(), saveEmail.getNewEmail());
+            //1. Отвязываем почту у всех людей
+            List<UpdateValue> valuesRemoveEmailsVerification = new ArrayList<>();
 
-            if (updated == 0) {
-                return HttpStatus.NOT_FOUND;
-            }
+            valuesRemoveEmailsVerification.add(
+                    new UpdateValue<>(
+                            UserAccount.EMAIL_VERIFIED,
+                            false,
+                            PreparedStatement::setBoolean
+                    )
+            );
+
+            List<FilterCriteria> criteriaRemoveEmailsVerification = new ArrayList<>();
+
+            criteriaRemoveEmailsVerification.add(
+                    new FilterCriteria.Builder<String>()
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(saveEmail.getEmail())
+                            .needPreparedSet(true)
+                            .propertyName(UserAccount.EMAIL)
+                            .valueSetter(PreparedStatement::setString)
+                            .build()
+            );
+
+            userAccountDao.update(valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
+
+            //1. Обновление email с привязкой данного пользователя
+            List<UpdateValue> values = new ArrayList<>();
+
+            values.add(
+                    new UpdateValue<>(
+                            UserAccount.EMAIL,
+                            saveEmail.getEmail(),
+                            PreparedStatement::setString
+                    )
+            );
+
+            values.add(
+                    new UpdateValue<>(
+                            UserAccount.EMAIL_VERIFIED,
+                            true,
+                            PreparedStatement::setBoolean
+                    )
+            );
+
+            List<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<Integer>()
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(actual.getId())
+                            .needPreparedSet(true)
+                            .propertyName(UserAccount.ID)
+                            .valueSetter(PreparedStatement::setInt)
+                            .build()
+            );
+
+            userAccountDao.update(values, criteria);
+
             sessionManager.removeState(request);
-
-            userAccountDao.updateEmailVerified(actual.getUsername(), false);
-            userAccountDao.updateEmailVerifiedById(actual.getUserAccount().getId(), true);
 
             return HttpStatus.OK;
         }
@@ -241,27 +342,30 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus changeEmail(HttpServletRequest request, Locale locale, String newEmail) {
+    public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) {
         User user = (User) securityService.findLoggedInUser();
 
-        sessionManager.setChangeEmail(request, newEmail, user);
+        sessionManager.setChangeEmail(request, email, user);
 
-        emailVerificationService.sendVerification(
-                request,
-                locale,
-                newEmail
-        );
+        emailVerificationService.sendVerification(request, locale, email);
 
         return HttpStatus.OK;
     }
 
     @Override
-    public void verifyEmail(HttpServletRequest request, String email, Integer code) {
-        EmailVerificationResult emailVerificationResult = emailVerificationService.confirm(request, email, code);
+    public HttpStatus verifyEmailStart(HttpServletRequest request, Locale locale, String email) {
+        User actual = (User) securityService.findLoggedInUser();
 
-        if (emailVerificationResult.isValid()) {
-            userAccountDao.updateEmailVerified(email, false);
-        }
+        sessionManager.setEmailConfirm(request, actual, email);
+
+        emailVerificationService.sendVerification(request, locale, email);
+
+        return HttpStatus.OK;
+    }
+
+    @Override
+    public HttpStatus verifyEmailFinish(HttpServletRequest request, Locale locale, SaveEmail saveEmail) {
+        return saveEmailFinish(request, saveEmail);
     }
 
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {

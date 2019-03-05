@@ -1,19 +1,30 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
+import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UserAccount;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
+import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,42 +40,37 @@ public class UserAccountDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public int updatePassword(String email, String password) {
-        return jdbcTemplate.update(
-                "UPDATE user_account SET password = ? WHERE email = ?",
-                preparedStatement -> {
-                    preparedStatement.setString(1, password);
-                    preparedStatement.setString(2, email);
-                }
-        );
-    }
+    public int update(List<UpdateValue> values, Collection<FilterCriteria> criteria) {
+        String clause = FilterUtils.toClause(criteria, null);
+        StringBuilder sql = new StringBuilder();
 
-    public int updateEmail(String oldEmail, String email) {
-        return jdbcTemplate.update(
-                "UPDATE user_account SET email = ? WHERE email = ?",
-                preparedStatement -> {
-                    preparedStatement.setString(1, oldEmail);
-                    preparedStatement.setString(2, email);
-                }
-        );
-    }
+        sql.append("UPDATE user_account SET ");
 
-    public int updateEmailVerified(String email, boolean verified) {
-        return jdbcTemplate.update(
-                "UPDATE user_account SET email_verified = ? WHERE email = ?",
-                preparedStatement -> {
-                    preparedStatement.setBoolean(1, verified);
-                    preparedStatement.setString(2, email);
-                }
-        );
-    }
+        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
+            sql.append(iterator.next().getName()).append(" = ?");
 
-    public int updateEmailVerifiedById(int id, boolean verified) {
+            if (iterator.hasNext()) {
+                sql.append(", ");
+            }
+        }
+
+        if (StringUtils.isNotBlank(clause)) {
+            sql.append(" WHERE ").append(clause);
+        }
+
         return jdbcTemplate.update(
-                "UPDATE user_account SET email_verified = ? WHERE id = ?",
-                preparedStatement -> {
-                    preparedStatement.setBoolean(1, verified);
-                    preparedStatement.setInt(2, id);
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (UpdateValue updateValue : values) {
+                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                    }
+                    for (FilterCriteria criterion : criteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
                 }
         );
     }
@@ -122,10 +128,9 @@ public class UserAccountDao {
                 "SELECT\n" +
                         selectList() +
                         "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE ua.email = ? AND ua.email_verified = ?",
+                        "WHERE ua.email = ? AND ua.email_verified = true",
                 ps -> {
                     ps.setString(1, email);
-                    ps.setBoolean(2, true);
                 },
                 rs -> {
                     if (rs.next()) {
@@ -142,8 +147,25 @@ public class UserAccountDao {
                 "SELECT\n" +
                         selectList() +
                         "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE u.id = ?",
+                        "WHERE u.id = ? AND ua.email_verified = true",
                 ps -> ps.setInt(1, userId),
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    public User getById(int id) {
+        return jdbcTemplate.query(
+                "SELECT\n" +
+                        selectList() +
+                        "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
+                        "WHERE ua.id = ?",
+                ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);

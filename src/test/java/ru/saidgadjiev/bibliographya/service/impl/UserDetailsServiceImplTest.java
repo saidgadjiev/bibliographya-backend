@@ -134,7 +134,7 @@ class UserDetailsServiceImplTest {
         Mockito.when(accountDao.getByUserId(eq(1))).thenReturn(expected);
         Mockito.when(userRoleDao.getRoles(eq(1))).thenReturn(Collections.singleton(new Role(Role.ROLE_USER)));
 
-        User actual = service.loadUserById(1);
+        User actual = service.loadUserAccountById(1);
 
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(expected, actual);

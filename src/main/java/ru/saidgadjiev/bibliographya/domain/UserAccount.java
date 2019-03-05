@@ -5,6 +5,16 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class UserAccount {
 
+    public static final String ID = "id";
+
+    public static final String EMAIL = "email";
+
+    public static final String EMAIL_VERIFIED = "email_verified";
+
+    public static final String PASSWORD = "password";
+
+    public static final String USER_ID = "user_id";
+
     private int id;
 
     private String email;

@@ -84,14 +84,4 @@ public class SessionEmailVerificationService {
         return equals ? new EmailVerificationResult().setStatus(EmailVerificationResult.Status.VALID)
                 : new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
     }
-
-    public EmailVerificationResult confirm(HttpServletRequest request, String email, Integer code) {
-        EmailVerificationResult verificationResult = verify(request, email, code);
-
-        if (verificationResult.isValid()) {
-            sessionManager.removeState(request);
-        }
-
-        return verificationResult;
-    }
 }

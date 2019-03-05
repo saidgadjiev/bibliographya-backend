@@ -24,9 +24,9 @@ public class SessionManager {
         this.securityService = securityService;
     }
 
-    public void setEmailConfirmRequired(HttpServletRequest request, User user) {
+    public void setEmailConfirm(HttpServletRequest request, User user, String email) {
         setState(request, SessionState.EMAIL_CONFIRM, user, new HashMap<String, Object>() {{
-            put("email", user.getUserAccount().getEmail());
+            put("email", email);
         }});
     }
 

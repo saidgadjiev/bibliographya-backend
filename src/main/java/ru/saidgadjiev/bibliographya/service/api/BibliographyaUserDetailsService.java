@@ -21,7 +21,7 @@ public interface BibliographyaUserDetailsService extends UserDetailsService {
 
     User save(SignUpRequest signUpRequest) throws SQLException;
 
-    User loadUserById(int userId);
+    User loadUserAccountById(int id);
 
     boolean isExistEmail(String username);
 
@@ -33,13 +33,15 @@ public interface BibliographyaUserDetailsService extends UserDetailsService {
 
     HttpStatus savePassword(SavePassword savePassword);
 
-    HttpStatus restorePassword(HttpServletRequest request, Locale locale, String email);
+    HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email);
 
-    HttpStatus restorePassword(HttpServletRequest request, RestorePassword restorePassword);
+    HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword);
 
-    HttpStatus saveEmail(HttpServletRequest request, SaveEmail saveEmail);
+    HttpStatus saveEmailFinish(HttpServletRequest request, SaveEmail saveEmail);
 
-    HttpStatus changeEmail(HttpServletRequest request, Locale locale, String newEmail);
+    HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email);
 
-    void verifyEmail(HttpServletRequest request, String email, Integer code);
+    HttpStatus verifyEmailStart(HttpServletRequest request, Locale locale, String email);
+
+    HttpStatus verifyEmailFinish(HttpServletRequest request, Locale locale, SaveEmail saveEmail);
 }

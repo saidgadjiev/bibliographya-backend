@@ -11,7 +11,7 @@ public class RestorePassword {
 
     @NotNull
     @Size(min = 1)
-    private String newPassword;
+    private String password;
 
     @NotNull
     private Integer code;
@@ -24,12 +24,12 @@ public class RestorePassword {
         this.email = email;
     }
 
-    public String getNewPassword() {
-        return newPassword;
+    public String getPassword() {
+        return password;
     }
 
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Integer getCode() {

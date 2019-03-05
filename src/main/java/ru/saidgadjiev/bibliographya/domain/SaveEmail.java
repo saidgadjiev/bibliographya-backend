@@ -7,17 +7,17 @@ public class SaveEmail {
 
     @NotNull
     @Email
-    private String newEmail;
+    private String email;
 
     @NotNull
     private Integer code;
 
-    public String getNewEmail() {
-        return newEmail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setNewEmail(String newEmail) {
-        this.newEmail = newEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Integer getCode() {

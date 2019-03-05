@@ -55,9 +55,11 @@ public class TokenService {
         switch (user.getProviderType()) {
             case FACEBOOK:
                 payload.put("expiredAt", accessGrant.getExpireTime());
+                payload.put("accountId", user.getSocialAccount().getId());
 
                 break;
             case EMAIL_PASSWORD:
+                payload.put("accountId", user.getUserAccount().getId());
                 break;
         }
 

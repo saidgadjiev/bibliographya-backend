@@ -128,18 +128,9 @@ public class AuthService {
                                 authContext.getSignInRequest().getEmail(),
                                 authContext.getSignInRequest().getPassword()
                         );
-                try {
-                    Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+                Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 
-                    user = (User) authentication.getPrincipal();
-                } catch (DisabledException ex) {
-                    User actual = (User) userAccountDetailsService.loadUserByUsername(authContext.getSignInRequest().getEmail());
-
-                    sessionManager.setEmailConfirmRequired(authContext.getRequest(), actual);
-
-                    throw ex;
-                }
-
+                user = (User) authentication.getPrincipal();
                 break;
         }
 
@@ -167,7 +158,7 @@ public class AuthService {
         SignUpRequest signUpRequest = sessionManager.getSignUp(request);
 
         if (signUpRequest != null) {
-            EmailVerificationResult result = emailVerificationService.confirm(request, signUpRequest.getEmail(), code);
+            EmailVerificationResult result = emailVerificationService.verify(request, signUpRequest.getEmail(), code);
 
             if (result.isValid()) {
                 userAccountDetailsService.save(signUpRequest);
@@ -233,7 +224,9 @@ public class AuthService {
                     userDetails = userAccountDetailsService.loadSocialUserById(userId);
                     break;
                 case EMAIL_PASSWORD:
-                    userDetails = userAccountDetailsService.loadUserById(userId);
+                    Integer accountId = (Integer) details.get("accountId");
+
+                    userDetails = userAccountDetailsService.loadUserAccountById(accountId);
 
                     if (!userDetails.isEnabled()) {
                         throw new DisabledException("User is disabled");
