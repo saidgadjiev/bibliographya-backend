@@ -88,9 +88,12 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public User save(SignUpRequest signUpRequest) throws SQLException {
+        unverifyEmails(signUpRequest.getEmail());
+
         UserAccount userAccount = new UserAccount();
 
         userAccount.setEmail(signUpRequest.getEmail());
+        userAccount.setEmailVerified(true);
         userAccount.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
 
         User user = new User();
@@ -166,9 +169,16 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Override
     public HttpStatus savePassword(SavePassword savePassword) {
         User user = (User) securityService.findLoggedInUser();
-        User actual = loadUserAccountById(user.getId());
 
-        if (passwordEncoder.matches(savePassword.getOldPassword(), actual.getPassword())) {
+        if (!user.getProviderType().equals(ProviderType.EMAIL_PASSWORD)) {
+            return HttpStatus.BAD_REQUEST;
+        }
+        String password = userAccountDao.getField(
+                user.getUserAccount().getId(),
+                UserAccount.PASSWORD
+        );
+
+        if (passwordEncoder.matches(savePassword.getOldPassword(), password)) {
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
@@ -195,7 +205,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             return HttpStatus.OK;
         }
 
-        return HttpStatus.PRECONDITION_FAILED;
+        return HttpStatus.BAD_REQUEST;
     }
 
     @Override
@@ -276,29 +286,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         if (emailVerificationResult.isValid()) {
             //1. Отвязываем почту у всех людей
-            List<UpdateValue> valuesRemoveEmailsVerification = new ArrayList<>();
-
-            valuesRemoveEmailsVerification.add(
-                    new UpdateValue<>(
-                            UserAccount.EMAIL_VERIFIED,
-                            false,
-                            PreparedStatement::setBoolean
-                    )
-            );
-
-            List<FilterCriteria> criteriaRemoveEmailsVerification = new ArrayList<>();
-
-            criteriaRemoveEmailsVerification.add(
-                    new FilterCriteria.Builder<String>()
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(saveEmail.getEmail())
-                            .needPreparedSet(true)
-                            .propertyName(UserAccount.EMAIL)
-                            .valueSetter(PreparedStatement::setString)
-                            .build()
-            );
-
-            userAccountDao.update(valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
+            unverifyEmails(saveEmail.getEmail());
 
             //1. Обновление email с привязкой данного пользователя
             List<UpdateValue> values = new ArrayList<>();
@@ -324,7 +312,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             criteria.add(
                     new FilterCriteria.Builder<Integer>()
                             .filterOperation(FilterOperation.EQ)
-                            .filterValue(actual.getId())
+                            .filterValue(actual.getUserAccount().getId())
                             .needPreparedSet(true)
                             .propertyName(UserAccount.ID)
                             .valueSetter(PreparedStatement::setInt)
@@ -381,5 +369,31 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         Biography biography = biographyService.createAccountBiography(user, biographyRequest);
 
         user.setBiography(biography);
+    }
+
+    private void unverifyEmails(String email) {
+        List<UpdateValue> valuesRemoveEmailsVerification = new ArrayList<>();
+
+        valuesRemoveEmailsVerification.add(
+                new UpdateValue<>(
+                        UserAccount.EMAIL_VERIFIED,
+                        false,
+                        PreparedStatement::setBoolean
+                )
+        );
+
+        List<FilterCriteria> criteriaRemoveEmailsVerification = new ArrayList<>();
+
+        criteriaRemoveEmailsVerification.add(
+                new FilterCriteria.Builder<String>()
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(email)
+                        .needPreparedSet(true)
+                        .propertyName(UserAccount.EMAIL)
+                        .valueSetter(PreparedStatement::setString)
+                        .build()
+        );
+
+        userAccountDao.update(valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
     }
 }

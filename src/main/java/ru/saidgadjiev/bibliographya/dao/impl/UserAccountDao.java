@@ -3,8 +3,6 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -12,11 +10,9 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UserAccount;
 import ru.saidgadjiev.bibliographya.utils.FilterUtils;
-import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -224,5 +220,13 @@ public class UserAccountDao {
                 "  b.id AS b_id,\n" +
                 "  b.first_name AS b_first_name,\n" +
                 "  b.last_name AS b_last_name\n";
+    }
+
+    public String getField(int id, String field) {
+        return jdbcTemplate.query(
+                "SELECT " + field + " FROM user_account WHERE id = ?",
+                preparedStatement -> preparedStatement.setInt(1, id),
+                rs -> rs.next() ? rs.getString("password") : null
+        );
     }
 }

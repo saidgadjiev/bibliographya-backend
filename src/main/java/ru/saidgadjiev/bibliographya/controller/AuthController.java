@@ -8,7 +8,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.domain.AccountResult;
+import ru.saidgadjiev.bibliographya.domain.RequestResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
@@ -143,6 +143,13 @@ public class AuthController {
         return ResponseEntity.ok(authService.auth(authContext, null));
     }
 
+    @GetMapping("/signUp/confirmation")
+    public ResponseEntity<?> confirmation(HttpServletRequest request) {
+        RequestResult<?> requestResult = authService.confirmation(request);
+
+        return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
+    }
+
     @PostMapping("/signOut")
     public ResponseEntity<?> signOut(HttpServletRequest request, HttpServletResponse response) {
         User user = authService.signOut(request, response);
@@ -155,9 +162,9 @@ public class AuthController {
     }
 
     @GetMapping("/account")
-    public ResponseEntity<?> getAccount(HttpServletRequest request) {
-        AccountResult accountResult = authService.account(request);
+    public ResponseEntity<?> getAccount() {
+        RequestResult requestResult = authService.account();
 
-        return ResponseEntity.status(accountResult.getStatus()).body(accountResult.getBody());
+        return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
     }
 }

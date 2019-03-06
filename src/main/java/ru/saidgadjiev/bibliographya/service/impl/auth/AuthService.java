@@ -1,9 +1,10 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
@@ -17,12 +18,11 @@ import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.domain.AccountResult;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
+import ru.saidgadjiev.bibliographya.domain.RequestResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
-import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
@@ -38,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by said on 24.12.2018.
@@ -62,6 +61,8 @@ public class AuthService {
 
     private SessionManager sessionManager;
 
+    private ObjectMapper objectMapper;
+
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
             (request, response, authentication) -> CookieUtils.deleteCookie(response, uiProperties.getName(), "X-TOKEN"),
             new SecurityContextLogoutHandler()
@@ -74,7 +75,8 @@ public class AuthService {
                        SecurityService securityService,
                        SessionEmailVerificationService emailVerificationService,
                        UIProperties uiProperties,
-                       SessionManager sessionManager) {
+                       SessionManager sessionManager,
+                       ObjectMapper objectMapper) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
@@ -82,6 +84,7 @@ public class AuthService {
         this.emailVerificationService = emailVerificationService;
         this.uiProperties = uiProperties;
         this.sessionManager = sessionManager;
+        this.objectMapper = objectMapper;
     }
 
     @Autowired
@@ -187,25 +190,14 @@ public class AuthService {
         return null;
     }
 
-    public AccountResult<?> account(HttpServletRequest request) {
-        SessionState sessionState = sessionManager.getState(request);
+    public RequestResult<?> account() {
+        UserDetails userDetails = securityService.findLoggedInUser();
 
-        if (Objects.equals(sessionState, SessionState.SIGN_UP_CONFIRM)) {
-            SignUpRequest signUpRequest = sessionManager.getSignUp(request);
-            SignUpRequest result = new SignUpRequest();
-
-            result.setEmail(signUpRequest.getEmail());
-
-            return new AccountResult<SignUpRequest>().setBody(result).setStatus(HttpStatus.PRECONDITION_REQUIRED);
-        } else {
-            UserDetails userDetails = securityService.findLoggedInUser();
-
-            if (userDetails == null) {
-                return new AccountResult().setStatus(HttpStatus.NOT_FOUND);
-            }
-
-            return new AccountResult<UserDetails>().setStatus(HttpStatus.OK).setBody(userDetails);
+        if (userDetails == null) {
+            return new RequestResult().setStatus(HttpStatus.NOT_FOUND);
         }
+
+        return new RequestResult<UserDetails>().setStatus(HttpStatus.OK).setBody(userDetails);
     }
 
     public void tokenAuth(String token) {
@@ -227,10 +219,6 @@ public class AuthService {
                     Integer accountId = (Integer) details.get("accountId");
 
                     userDetails = userAccountDetailsService.loadUserAccountById(accountId);
-
-                    if (!userDetails.isEnabled()) {
-                        throw new DisabledException("User is disabled");
-                    }
                     break;
             }
 
@@ -258,5 +246,18 @@ public class AuthService {
 
         CookieUtils.addCookie(response, uiProperties.getName(), "X-TOKEN", token);
 
+    }
+
+    public RequestResult<?> confirmation(HttpServletRequest request) {
+        SignUpRequest signUpRequest = sessionManager.getSignUp(request);
+
+        if (signUpRequest == null) {
+            return new RequestResult<ObjectNode>().setStatus(HttpStatus.FOUND);
+        }
+        ObjectNode objectNode = objectMapper.createObjectNode();
+
+        objectNode.put("email", signUpRequest.getEmail());
+
+        return new RequestResult<ObjectNode>().setStatus(HttpStatus.OK).setBody(objectNode);
     }
 }

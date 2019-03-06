@@ -322,7 +322,7 @@ class AuthServiceTest {
             return null;
         }).when(userDetailsService).save(any(SignUpRequest.class));
 
-        SignUpResult signUpResult = authService.confirmSignUp(request, 1024);
+        SignUpResult signUpResult = authService.confirmSignUp(null, 1024);
 
         Assertions.assertEquals(HttpStatus.OK, signUpResult.getStatus());
         Assertions.assertFalse(db.isEmpty());
@@ -343,7 +343,7 @@ class AuthServiceTest {
         Mockito.when(emailVerificationService.confirm(eq(TEST_EMAIL), eq(1024)))
                 .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID));
 
-        SignUpResult signUpResult = authService.confirmSignUp(request, 1024);
+        SignUpResult signUpResult = authService.confirmSignUp(null, 1024);
 
         Assertions.assertEquals(HttpStatus.PRECONDITION_FAILED, signUpResult.getStatus());
         Mockito.verify(session, Mockito.never()).invalidate();
@@ -357,7 +357,7 @@ class AuthServiceTest {
         Mockito.when(emailVerificationService.confirm(eq(TEST_EMAIL), eq(1024)))
                 .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID));
 
-        SignUpResult signUpResult = authService.confirmSignUp(request, 1024);
+        SignUpResult signUpResult = authService.confirmSignUp(null, 1024);
 
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, signUpResult.getStatus());
         Mockito.verify(userDetailsService, Mockito.never()).save(any(SignUpRequest.class));
@@ -412,20 +412,20 @@ class AuthServiceTest {
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
-        AccountResult accountResult = authService.account(request);
+        RequestResult requestResult = authService.account();
 
-        Assertions.assertEquals(accountResult.getStatus(), HttpStatus.OK);
-        assertUserEquals(testUser, (User) accountResult.getBody());
+        Assertions.assertEquals(requestResult.getStatus(), HttpStatus.OK);
+        assertUserEquals(testUser, (User) requestResult.getBody());
     }
 
     @Test
     void anonymousAccount() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
-        AccountResult accountResult = authService.account(request);
+        RequestResult requestResult = authService.account();
 
-        Assertions.assertEquals(accountResult.getStatus(), HttpStatus.NOT_FOUND);
-        Assertions.assertNull(accountResult.getBody());
+        Assertions.assertEquals(requestResult.getStatus(), HttpStatus.NOT_FOUND);
+        Assertions.assertNull(requestResult.getBody());
     }
 
     @Test
@@ -436,10 +436,10 @@ class AuthServiceTest {
         Mockito.when(request.getSession(anyBoolean())).thenReturn(session);
         Mockito.when(session.getAttribute(eq("state"))).thenReturn(SessionState.SIGN_UP_CONFIRM);
 
-        AccountResult accountResult = authService.account(request);
+        RequestResult requestResult = authService.account();
 
-        Assertions.assertEquals(accountResult.getStatus(), HttpStatus.PRECONDITION_REQUIRED);
-        Assertions.assertNull(accountResult.getBody());
+        Assertions.assertEquals(requestResult.getStatus(), HttpStatus.PRECONDITION_REQUIRED);
+        Assertions.assertNull(requestResult.getBody());
     }
 
     @Test

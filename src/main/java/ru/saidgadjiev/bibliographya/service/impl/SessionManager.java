@@ -54,7 +54,7 @@ public class SessionManager {
     public SignUpRequest getSignUp(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
-        if (session == null || Objects.equals(session.getAttribute("state"), SessionState.SIGN_UP_CONFIRM)) {
+        if (session == null || !Objects.equals(session.getAttribute("state"), SessionState.SIGN_UP_CONFIRM)) {
             return null;
         }
         SignUpRequest signUpRequest = new SignUpRequest();

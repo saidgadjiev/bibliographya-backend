@@ -2,7 +2,7 @@ package ru.saidgadjiev.bibliographya.domain;
 
 import org.springframework.http.HttpStatus;
 
-public class AccountResult<T> {
+public class RequestResult<T> {
 
     private HttpStatus status;
 
@@ -12,7 +12,7 @@ public class AccountResult<T> {
         return status;
     }
 
-    public AccountResult<T> setStatus(HttpStatus status) {
+    public RequestResult<T> setStatus(HttpStatus status) {
         this.status = status;
 
         return this;
@@ -22,7 +22,7 @@ public class AccountResult<T> {
         return body;
     }
 
-    public AccountResult<T> setBody(T body) {
+    public RequestResult<T> setBody(T body) {
         this.body = body;
 
         return this;

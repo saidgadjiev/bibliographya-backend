@@ -20,7 +20,7 @@ import java.util.Locale;
 public class EmailVerificationController {
     
     private final SessionEmailVerificationService verificationService;
-    
+
     public EmailVerificationController(SessionEmailVerificationService verificationService) {
         this.verificationService = verificationService;
     }
