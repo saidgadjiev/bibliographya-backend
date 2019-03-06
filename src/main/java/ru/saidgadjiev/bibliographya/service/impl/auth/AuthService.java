@@ -158,6 +158,8 @@ public class AuthService {
 
             if (result.isValid()) {
                 User user = userAccountDetailsService.save(signUpRequest);
+
+                user.setIsNew(true);
                 sessionManager.removeState(authContext.getRequest());
 
                 auth(authContext.getResponse(), user, null);

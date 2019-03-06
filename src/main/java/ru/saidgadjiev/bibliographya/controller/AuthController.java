@@ -65,13 +65,20 @@ public class AuthController {
     }
 
     @PostMapping("/signUp/confirm")
-    public ResponseEntity<?> confirmSignUp(HttpServletRequest request, @RequestParam("code") Integer code) throws SQLException {
+    public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           @RequestParam("code") Integer code) throws SQLException {
         if (code == null) {
             return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).build();
         }
-        SignUpResult signUpResult = authService.confirmSignUp(request, code);
 
-        return ResponseEntity.status(signUpResult.getStatus()).build();
+        AuthContext authContext = new AuthContext()
+                .setRequest(request)
+                .setResponse(response);
+
+        SignUpResult signUpResult = authService.confirmSignUp(authContext, code);
+
+        return ResponseEntity.status(signUpResult.getStatus()).body(signUpResult.getUser());
     }
 
     @PostMapping("/signUp/cancel")
