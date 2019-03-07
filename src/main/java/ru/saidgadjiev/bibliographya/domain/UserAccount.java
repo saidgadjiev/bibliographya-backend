@@ -5,6 +5,8 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class UserAccount {
 
+    public static final String TABLE = "user_account";
+
     public static final String ID = "id";
 
     public static final String EMAIL = "email";

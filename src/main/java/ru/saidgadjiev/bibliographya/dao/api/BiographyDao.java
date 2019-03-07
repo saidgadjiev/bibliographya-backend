@@ -33,6 +33,4 @@ public interface BiographyDao {
     BiographyUpdateStatus updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria);
 
     int delete(int biographyId);
-
-    List<Map<String, Object>> getFields(Collection<String> fields, Collection<FilterCriteria> criteria);
 }

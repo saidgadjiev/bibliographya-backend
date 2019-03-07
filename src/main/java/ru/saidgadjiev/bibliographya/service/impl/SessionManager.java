@@ -24,12 +24,6 @@ public class SessionManager {
         this.securityService = securityService;
     }
 
-    public void setEmailConfirm(HttpServletRequest request, User user, String email) {
-        setState(request, SessionState.EMAIL_CONFIRM, user, new HashMap<String, Object>() {{
-            put("email", email);
-        }});
-    }
-
     public void setRestorePassword(HttpServletRequest request, User user) {
         setState(request, SessionState.RESTORE_PASSWORD, user, null);
     }
@@ -144,8 +138,6 @@ public class SessionManager {
                 return messageSource.getMessage("confirm.changeEmail.subject", new Object[] {}, locale);
             case SIGN_UP_CONFIRM:
                 return messageSource.getMessage("confirm.signUp.subject", new Object[] {}, locale);
-            case EMAIL_CONFIRM:
-                return messageSource.getMessage("confirm.email.subject", new Object[] {}, locale);
             case NONE:
                 break;
         }
@@ -162,15 +154,6 @@ public class SessionManager {
         String code = String.valueOf(getCode(request));
 
         switch (sessionState) {
-            case EMAIL_CONFIRM: {
-                String firstName = (String) request.getSession(false).getAttribute("firstName");
-
-                return messageSource.getMessage(
-                        "confirm.email.message",
-                        new Object[]{ firstName, code },
-                        locale
-                );
-            }
             case RESTORE_PASSWORD: {
                 String firstName = (String) request.getSession(false).getAttribute("firstName");
 

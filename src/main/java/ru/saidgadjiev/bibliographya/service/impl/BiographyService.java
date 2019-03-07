@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.api.BiographyDao;
+import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
@@ -29,6 +30,8 @@ public class BiographyService {
 
     private final BiographyDao biographyDao;
 
+    private final GeneralDao generalDao;
+
     private SecurityService securityService;
 
     private BiographyCommentService biographyCommentService;
@@ -38,8 +41,9 @@ public class BiographyService {
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(@Qualifier("sql") BiographyDao biographyDao) {
+    public BiographyService(@Qualifier("sql") BiographyDao biographyDao, GeneralDao generalDao) {
         this.biographyDao = biographyDao;
+        this.generalDao = generalDao;
     }
 
     @Autowired
@@ -153,7 +157,10 @@ public class BiographyService {
                         .valueSetter(PreparedStatement::setInt)
                         .build()
         );
-        List<Map<String, Object>> fields = biographyDao.getFields(Arrays.asList(Biography.ID, Biography.FIRST_NAME, Biography.LAST_NAME), criteria);
+        List<Map<String, Object>> fields = generalDao.getFields(
+                Biography.TABLE,
+                Arrays.asList(Biography.ID, Biography.FIRST_NAME, Biography.LAST_NAME),
+                criteria);
 
         if (fields == null || fields.isEmpty()) {
             return null;
@@ -371,7 +378,10 @@ public class BiographyService {
     }
 
     public boolean isIAuthor(int biographyId) {
-        List<Map<String, Object>> result = biographyDao.getFields(Collections.singletonList(Biography.CREATOR_ID), Collections.singletonList(
+        List<Map<String, Object>> result = generalDao.getFields(
+                Biography.TABLE,
+                Collections.singletonList(Biography.CREATOR_ID),
+                Collections.singletonList(
                 new FilterCriteria.Builder<Integer>()
                         .propertyName(Biography.ID)
                         .filterOperation(FilterOperation.EQ)

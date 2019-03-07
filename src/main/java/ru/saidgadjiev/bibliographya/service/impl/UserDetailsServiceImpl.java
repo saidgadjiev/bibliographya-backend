@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.dao.impl.SocialAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
@@ -25,9 +26,7 @@ import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +39,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     private final UserAccountDao userAccountDao;
 
     private final SocialAccountDao socialAccountDao;
+
+    private final GeneralDao generalDao;
 
     private final UserRoleDao userRoleDao;
 
@@ -56,6 +57,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Autowired
     public UserDetailsServiceImpl(UserAccountDao userAccountDao,
                                   SocialAccountDao socialAccountDao,
+                                  GeneralDao generalDao,
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
@@ -64,6 +66,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   SessionManager sessionManager) {
         this.userAccountDao = userAccountDao;
         this.socialAccountDao = socialAccountDao;
+        this.generalDao = generalDao;
         this.userRoleDao = userRoleDao;
         this.biographyService = biographyService;
         this.passwordEncoder = passwordEncoder;
@@ -173,10 +176,21 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         if (!user.getProviderType().equals(ProviderType.EMAIL_PASSWORD)) {
             return HttpStatus.BAD_REQUEST;
         }
-        String password = userAccountDao.getField(
-                user.getUserAccount().getId(),
-                UserAccount.PASSWORD
+        List<Map<String, Object>> fieldsValues = generalDao.getFields(
+                UserAccount.TABLE,
+                Collections.singletonList(UserAccount.PASSWORD),
+                Collections.singletonList(
+                        new FilterCriteria.Builder<Integer>()
+                                .propertyName(UserAccount.PASSWORD)
+                                .filterOperation(FilterOperation.EQ)
+                                .filterValue(user.getUserAccount().getId())
+                                .needPreparedSet(true)
+                                .valueSetter(PreparedStatement::setInt)
+                                .build()
+                )
         );
+        Map<String, Object> row = fieldsValues.get(0);
+        String password = (String) row.get(UserAccount.PASSWORD);
 
         if (passwordEncoder.matches(savePassword.getOldPassword(), password)) {
             List<UpdateValue> values = new ArrayList<>();
@@ -338,22 +352,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         emailVerificationService.sendVerification(request, locale, email);
 
         return HttpStatus.OK;
-    }
-
-    @Override
-    public HttpStatus verifyEmailStart(HttpServletRequest request, Locale locale, String email) {
-        User actual = (User) securityService.findLoggedInUser();
-
-        sessionManager.setEmailConfirm(request, actual, email);
-
-        emailVerificationService.sendVerification(request, locale, email);
-
-        return HttpStatus.OK;
-    }
-
-    @Override
-    public HttpStatus verifyEmailFinish(HttpServletRequest request, Locale locale, SaveEmail saveEmail) {
-        return saveEmailFinish(request, saveEmail);
     }
 
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {

@@ -10,6 +10,8 @@ import java.util.Objects;
 @SuppressWarnings("CPD-START")
 public class Biography {
 
+    public static final String TABLE = "biography";
+
     public static final String ID = "id";
 
     public static final String CREATOR_ID = "creator_id";
