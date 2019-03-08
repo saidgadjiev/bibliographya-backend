@@ -1,22 +1,16 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.dao.api.BiographyCommentDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,22 +18,23 @@ import java.util.stream.Collectors;
  * Created by said on 17.11.2018.
  */
 @Repository
-@Qualifier("sql")
-public class BiographyCommentDaoImpl implements BiographyCommentDao {
+public class BiographyCommentDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public BiographyCommentDaoImpl(JdbcTemplate jdbcTemplate) {
+    public BiographyCommentDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Override
-    public BiographyComment create(BiographyComment biographyComment) {
-        return jdbcTemplate.execute(
-                "INSERT INTO biography_comment" +
-                        "(content, biography_id, user_id, parent_id) " +
-                        "VALUES(?, ?, ?, ?) RETURNING id, created_at",
-                (PreparedStatementCallback<BiographyComment>) ps -> {
+    public void create(BiographyComment biographyComment) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
+                            "(content, biography_id, user_id, parent_id) " +
+                            "VALUES(?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS);
+
                     ps.setString(1, biographyComment.getContent());
                     ps.setInt(2, biographyComment.getBiographyId());
                     ps.setInt(3, biographyComment.getUserId());
@@ -50,34 +45,31 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
                         ps.setNull(4, Types.INTEGER);
                     }
 
-                    ps.execute();
-
-                    try (ResultSet resultSet = ps.getResultSet()) {
-                        if (resultSet.next()) {
-                            biographyComment.setId(resultSet.getInt("id"));
-                            biographyComment.setCreatedAt(resultSet.getTimestamp("created_at"));
-                        }
-                    }
-                    
-                    return biographyComment;
-                }
+                    return ps;
+                },
+                keyHolder
         );
+
+        Map<String, Object> keys = keyHolder.getKeys();
+
+        if (keys != null && keys.containsKey("id")) {
+            biographyComment.setId(((Number) keys.get("id")).intValue());
+        }
+
     }
 
-    @Override
-    public int delete(int biographyId, int commentId) {
+    public int delete(int commentId) {
         return jdbcTemplate.update(
                 "DELETE FROM biography_comment WHERE id = ?",
                 ps -> ps.setInt(1, commentId)
         );
     }
 
-    @Override
-    public List<BiographyComment> getComments(int biographyId, Sort sort, int limit, long offset) {
+    public List<BiographyComment> getComments(TimeZone timeZone, int biographyId, Sort sort, int limit, long offset) {
         String sortClause = SortUtils.toSql(sort, "bcm");
 
         return jdbcTemplate.query(
-                "SELECT " + selectList() +
+                "SELECT " + selectList(timeZone) +
                         " FROM biography_comment bcm LEFT JOIN biography_comment bcpm ON bcm.parent_id = bcpm.id\n" +
                         "  LEFT JOIN biography ba ON bcm.user_id = ba.user_id\n" +
                         "  LEFT JOIN biography br ON bcpm.user_id = br.user_id\n" +
@@ -94,7 +86,6 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         );
     }
 
-    @Override
     public long countOffByBiographyId(int biographyId) {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) FROM biography_comment WHERE biography_id=?",
@@ -109,7 +100,6 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         );
     }
 
-    @Override
     public long countOff() {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM biography_comment",
@@ -123,7 +113,6 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         );
     }
 
-    @Override
     public Map<Integer, Long> countOffByBiographiesIds(Collection<Integer> biographiesIds) {
         if (biographiesIds.isEmpty()) {
             Map<Integer, Long> result = new HashMap<>();
@@ -159,10 +148,9 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         );
     }
 
-    @Override
-    public BiographyComment getById(int id) {
+    public BiographyComment getById(TimeZone timeZone, int id) {
         return jdbcTemplate.query(
-                "SELECT " + selectList() + " " +
+                "SELECT " + selectList(timeZone) + " " +
                         "FROM biography_comment bcm LEFT JOIN biography_comment bcpm ON bcm.parent_id = bcpm.id\n" +
                         "  LEFT JOIN biography ba ON bcm.user_id = ba.user_id\n" +
                         "  LEFT JOIN biography br ON bcpm.user_id = br.user_id\n" +
@@ -176,61 +164,6 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
                     }
 
                     return null;
-                }
-        );
-    }
-
-    @Override
-    public List<Map<String, Object>> getFields(Collection<String> fields, Collection<FilterCriteria> criteria) {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append("SELECT ");
-
-        if (fields.isEmpty()) {
-            builder.append("*");
-        } else {
-            for (Iterator<String> fieldIterator = fields.iterator(); fieldIterator.hasNext(); ) {
-                builder.append(fieldIterator.next());
-
-                if (fieldIterator.hasNext()) {
-                    builder.append(",");
-                }
-            }
-        }
-        builder.append(" ").append("FROM biography_comment ");
-
-        String clause = FilterUtils.toClause(criteria, null);
-
-        if (StringUtils.isNotBlank(clause)) {
-            builder.append("WHERE ").append(clause);
-        }
-
-        return jdbcTemplate.query(
-                builder.toString(),
-                ps -> {
-                    int i = 0;
-
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
-                    }
-                },
-                rs -> {
-                    List<Map<String, Object>> result = new ArrayList<>();
-                    ResultSetMetaData md = rs.getMetaData();
-                    int columns = md.getColumnCount();
-
-                    while (rs.next()){
-                        Map<String, Object> row = new HashMap<>(columns);
-
-                        for(int i=1; i<=columns; ++i){
-                            row.put(md.getColumnName(i),rs.getObject(i));
-                        }
-                        result.add(row);
-                    }
-
-                    return result;
                 }
         );
     }
@@ -274,7 +207,6 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         return biographyComment;
     }
 
-    @Override
     public int updateContent(Integer commentId, String content) {
         return jdbcTemplate.update(
                 "UPDATE biography_comment SET content = ? WHERE id = ?",
@@ -285,13 +217,13 @@ public class BiographyCommentDaoImpl implements BiographyCommentDao {
         );
     }
 
-    private String selectList() {
+    private String selectList(TimeZone timeZone) {
         StringBuilder builder = new StringBuilder();
 
         builder
                 .append("bcm.id as bcm_id,")
                 .append("bcm.content as bcm_content,")
-                .append("bcm.created_at as bcm_created_at,")
+                .append("bcm.created_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as bcm_created_at,")
                 .append("bcm.biography_id as bcm_biography_id,")
                 .append("bcm.user_id as bcm_user_id,")
                 .append("bcm.parent_id as bcm_parent_id,")

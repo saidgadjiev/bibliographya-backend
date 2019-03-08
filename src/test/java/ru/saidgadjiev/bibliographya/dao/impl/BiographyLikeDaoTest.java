@@ -20,10 +20,10 @@ import java.util.Map;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-class BiographyLikeDaoImplTest {
+class BiographyLikeDaoTest {
 
     @Autowired
-    private BiographyLikeDaoImpl biographyLikeDao;
+    private BiographyLikeDao biographyLikeDao;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

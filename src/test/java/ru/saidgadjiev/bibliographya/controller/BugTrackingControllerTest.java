@@ -78,7 +78,7 @@ class BugTrackingControllerTest {
             return null;
         }).when(authService).tokenAuth("TestToken");
 
-        Mockito.when(bugService.create(any())).thenReturn(bug);
+        Mockito.when(bugService.create(any(), any())).thenReturn(bug);
         Mockito.when(bugService.getActions(any())).thenReturn(Collections.emptyList());
 
         mockMvc.perform(post("/api/bugs/")
@@ -133,7 +133,7 @@ class BugTrackingControllerTest {
 
         Page<Bug> page = new PageImpl<>(bugs, pageRequest, 2);
 
-        Mockito.when(bugService.getBugs(eq(pageRequest), isNull())).thenReturn(page);
+        Mockito.when(bugService.getBugs(any(), eq(pageRequest), isNull())).thenReturn(page);
         Mockito.when(bugService.getActions(any()))
                 .thenReturn(Arrays.asList(BugAction.assignMe(), BugAction.close(), BugAction.ignore()))
                 .thenReturn(Arrays.asList(BugAction.assignMe(), BugAction.close(), BugAction.ignore()));
@@ -211,7 +211,7 @@ class BugTrackingControllerTest {
 
         Page<Bug> page = new PageImpl<>(bugs, pageRequest, 2);
 
-        Mockito.when(bugService.getBugsTracks(eq(pageRequest), isNull())).thenReturn(page);
+        Mockito.when(bugService.getBugsTracks(any(), eq(pageRequest), isNull())).thenReturn(page);
         Mockito.when(bugService.getActions(any()))
                 .thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()))
                 .thenReturn(Arrays.asList(BugAction.pending(), BugAction.release()));
@@ -296,7 +296,7 @@ class BugTrackingControllerTest {
 
         Page<Bug> page = new PageImpl<>(bugs, pageRequest, 2);
 
-        Mockito.when(bugService.getBugsTracks(eq(pageRequest), isNull())).thenReturn(page);
+        Mockito.when(bugService.getBugsTracks(any(), eq(pageRequest), isNull())).thenReturn(page);
         Mockito.when(bugService.getActions(any()))
                 .thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()))
                 .thenReturn(Arrays.asList(BugAction.pending(), BugAction.release()));
@@ -368,7 +368,7 @@ class BugTrackingControllerTest {
 
         CompleteResult<Bug> completeResult = new CompleteResult<>(1, bug);
 
-        Mockito.when(bugService.complete(eq(1), eq(completeRequest))).thenReturn(completeResult);
+        Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getFixerInfo(eq(1))).thenReturn(fixerInfo);
 
         Mockito.doAnswer(invocationOnMock -> {
@@ -434,7 +434,7 @@ class BugTrackingControllerTest {
 
         CompleteResult<Bug> completeResult = new CompleteResult<>(0, bug);
 
-        Mockito.when(bugService.complete(eq(1), eq(completeRequest))).thenReturn(completeResult);
+        Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getFixerInfo(eq(1))).thenReturn(fixerInfo);
 
         Mockito.doAnswer(invocationOnMock -> {
@@ -477,7 +477,7 @@ class BugTrackingControllerTest {
 
         CompleteResult<Bug> completeResult = new CompleteResult<>(1, bug);
 
-        Mockito.when(bugService.complete(eq(1), eq(completeRequest))).thenReturn(completeResult);
+        Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
         Mockito.doAnswer(invocationOnMock -> {

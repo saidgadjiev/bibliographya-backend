@@ -19,7 +19,7 @@ import java.util.List;
 class BiographyCommentDaoImplTest {
 
     @Autowired
-    private BiographyCommentDaoImpl biographyCommentDao;
+    private BiographyCommentDao biographyCommentDao;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -77,7 +77,7 @@ class BiographyCommentDaoImplTest {
         jdbcTemplate.update(
                 "INSERT INTO biography_comment(content, biography_id, user_id) VALUES ('Test', 1, 1)"
         );
-        int deleted = biographyCommentDao.delete(1, 1);
+        int deleted = biographyCommentDao.delete(1);
 
         Assertions.assertEquals(1, deleted);
         BiographyComment actual = jdbcTemplate.query(
@@ -100,7 +100,7 @@ class BiographyCommentDaoImplTest {
                 "INSERT INTO biography_comment(content, biography_id, user_id) VALUES ('Test', 1, 1)"
         );
 
-        List<BiographyComment> comments = biographyCommentDao.getComments(1, null, 10, 0);
+        List<BiographyComment> comments = biographyCommentDao.getComments(null, 1, null, 10, 0);
 
         BiographyComment expected = new BiographyComment();
 

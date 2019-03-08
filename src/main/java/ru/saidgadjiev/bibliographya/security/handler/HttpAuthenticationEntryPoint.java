@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import ru.saidgadjiev.bibliographya.service.impl.SessionManager;
 import ru.saidgadjiev.bibliographya.utils.ResponseUtils;
@@ -36,7 +37,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException, ServletException {
         LOGGER.error(authException.getMessage(), authException);
 
-        if (authException instanceof BadCredentialsException) {
+        if (authException instanceof BadCredentialsException || authException instanceof UsernameNotFoundException) {
             ResponseUtils.sendResponseMessage(response, HttpServletResponse.SC_UNAUTHORIZED);
         } else if (authException instanceof DisabledException) {
             ObjectNode objectNode = objectMapper.createObjectNode();

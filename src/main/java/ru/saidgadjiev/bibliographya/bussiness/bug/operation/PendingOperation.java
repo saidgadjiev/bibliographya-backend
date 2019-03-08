@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class PendingOperation implements BusinessOperation<Bug> {
 
@@ -66,6 +67,6 @@ public class PendingOperation implements BusinessOperation<Bug> {
             return bug;
         }
 
-        return bugDao.getById(bugId);
+        return bugDao.getById((TimeZone) args.get("timeZone"), bugId);
     }
 }

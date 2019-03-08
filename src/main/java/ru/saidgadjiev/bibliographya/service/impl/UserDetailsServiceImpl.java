@@ -181,7 +181,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 Collections.singletonList(UserAccount.PASSWORD),
                 Collections.singletonList(
                         new FilterCriteria.Builder<Integer>()
-                                .propertyName(UserAccount.PASSWORD)
+                                .propertyName(UserAccount.ID)
                                 .filterOperation(FilterOperation.EQ)
                                 .filterValue(user.getUserAccount().getId())
                                 .needPreparedSet(true)
@@ -224,7 +224,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) {
-        User actual = (User) loadUserByUsername(email);
+        User actual = userAccountDao.getByEmail(email);
 
         if (actual == null) {
             return HttpStatus.NOT_FOUND;

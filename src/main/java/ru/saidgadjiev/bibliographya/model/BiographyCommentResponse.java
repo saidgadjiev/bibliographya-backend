@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;
 
 import java.sql.Timestamp;
@@ -13,6 +15,7 @@ public class BiographyCommentResponse {
 
     private String content;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp createdAt;
 
     private int biographyId;

@@ -1,11 +1,10 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.dao.api.BiographyLikeDao;
+import ru.saidgadjiev.bibliographya.dao.impl.BiographyLikeDao;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 import ru.saidgadjiev.bibliographya.domain.LikesStats;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -29,7 +28,7 @@ public class BiographyLikeService {
 
     @Autowired
     public BiographyLikeService(SecurityService securityService,
-                                @Qualifier("sql") BiographyLikeDao biographyLikeDao) {
+                                BiographyLikeDao biographyLikeDao) {
         this.securityService = securityService;
         this.biographyLikeDao = biographyLikeDao;
     }

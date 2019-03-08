@@ -64,7 +64,7 @@ class BugServiceTest {
     void create() {
         List<Bug> db = new ArrayList<>();
 
-        Mockito.when(bugDao.create(any())).thenAnswer(invocationOnMock -> {
+        Mockito.when(bugDao.create(any(), any())).thenAnswer(invocationOnMock -> {
             Bug bug = (Bug) invocationOnMock.getArguments()[0];
 
             bug.setId(1);
@@ -80,7 +80,7 @@ class BugServiceTest {
         request.setTheme("Тест");
         request.setBugCase("Тест");
 
-        Bug created = bugService.create(request);
+        Bug created = bugService.create(TimeZone.getDefault(), request);
 
         Assertions.assertEquals(1, db.size());
 
@@ -118,7 +118,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.ASSIGN_ME.getDesc());
         completeRequest.setStatus(Bug.BugStatus.PENDING.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(null, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.PENDING, 1);
 
@@ -149,7 +149,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.CLOSE.getDesc());
         completeRequest.setStatus(Bug.BugStatus.PENDING.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(null, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.CLOSED, 1);
 
@@ -182,7 +182,7 @@ class BugServiceTest {
         completeRequest.setStatus(Bug.BugStatus.PENDING.getCode());
         completeRequest.setInfo("Тест");
 
-        CompleteResult<Bug> completeResult = bugService.complete(1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(null, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.IGNORED, 1);
 
@@ -215,7 +215,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.RELEASE.getDesc());
         completeRequest.setStatus(Bug.BugStatus.IGNORED.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(any(), 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.PENDING, null);
 
@@ -246,7 +246,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.RELEASE.getDesc());
         completeRequest.setStatus(Bug.BugStatus.CLOSED.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(any(), 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.PENDING, null);
 
@@ -373,6 +373,7 @@ class BugServiceTest {
 
         Mockito.when(
                 bugDao.getList(
+                        any(),
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
@@ -381,7 +382,7 @@ class BugServiceTest {
                 )
         ).thenReturn(bugs);
 
-        Page<Bug> page = bugService.getBugs(pageRequest, null);
+        Page<Bug> page = bugService.getBugs(any(), pageRequest, null);
 
         Assertions.assertEquals(page.getContent().size(), 2);
         assertEquals(bug1, page.getContent().get(0), Collections.emptySet());
@@ -427,6 +428,7 @@ class BugServiceTest {
 
         Mockito.when(
                 bugDao.getList(
+                        any(),
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
@@ -435,7 +437,7 @@ class BugServiceTest {
                 )
         ).thenReturn(bugs);
 
-        Page<Bug> page = bugService.getBugsTracks(pageRequest, null);
+        Page<Bug> page = bugService.getBugsTracks(any(), pageRequest, null);
 
         Assertions.assertEquals(page.getContent().size(), 2);
         assertEquals(bug1, page.getContent().get(0), Collections.singleton("fixer"));
@@ -473,6 +475,7 @@ class BugServiceTest {
 
         Mockito.when(
                 bugDao.getList(
+                        any(),
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
@@ -481,7 +484,7 @@ class BugServiceTest {
                 )
         ).thenReturn(bugs);
 
-        Page<Bug> page = bugService.getBugs(pageRequest, "status==0");
+        Page<Bug> page = bugService.getBugs(any(), pageRequest, "status==0");
 
         Assertions.assertEquals(page.getContent().size(), 1);
         assertEquals(bug1, page.getContent().get(0), Collections.emptySet());

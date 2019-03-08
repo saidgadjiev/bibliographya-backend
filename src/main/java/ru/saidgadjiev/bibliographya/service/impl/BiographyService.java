@@ -2,12 +2,11 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliographya.dao.api.BiographyDao;
+import ru.saidgadjiev.bibliographya.dao.impl.BiographyDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
@@ -41,7 +40,7 @@ public class BiographyService {
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(@Qualifier("sql") BiographyDao biographyDao, GeneralDao generalDao) {
+    public BiographyService(BiographyDao biographyDao, GeneralDao generalDao) {
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
     }
@@ -67,7 +66,7 @@ public class BiographyService {
     }
 
     @Transactional
-    public Biography create(BiographyRequest biographyRequest) throws SQLException {
+    public void create(BiographyRequest biographyRequest) throws SQLException {
         User userDetails = (User) securityService.findLoggedInUser();
 
         Biography biography = new Biography();
@@ -78,112 +77,33 @@ public class BiographyService {
         biography.setBiography(biographyRequest.getBiography());
         biography.setCreatorId(userDetails.getId());
 
-        Biography result = biographyDao.save(biography);
+        biographyDao.create(biography);
 
         if (biographyRequest.getAddCategories() != null && !biographyRequest.getAddCategories().isEmpty()) {
             biographyCategoryBiographyService.addCategoriesToBiography(
                     biographyRequest.getAddCategories(),
-                    result.getId()
+                    biography.getId()
             );
         }
-
-        return result;
     }
 
     public Biography createAccountBiography(User user, BiographyRequest biographyRequest) throws SQLException {
-        Collection<UpdateValue> updateValues = new ArrayList<>();
-
-        updateValues.add(
-                new UpdateValue<>(
-                        Biography.FIRST_NAME,
-                        biographyRequest.getFirstName(),
-                        PreparedStatement::setString
-                )
-        );
-        updateValues.add(
-                new UpdateValue<>(
-                        Biography.LAST_NAME,
-                        biographyRequest.getLastName(),
-                        PreparedStatement::setString
-                )
-        );
-
-        if (StringUtils.isNotBlank(biographyRequest.getMiddleName())) {
-            updateValues.add(
-                    new UpdateValue<>(
-                            Biography.MIDDLE_NAME,
-                            biographyRequest.getMiddleName(),
-                            PreparedStatement::setString
-                    )
-            );
-        }
-
-        updateValues.add(
-                new UpdateValue<>(
-                        Biography.CREATOR_ID,
-                        user.getId(),
-                        PreparedStatement::setInt
-                )
-        );
-
-        updateValues.add(
-                new UpdateValue<>(
-                        Biography.USER_ID,
-                        user.getId(),
-                        PreparedStatement::setInt
-                )
-        );
-
-        updateValues.add(
-                new UpdateValue<>(
-                        Biography.MODERATION_STATUS,
-                        Biography.ModerationStatus.APPROVED.getCode(),
-                        PreparedStatement::setInt
-                )
-        );
-
-        return biographyDao.save(updateValues);
-    }
-
-    public Biography getShortBiography(int userId) {
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.USER_ID)
-                        .filterValue(userId)
-                        .filterOperation(FilterOperation.EQ)
-                        .needPreparedSet(true)
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-        );
-        List<Map<String, Object>> fields = generalDao.getFields(
-                Biography.TABLE,
-                Arrays.asList(Biography.ID, Biography.FIRST_NAME, Biography.LAST_NAME),
-                criteria);
-
-        if (fields == null || fields.isEmpty()) {
-            return null;
-        }
-        Map<String, Object> result = fields.iterator().next();
-
         Biography biography = new Biography();
 
-        biography.setId((Integer) result.get(Biography.ID));
-        biography.setFirstName((String) result.get(Biography.FIRST_NAME));
-        biography.setLastName((String) result.get(Biography.LAST_NAME));
+        biography.setFirstName(biographyRequest.getFirstName());
+        biography.setLastName(biographyRequest.getLastName());
+        biography.setMiddleName(biographyRequest.getMiddleName());
+        biography.setCreatorId(user.getId());
+        biography.setUserId(user.getId());
+        biography.setModerationStatus(Biography.ModerationStatus.APPROVED);
+
+        biographyDao.create(biography);
 
         return biography;
     }
 
-    public Biography getCurrentUserShortBiography() {
-        User user = (User) securityService.findLoggedInUser();
-
-        return getShortBiography(user.getId());
-    }
-
-    public Biography getBiographyById(int id) {
-        Biography biography = biographyDao.getById(id);
+    public Biography getBiographyById(TimeZone timeZone, int id) {
+        Biography biography = biographyDao.getById(timeZone, id);
 
         if (biography == null) {
             return null;
@@ -194,7 +114,8 @@ public class BiographyService {
         return biography;
     }
 
-    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
+    public Page<Biography> getBiographies(TimeZone timeZone,
+                                          OffsetLimitPageRequest pageRequest,
                                           Integer categoryId,
                                           Boolean autobiographies) {
         List<FilterCriteria> criteria = new ArrayList<>();
@@ -220,16 +141,23 @@ public class BiographyService {
                         .build()
         );
 
-        return getBiographies(pageRequest, criteria, categoryId);
+        return getBiographies(timeZone, pageRequest, criteria, categoryId);
     }
 
 
-    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest,
+    public Page<Biography> getBiographies(TimeZone timeZone,
+                                          OffsetLimitPageRequest pageRequest,
                                           Collection<FilterCriteria> criteria,
                                           Integer categoryId
     ) {
         List<Biography> biographies = biographyDao.getBiographiesList(
-                pageRequest.getPageSize(), pageRequest.getOffset(), categoryId, criteria, pageRequest.getSort());
+                timeZone,
+                pageRequest.getPageSize(),
+                pageRequest.getOffset(),
+                categoryId,
+                criteria,
+                pageRequest.getSort()
+        );
 
         if (biographies.isEmpty()) {
             return new PageImpl<>(biographies, pageRequest, 0);
@@ -241,7 +169,7 @@ public class BiographyService {
     }
 
 
-    public Page<Biography> getMyBiographies(OffsetLimitPageRequest pageRequest) {
+    public Page<Biography> getMyBiographies(TimeZone timeZone, OffsetLimitPageRequest pageRequest) {
         User user = (User) securityService.findLoggedInUser();
         List<FilterCriteria> criteria = new ArrayList<>();
 
@@ -263,8 +191,13 @@ public class BiographyService {
         );
 
         List<Biography> biographies = biographyDao.getBiographiesList(
-                pageRequest.getPageSize(), pageRequest.getOffset(), null, criteria,
-                null);
+                timeZone,
+                pageRequest.getPageSize(),
+                pageRequest.getOffset(),
+                null,
+                criteria,
+                null
+        );
 
         if (biographies.isEmpty()) {
             return new PageImpl<>(biographies, pageRequest, 0);
@@ -278,7 +211,9 @@ public class BiographyService {
     }
 
     @Transactional
-    public BiographyUpdateStatus update(Integer id, BiographyRequest updateBiographyRequest) throws SQLException {
+    public BiographyUpdateStatus update(TimeZone timeZone,
+                                        Integer id,
+                                        BiographyRequest updateBiographyRequest) throws SQLException {
         List<UpdateValue> updateValues = new ArrayList<>();
 
         updateValues.add(
@@ -344,7 +279,7 @@ public class BiographyService {
                         .build()
         );
 
-        BiographyUpdateStatus status = biographyDao.updateValues(updateValues, criteria);
+        BiographyUpdateStatus status = biographyDao.updateValues(timeZone, updateValues, criteria);
 
         if (status.getUpdated() > 0) {
             if (updateBiographyRequest.getAddCategories() != null && !updateBiographyRequest.getAddCategories().isEmpty()) {
@@ -369,12 +304,12 @@ public class BiographyService {
     }
 
 
-    public int publish(Integer biographyId) {
-        return publishUpdate(biographyId, Biography.PublishStatus.PUBLISHED);
+    public int publish(TimeZone timeZone, Integer biographyId) {
+        return publishUpdate(timeZone, biographyId, Biography.PublishStatus.PUBLISHED);
     }
 
-    public int unpublish(Integer biographyId) {
-        return publishUpdate(biographyId, Biography.PublishStatus.NOT_PUBLISHED);
+    public int unpublish(TimeZone timeZone, Integer biographyId) {
+        return publishUpdate(timeZone, biographyId, Biography.PublishStatus.NOT_PUBLISHED);
     }
 
     public boolean isIAuthor(int biographyId) {
@@ -407,7 +342,7 @@ public class BiographyService {
         return biographiesStats;
     }
 
-    private int publishUpdate(int biographyId, Biography.PublishStatus publishStatus) {
+    private int publishUpdate(TimeZone timeZone, int biographyId, Biography.PublishStatus publishStatus) {
         List<UpdateValue> updateValues = new ArrayList<>();
 
         updateValues.add(
@@ -460,7 +395,7 @@ public class BiographyService {
             }
         }
 
-        return biographyDao.updateValues(updateValues, criteria).getUpdated();
+        return biographyDao.updateValues(timeZone, updateValues, criteria).getUpdated();
     }
 
     private void postProcess(Biography biography) {

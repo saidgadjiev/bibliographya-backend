@@ -23,6 +23,7 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.TimeZone;
 
 /**
  * Created by said on 22.10.2018.
@@ -57,16 +58,17 @@ public class BiographyController {
     }
 
     @GetMapping("/{id:[\\d]+}")
-    public ResponseEntity<BiographyResponse> getBiographyById(@PathVariable("id") int id) {
-        return ResponseEntity.ok(modelMapper.convertToBiographyResponse(biographyService.getBiographyById(id)));
+    public ResponseEntity<BiographyResponse> getBiographyById(TimeZone timeZone, @PathVariable("id") int id) {
+        return ResponseEntity.ok(modelMapper.convertToBiographyResponse(biographyService.getBiographyById(timeZone, id)));
     }
 
     @GetMapping(value = "")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
+            TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
     ) {
-        Page<Biography> page = biographyService.getBiographies(pageRequest, null, autobiographies);
+        Page<Biography> page = biographyService.getBiographies(timeZone, pageRequest, null, autobiographies);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -84,9 +86,10 @@ public class BiographyController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/my")
     public ResponseEntity<Page<MyBiographyResponse>> getMyBiographies(
+            TimeZone timeZone,
             OffsetLimitPageRequest pageRequest
     ) {
-        Page<Biography> page = biographyService.getMyBiographies(pageRequest);
+        Page<Biography> page = biographyService.getMyBiographies(timeZone, pageRequest);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -103,6 +106,7 @@ public class BiographyController {
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#id) or hasAnyRole('ROLE_MODERATOR'))")
     @PutMapping(value = "/{id:[\\d]+}")
     public ResponseEntity<?> update(
+            TimeZone timeZone,
             @PathVariable("id") Integer id,
             @Valid @RequestBody BiographyRequest biographyRequest,
             BindingResult bindingResult
@@ -111,7 +115,7 @@ public class BiographyController {
             return ResponseEntity.badRequest().build();
         }
 
-        BiographyUpdateStatus updateResult = biographyService.update(id, biographyRequest);
+        BiographyUpdateStatus updateResult = biographyService.update(timeZone, id, biographyRequest);
 
         if (updateResult.getUpdated() > 0) {
             UpdateBiographyResponse response = new UpdateBiographyResponse();
@@ -124,7 +128,7 @@ public class BiographyController {
 
             return ResponseEntity.ok(response);
         }
-        Biography biography = biographyService.getBiographyById(id);
+        Biography biography = biographyService.getBiographyById(timeZone, id);
 
         if (biography == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -143,15 +147,9 @@ public class BiographyController {
             return ResponseEntity.badRequest().build();
         }
 
-        Biography biography = biographyService.create(biographyRequest);
+        biographyService.create(biographyRequest);
 
-        BiographyResponse response = modelMapper.convertToBiographyResponse(biography);
-
-        response.setLiked(false);
-        response.setLikesCount(0);
-        response.setCommentsCount(0);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
@@ -168,10 +166,11 @@ public class BiographyController {
 
     @GetMapping("/{biographyId}/comments")
     public ResponseEntity<Page<BiographyCommentResponse>> getComments(
+            TimeZone timeZone,
             @PathVariable("biographyId") Integer biographyId,
             OffsetLimitPageRequest pageRequest
     ) {
-        Page<BiographyComment> page = biographyCommentService.getComments(biographyId, pageRequest);
+        Page<BiographyComment> page = biographyCommentService.getComments(timeZone, biographyId, pageRequest);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -189,6 +188,7 @@ public class BiographyController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{biographyId}/comments")
     public ResponseEntity<BiographyCommentResponse> addComment(
+            TimeZone timeZone,
             @PathVariable("biographyId") Integer biographyId,
             @RequestBody BiographyCommentRequest commentRequest,
             BindingResult bindingResult
@@ -197,7 +197,7 @@ public class BiographyController {
             return ResponseEntity.badRequest().build();
         }
 
-        BiographyComment biographyComment = biographyCommentService.addComment(biographyId, commentRequest);
+        BiographyComment biographyComment = biographyCommentService.addComment(timeZone, biographyId, commentRequest);
 
         return ResponseEntity.ok(modelMapper.convertToBiographyCommentResponse(biographyComment));
     }
@@ -208,15 +208,15 @@ public class BiographyController {
             @PathVariable("commentId") Integer commentId,
             @PathVariable("biographyId") Integer biographyId
     ) {
-        biographyCommentService.deleteComment(biographyId, commentId);
+        biographyCommentService.deleteComment(commentId);
 
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/publish")
-    public ResponseEntity<?> publish(@PathVariable("biographyId") Integer biographyId) {
-        int updated = biographyService.publish(biographyId);
+    public ResponseEntity<?> publish(TimeZone timeZone, @PathVariable("biographyId") Integer biographyId) {
+        int updated = biographyService.publish(timeZone, biographyId);
 
         if (updated == 0) {
             return ResponseEntity.badRequest().build();
@@ -227,8 +227,8 @@ public class BiographyController {
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/unpublish")
-    public ResponseEntity<?> unpublish(@PathVariable("biographyId") Integer biographyId) {
-        int updated = biographyService.unpublish(biographyId);
+    public ResponseEntity<?> unpublish(TimeZone timeZone, @PathVariable("biographyId") Integer biographyId) {
+        int updated = biographyService.unpublish(timeZone, biographyId);
 
         if (updated == 0) {
             return ResponseEntity.notFound().build();
@@ -323,10 +323,11 @@ public class BiographyController {
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @GetMapping(value = "/moderation")
     public ResponseEntity<Page<BiographyModerationResponse>> getModeration(
+            TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "q", required = false) String query
     ) {
-        Page<Biography> page = biographyModerationService.getBiographies(pageRequest, query);
+        Page<Biography> page = biographyModerationService.getBiographies(timeZone, pageRequest, query);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();

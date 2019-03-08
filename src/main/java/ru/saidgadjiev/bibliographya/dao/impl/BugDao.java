@@ -39,13 +39,16 @@ public class BugDao {
         return dialect;
     }
 
-    public Bug create(Bug bug) {
+    public Bug create(TimeZone timeZone, Bug bug) {
         StringBuilder query = new StringBuilder();
 
         query.append("INSERT INTO bug(theme, bug_case) VALUES (?, ?)");
 
         if (dialect.supportReturning()) {
-            query.append(" RETURNING *");
+            query
+                    .append(" RETURNING id, theme, bug_case, status, created_at::TIMESTAMPTZ AT TIME ZONE '")
+                    .append(timeZone.getID())
+                    .append("' as created_at");
 
             return jdbcTemplate.execute(
                     query.toString(),
@@ -170,9 +173,9 @@ public class BugDao {
         return updated == 1 ? new Bug() : null;
     }
 
-    public Bug getById(int id) {
+    public Bug getById(TimeZone timeZone, int id) {
         return jdbcTemplate.query(
-                "SELECT * FROM bug WHERE id = " + id,
+                "SELECT " + selectList(timeZone, Collections.emptySet()) + " FROM bug WHERE id = " + id,
                 resultSet -> {
                     if (resultSet.next()) {
                         return mapFull(resultSet, Collections.emptySet());
@@ -183,14 +186,19 @@ public class BugDao {
         );
     }
 
-    public List<Bug> getList(int limit, long offset, Sort sort, List<FilterCriteria> criteria, Set<String> fields) {
+    public List<Bug> getList(TimeZone timeZone,
+                             int limit,
+                             long offset,
+                             Sort sort,
+                             List<FilterCriteria> criteria,
+                             Set<String> fields) {
         String clause = toClause(criteria, "b");
 
         StringBuilder sql = new StringBuilder();
 
         sql
                 .append("SELECT ")
-                .append(selectList(fields))
+                .append(selectList(timeZone, fields))
                 .append(" FROM bug b")
                 .append(" LEFT JOIN biography fb ON b.fixer_id = fb.user_id ");
 
@@ -303,7 +311,7 @@ public class BugDao {
         return selectList.toString();
     }
 
-    private String selectList(Set<String> fields) {
+    private String selectList(TimeZone timeZone, Set<String> fields) {
         StringBuilder selectList = new StringBuilder();
 
         selectList
@@ -311,9 +319,9 @@ public class BugDao {
                 .append("b.theme,")
                 .append("b.bug_case,")
                 .append("b.status,")
-                .append("b.created_at,")
+                .append("b.created_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as created_at, ")
                 .append("b.status,")
-                .append("b.fixed_at,")
+                .append("b.fixed_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' fixed_at, ")
                 .append("b.info,")
                 .append("b.fixer_id");
 

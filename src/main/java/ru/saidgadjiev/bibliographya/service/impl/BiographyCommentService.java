@@ -1,13 +1,13 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliographya.dao.api.BiographyCommentDao;
+import ru.saidgadjiev.bibliographya.dao.impl.BiographyCommentDao;
+import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.Biography;
@@ -29,15 +29,19 @@ public class BiographyCommentService {
 
     private final BiographyCommentDao biographyCommentDao;
 
+    private GeneralDao generalDao;
+
     @Autowired
     public BiographyCommentService(SecurityService securityService,
-                                   @Qualifier("sql") BiographyCommentDao biographyCommentDao) {
+                                   BiographyCommentDao biographyCommentDao,
+                                   GeneralDao generalDao) {
         this.securityService = securityService;
         this.biographyCommentDao = biographyCommentDao;
+        this.generalDao = generalDao;
     }
 
     @Transactional
-    public BiographyComment addComment(int biographyId, BiographyCommentRequest commentRequest) {
+    public BiographyComment addComment(TimeZone timeZone, int biographyId, BiographyCommentRequest commentRequest) {
         User userDetails = (User) securityService.findLoggedInUser();
         BiographyComment biographyComment = new BiographyComment();
 
@@ -57,18 +61,19 @@ public class BiographyCommentService {
             biographyComment.setParentId(commentRequest.getParentId());
         }
 
-        BiographyComment comment = biographyCommentDao.create(biographyComment);
+        biographyCommentDao.create(biographyComment);
 
-        return biographyCommentDao.getById(comment.getId());
+        return biographyCommentDao.getById(timeZone, biographyComment.getId());
     }
 
     @Transactional
-    public void deleteComment(int biographyId, int commentId) {
-        biographyCommentDao.delete(biographyId, commentId);
+    public void deleteComment(int commentId) {
+        biographyCommentDao.delete(commentId);
     }
 
-    public Page<BiographyComment> getComments(int biographyId, Pageable pageRequest) {
+    public Page<BiographyComment> getComments(TimeZone timeZone, int biographyId, Pageable pageRequest) {
         List<BiographyComment> biographyComments = biographyCommentDao.getComments(
+                timeZone,
                 biographyId,
                 pageRequest.getSort(),
                 pageRequest.getPageSize(),
@@ -93,7 +98,10 @@ public class BiographyCommentService {
     }
 
     public boolean isIAuthor(int commentId) {
-        List<Map<String, Object>> result = biographyCommentDao.getFields(Collections.singletonList("user_id"), Collections.singletonList(
+        List<Map<String, Object>> result = generalDao.getFields(
+                BiographyComment.TYPE,
+                Collections.singletonList("user_id"),
+                Collections.singletonList(
                 new FilterCriteria.Builder<Integer>()
                         .propertyName("id")
                         .filterOperation(FilterOperation.EQ)

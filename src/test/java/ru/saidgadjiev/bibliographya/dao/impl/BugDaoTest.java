@@ -48,7 +48,7 @@ class BugDaoTest {
         bug.setTheme("Тест");
         bug.setBugCase("Тест");
 
-        int created = bugDao.create(bug) != null ? 1 : 0;
+        int created = bugDao.create(TimeZone.getDefault(), bug) != null ? 1 : 0;
 
         Bug actual = jdbcTemplate.query(
                 "SELECT * FROM bug WHERE id = 1",
@@ -189,7 +189,7 @@ class BugDaoTest {
                 "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
         );
 
-        List<Bug> bugsWithFixerList = bugDao.getList(10, 0L, null, Collections.emptyList(), Collections.singleton("fixer"));
+        List<Bug> bugsWithFixerList = bugDao.getList(null, 10, 0L, null, Collections.emptyList(), Collections.singleton("fixer"));
 
         Assertions.assertEquals(2, bugsWithFixerList.size());
         Bug expected1 = new Bug();
@@ -228,7 +228,7 @@ class BugDaoTest {
                 "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
         );
 
-        List<Bug> bugsList = bugDao.getList(10, 0L, null, Collections.emptyList(), Collections.emptySet());
+        List<Bug> bugsList = bugDao.getList(null, 10, 0L, null, Collections.emptyList(), Collections.emptySet());
         Assertions.assertEquals(2, bugsList.size());
 
         Bug expected1 = new Bug();
@@ -272,7 +272,7 @@ class BugDaoTest {
                         .build()
         );
 
-        List<Bug> bugsList = bugDao.getList(10, 0L, null, criteria, Collections.emptySet());
+        List<Bug> bugsList = bugDao.getList(null, 10, 0L, null, criteria, Collections.emptySet());
 
         Assertions.assertEquals(1, bugsList.size());
 

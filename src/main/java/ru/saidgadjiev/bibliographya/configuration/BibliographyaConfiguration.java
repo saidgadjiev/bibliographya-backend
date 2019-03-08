@@ -16,12 +16,15 @@ import ru.saidgadjiev.bibliographya.dao.dialect.PostgresDialect;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by said on 16.11.2018.
  */
 @Configuration
 public class BibliographyaConfiguration {
+
+    public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss";
 
     private UIProperties uiProperties;
 
@@ -53,6 +56,7 @@ public class BibliographyaConfiguration {
         CookieLocaleResolver slr = new CookieLocaleResolver();
 
         slr.setDefaultLocale(new Locale("ru", "RU"));
+        slr.setDefaultTimeZone(TimeZone.getTimeZone("Europe/Moscow"));
         slr.setCookieDomain(uiProperties.getName());
         slr.setCookieName("localeInfo");
 

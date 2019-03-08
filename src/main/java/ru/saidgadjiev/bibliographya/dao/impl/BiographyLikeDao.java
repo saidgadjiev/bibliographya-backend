@@ -1,12 +1,10 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.dao.api.BiographyLikeDao;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
@@ -23,20 +21,18 @@ import java.util.stream.Collectors;
  * Created by said on 15.11.2018.
  */
 @Repository
-@Qualifier("sql")
-public class BiographyLikeDaoImpl implements BiographyLikeDao {
+public class BiographyLikeDao {
 
     private JdbcTemplate jdbcTemplate;
 
     private Dialect dialect;
 
     @Autowired
-    public BiographyLikeDaoImpl(JdbcTemplate jdbcTemplate, Dialect dialect) {
+    public BiographyLikeDao(JdbcTemplate jdbcTemplate, Dialect dialect) {
         this.jdbcTemplate = jdbcTemplate;
         this.dialect = dialect;
     }
 
-    @Override
     public int create(BiographyLike like) {
         return jdbcTemplate.update(
                 "INSERT INTO biography_like" +
@@ -48,7 +44,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public int delete(BiographyLike like) {
         return jdbcTemplate.update(
                 "DELETE " +
@@ -57,7 +52,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public int getLikesCount(int biographyId) {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM biography_like WHERE biography_id=" + biographyId,
@@ -74,7 +68,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public boolean isLiked(int userId, int biographyId) {
         return jdbcTemplate.query(
                 "SELECT 1 FROM biography_like WHERE user_id ='" + userId + "' AND biography_id ='" + biographyId + "'",
@@ -82,7 +75,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public Map<Integer, Boolean> isLikedByBiographies(int userId, Collection<Integer> biographiesIds) {
         StringBuilder sql = new StringBuilder();
         String inClause = biographiesIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -112,7 +104,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public Map<Integer, Integer> getLikesCountByBiographies(Collection<Integer> biographiesIds) {
         if (biographiesIds.isEmpty()) {
             Map<Integer, Integer> result = new HashMap<>();
@@ -146,7 +137,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public long countOff() {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM biography_like",
@@ -160,7 +150,6 @@ public class BiographyLikeDaoImpl implements BiographyLikeDao {
         );
     }
 
-    @Override
     public List<BiographyLike> getLikes(int biographyId, int pageSize, long offset) {
         StringBuilder sql = new StringBuilder();
 

@@ -2,12 +2,12 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.dao.api.BiographyDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
@@ -15,10 +15,7 @@ import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,25 +25,41 @@ import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
  * Created by said on 22.10.2018.
  */
 @Repository
-@Qualifier("sql")
-@SuppressWarnings("CPD-START")
-public class BiographyDaoImpl implements BiographyDao {
+public class BiographyDao {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public BiographyDaoImpl(JdbcTemplate jdbcTemplate) {
+    public BiographyDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Override
-    public Biography save(Biography biography) throws SQLException {
-        return jdbcTemplate.execute(
-                "INSERT INTO biography" +
-                        "(first_name, last_name, middle_name, biography, creator_id, user_id) " +
-                        "VALUES(?, ?, ?, ?, ?, ?) " +
-                        "RETURNING *",
-                (PreparedStatementCallback<Biography>) ps -> {
+    public void create(Biography biography) throws SQLException {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        StringBuilder insertPart = new StringBuilder();
+        StringBuilder valuesPart = new StringBuilder();
+
+
+        valuesPart.append("VALUES(?, ?, ?, ?, ?, ?");
+
+        insertPart.append("INSERT INTO biography(first_name, last_name, middle_name, biography, creator_id, user_id");
+
+        if (biography.getModerationStatus() != null) {
+            insertPart.append(",moderation_status");
+            valuesPart.append(",?");
+        }
+
+        insertPart.append(")");
+        valuesPart.append(")");
+
+        jdbcTemplate.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(
+                            insertPart.toString() + " " + valuesPart.toString(),
+                            Statement.RETURN_GENERATED_KEYS
+                    );
+
                     ps.setString(1, biography.getFirstName());
                     ps.setString(2, biography.getLastName());
 
@@ -69,69 +82,24 @@ public class BiographyDaoImpl implements BiographyDao {
                         ps.setInt(6, biography.getUserId());
                     }
 
-                    ps.execute();
-
-                    try (ResultSet resultSet = ps.getResultSet()) {
-                        if (resultSet.next()) {
-                            return mapFull(resultSet, false, false);
-                        }
-
-                        return null;
+                    if (biography.getModerationStatus() != null) {
+                        ps.setInt(7, biography.getModerationStatus().getCode());
                     }
-                }
+
+                    return ps;
+                },
+                keyHolder
         );
-    }
 
-    @Override
-    public Biography save(Collection<UpdateValue> values) throws SQLException {
-        StringBuilder sql = new StringBuilder();
+        Map<String, Object> keys = keyHolder.getKeys();
 
-        sql.append("INSERT INTO biography(");
-
-        StringBuilder valuesBuilder = new StringBuilder();
-
-        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
-            sql.append(iterator.next().getName());
-            valuesBuilder.append("?");
-
-            if (iterator.hasNext()) {
-                sql.append(", ");
-                valuesBuilder.append(",");
-            }
+        if (keys != null && keys.containsKey("id")) {
+            biography.setId(((Number) keys.get("id")).intValue());
         }
-
-        sql.append(") VALUES(");
-
-        sql.append(valuesBuilder.toString());
-
-        sql.append(") ");
-
-        sql.append("RETURNING *");
-
-        return jdbcTemplate.execute(
-                sql.toString(),
-                (PreparedStatementCallback<Biography>) ps -> {
-                    int i = 0;
-
-                    for (UpdateValue updateValue : values) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
-                    }
-
-                    ps.execute();
-
-                    try (ResultSet resultSet = ps.getResultSet()) {
-                        if (resultSet.next()) {
-                            return mapFull(resultSet, false, false);
-                        }
-
-                        return null;
-                    }
-                }
-        );
     }
 
-    @Override
-    public List<Biography> getBiographiesList(int limit,
+    public List<Biography> getBiographiesList(TimeZone timeZone,
+                                              int limit,
                                               long offset,
                                               Integer categoryId,
                                               Collection<FilterCriteria> biographyCriteria,
@@ -158,7 +126,7 @@ public class BiographyDaoImpl implements BiographyDao {
 
         sql
                 .append("SELECT ")
-                .append(getFullSelectList())
+                .append(getFullSelectList(timeZone))
                 .append(" FROM biography b")
                 .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
                 .append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
@@ -197,7 +165,6 @@ public class BiographyDaoImpl implements BiographyDao {
         );
     }
 
-    @Override
     public long countOff() {
         return jdbcTemplate.query("SELECT COUNT(*) FROM biography", rs -> {
             if (rs.next()) {
@@ -208,13 +175,12 @@ public class BiographyDaoImpl implements BiographyDao {
         });
     }
 
-    @Override
-    public Biography getById(int id) {
+    public Biography getById(TimeZone timeZone, int id) {
         return jdbcTemplate.query(
-                "SELECT " + getFullSelectList() + " FROM biography b \n" +
+                "SELECT " + getFullSelectList(timeZone) + " FROM biography b \n" +
                         "  LEFT JOIN biography bm ON b.moderator_id = bm.user_id\n" +
                         "  LEFT JOIN biography cb ON b.creator_id = cb.user_id\n" +
-                        "WHERE b.id=" + id + "",
+                        "WHERE b.id = " + id + "",
                 rs -> {
                     if (rs.next()) {
                         return mapFull(rs, true, true);
@@ -225,8 +191,10 @@ public class BiographyDaoImpl implements BiographyDao {
         );
     }
 
-    @Override
-    public BiographyUpdateStatus updateValues(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
+    public BiographyUpdateStatus updateValues(
+            TimeZone timeZone,
+            Collection<UpdateValue> updateValues,
+            Collection<FilterCriteria> criteria) {
         String clause = toClause(criteria, null);
 
         StringBuilder sql = new StringBuilder();
@@ -245,7 +213,7 @@ public class BiographyDaoImpl implements BiographyDao {
             sql.append(" WHERE ").append(clause).append(" ");
         }
 
-        sql.append("RETURNING updated_at");
+        sql.append("RETURNING updated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' AS updated_at");
 
         return jdbcTemplate.execute(
                 sql.toString(),
@@ -274,7 +242,6 @@ public class BiographyDaoImpl implements BiographyDao {
         );
     }
 
-    @Override
     public int delete(int biographyId) {
         return jdbcTemplate.update(
                 "DELETE FROM biography WHERE id = ?",
@@ -282,7 +249,7 @@ public class BiographyDaoImpl implements BiographyDao {
         );
     }
 
-    private String getFullSelectList() {
+    private String getFullSelectList(TimeZone timeZone) {
         StringBuilder selectList = new StringBuilder();
 
         selectList.append("b.first_name,");
@@ -291,9 +258,9 @@ public class BiographyDaoImpl implements BiographyDao {
         selectList.append("b.id,");
         selectList.append("b.creator_id,");
         selectList.append("b.user_id,");
-        selectList.append("b.updated_at,");
+        selectList.append("b.updated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as updated_at, ");
         selectList.append("b.moderation_status,");
-        selectList.append("b.moderated_at,");
+        selectList.append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ");
         selectList.append("b.moderator_id,");
         selectList.append("b.moderation_info,");
         selectList.append("b.biography,");

@@ -22,6 +22,7 @@ import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 @RestController
 @RequestMapping("/api/bugs")
@@ -39,9 +40,10 @@ public class BugTrackingController {
 
     @GetMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getBugs(OffsetLimitPageRequest pageRequest,
+    public ResponseEntity<?> getBugs(TimeZone timeZone,
+                                     OffsetLimitPageRequest pageRequest,
                                      @RequestParam(value = "query", required = false) String query) {
-        Page<Bug> page = bugService.getBugs(pageRequest, query);
+        Page<Bug> page = bugService.getBugs(timeZone, pageRequest, query);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -66,9 +68,10 @@ public class BugTrackingController {
 
     @GetMapping("/tracking")
     @PreAuthorize("hasRole('ROLE_DEVELOPER')")
-    public ResponseEntity<?> getBugsTracking(OffsetLimitPageRequest pageRequest,
-                                     @RequestParam(value = "query", required = false) String query) {
-        Page<Bug> page = bugService.getBugsTracks(pageRequest, query);
+    public ResponseEntity<?> getBugsTracking(TimeZone timeZone,
+                                             OffsetLimitPageRequest pageRequest,
+                                             @RequestParam(value = "query", required = false) String query) {
+        Page<Bug> page = bugService.getBugsTracks(timeZone, pageRequest, query);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -85,12 +88,14 @@ public class BugTrackingController {
 
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> create(@Valid @RequestBody BugRequest bugRequest, BindingResult bindingResult) {
+    public ResponseEntity<?> create(TimeZone timeZone,
+                                    @Valid @RequestBody BugRequest bugRequest,
+                                    BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        Bug bug = bugService.create(bugRequest);
+        Bug bug = bugService.create(timeZone, bugRequest);
         BugResponse bugResponse = modelMapper.convertToBugResponse(bug);
 
         bugResponse.setActions(null);
@@ -101,7 +106,9 @@ public class BugTrackingController {
 
     @PatchMapping("/{bugId}/assign-me")
     @PreAuthorize("hasRole('ROLE_DEVELOPER')")
-    public ResponseEntity<?> assignMe(@PathVariable("bugId") int bugId, @RequestBody CompleteRequest completeRequest) throws SQLException {
+    public ResponseEntity<?> assignMe(TimeZone timeZone,
+                                      @PathVariable("bugId") int bugId,
+                                      @RequestBody CompleteRequest completeRequest) throws SQLException {
         Handler.Signal signal = Handler.Signal.fromDesc(completeRequest.getSignal());
 
         if (signal == null || !signal.equals(Handler.Signal.ASSIGN_ME)) {
@@ -109,6 +116,7 @@ public class BugTrackingController {
         }
 
         CompleteResult<Bug> updated = bugService.complete(
+                timeZone,
                 bugId,
                 completeRequest
         );
@@ -135,10 +143,12 @@ public class BugTrackingController {
     @PreAuthorize("hasRole('ROLE_DEVELOPER')")
     @PatchMapping("/{bugId}/complete")
     public ResponseEntity<?> complete(
+            TimeZone timeZone,
             @PathVariable("bugId") int bugId,
             @RequestBody CompleteRequest completeRequest
     ) throws SQLException {
         CompleteResult<Bug> updated = bugService.complete(
+                timeZone,
                 bugId,
                 completeRequest
         );

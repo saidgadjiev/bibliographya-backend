@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class IgnoreOperation implements BusinessOperation<Bug> {
 
@@ -76,6 +77,6 @@ public class IgnoreOperation implements BusinessOperation<Bug> {
             return bug;
         }
 
-        return bugDao.getById(id);
+        return bugDao.getById((TimeZone) args.get("timeZone"), id);
     }
 }

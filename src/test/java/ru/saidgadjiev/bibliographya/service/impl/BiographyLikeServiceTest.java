@@ -10,7 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.dao.impl.BiographyLikeDaoImpl;
+import ru.saidgadjiev.bibliographya.dao.impl.BiographyLikeDao;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
@@ -31,7 +31,7 @@ class BiographyLikeServiceTest {
     private SecurityService securityService;
 
     @MockBean
-    private BiographyLikeDaoImpl biographyLikeDao;
+    private BiographyLikeDao biographyLikeDao;
 
     @Autowired
     private BiographyLikeService biographyLikeService;
