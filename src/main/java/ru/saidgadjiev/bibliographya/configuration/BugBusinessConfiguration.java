@@ -2,9 +2,8 @@ package ru.saidgadjiev.bibliographya.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.saidgadjiev.bibliographya.bussiness.bug.ClosedHandler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.ClosedIgnoredHandler;
 import ru.saidgadjiev.bibliographya.bussiness.bug.Handler;
-import ru.saidgadjiev.bibliographya.bussiness.bug.IgnoredHandler;
 import ru.saidgadjiev.bibliographya.bussiness.bug.PendingHandler;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.*;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
@@ -19,14 +18,13 @@ public class BugBusinessConfiguration {
     @Bean
     public Map<Bug.BugStatus, Handler> bugHandlerMap(
             PendingHandler pendingHandler,
-            IgnoredHandler ignoredHandler,
-            ClosedHandler closedHandler
+            ClosedIgnoredHandler closedIgnoredHandler
     ) {
         Map<Bug.BugStatus, Handler> handlerMap = new HashMap<>();
 
         handlerMap.put(Bug.BugStatus.PENDING, pendingHandler);
-        handlerMap.put(Bug.BugStatus.IGNORED, ignoredHandler);
-        handlerMap.put(Bug.BugStatus.CLOSED, closedHandler);
+        handlerMap.put(Bug.BugStatus.IGNORED, closedIgnoredHandler);
+        handlerMap.put(Bug.BugStatus.CLOSED, closedIgnoredHandler);
 
         return handlerMap;
     }
@@ -44,21 +42,11 @@ public class BugBusinessConfiguration {
     }
 
     @Bean
-    public ClosedHandler closedHandler(
+    public ClosedIgnoredHandler closedHandler(
             PendingOperation pendingOperation,
             ReleaseOperation releaseOperation
     ) {
-        return new ClosedHandler(
-                pendingOperation, releaseOperation
-        );
-    }
-
-    @Bean
-    public IgnoredHandler ignoreHandler(
-            PendingOperation pendingOperation,
-            ReleaseOperation releaseOperation
-    ) {
-        return new IgnoredHandler(
+        return new ClosedIgnoredHandler(
                 pendingOperation, releaseOperation
         );
     }

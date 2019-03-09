@@ -1,7 +1,7 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug;
 
-import ru.saidgadjiev.bibliographya.bussiness.bug.operation.*;
-import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
+import ru.saidgadjiev.bibliographya.bussiness.bug.operation.PendingOperation;
+import ru.saidgadjiev.bibliographya.bussiness.bug.operation.ReleaseOperation;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 
@@ -11,12 +11,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class ClosedHandler implements Handler {
+public class ClosedIgnoredHandler implements Handler {
 
     private final PendingOperation pendingOperation;
     private final ReleaseOperation releaseOperation;
 
-    public ClosedHandler(PendingOperation pendingOperation, ReleaseOperation releaseOperation) {
+    public ClosedIgnoredHandler(PendingOperation pendingOperation, ReleaseOperation releaseOperation) {
         this.pendingOperation = pendingOperation;
         this.releaseOperation = releaseOperation;
     }

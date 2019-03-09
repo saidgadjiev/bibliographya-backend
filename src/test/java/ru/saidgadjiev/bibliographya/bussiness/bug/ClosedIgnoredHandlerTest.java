@@ -8,10 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.bussiness.bug.operation.IgnoreOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.PendingOperation;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.ReleaseOperation;
-import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 import java.sql.SQLException;
@@ -21,7 +19,7 @@ import java.util.HashMap;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-class IgnoredHandlerTest {
+class ClosedIgnoredHandlerTest {
 
     @MockBean
     private PendingOperation pendingOperation;
@@ -30,11 +28,11 @@ class IgnoredHandlerTest {
     private ReleaseOperation releaseOperation;
 
     @Autowired
-    private IgnoredHandler ignoredHandler;
+    private ClosedIgnoredHandler closedIgnoredHandler;
 
     @Test
     void handleRelease() throws SQLException {
-        ignoredHandler.handle(Handler.Signal.RELEASE, new HashMap<String, Object>() {{
+        closedIgnoredHandler.handle(Handler.Signal.RELEASE, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
@@ -48,7 +46,7 @@ class IgnoredHandlerTest {
 
     @Test
     void handlePending() throws SQLException {
-        ignoredHandler.handle(Handler.Signal.PENDING, new HashMap<String, Object>() {{
+        closedIgnoredHandler.handle(Handler.Signal.PENDING, new HashMap<String, Object>() {{
             put("bugId", 1);
             put("fixerId", 1);
         }});
@@ -61,7 +59,7 @@ class IgnoredHandlerTest {
 
     @Test
     void getForMyBugActions() {
-        Collection<BugAction> actions = ignoredHandler.getActions(new HashMap<String, Object>() {{
+        Collection<BugAction> actions = closedIgnoredHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
 
             User user = new User();
@@ -76,7 +74,7 @@ class IgnoredHandlerTest {
 
     @Test
     void getForeignActions() {
-        Collection<BugAction> actions = ignoredHandler.getActions(new HashMap<String, Object>() {{
+        Collection<BugAction> actions = closedIgnoredHandler.getActions(new HashMap<String, Object>() {{
             put("fixerId", 1);
 
             User user = new User();

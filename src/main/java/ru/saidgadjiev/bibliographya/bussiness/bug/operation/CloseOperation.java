@@ -4,17 +4,15 @@ import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class CloseOperation implements BusinessOperation<Bug> {
 
@@ -77,6 +75,6 @@ public class CloseOperation implements BusinessOperation<Bug> {
             return bug;
         }
 
-        return bugDao.getById(id);
+        return bugDao.getById((TimeZone) args.get("timeZone"), id);
     }
 }

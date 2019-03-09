@@ -1,7 +1,5 @@
 package ru.saidgadjiev.bibliographya.domain;
 
-import java.util.Collection;
-
 /**
  * Created by said on 17.12.2018.
  */

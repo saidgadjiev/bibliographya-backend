@@ -7,7 +7,12 @@ public class BiographyLike {
 
     private Integer userId;
 
-    private int biographyId;
+    private Biography user;
+
+    private Integer biographyId;
+
+    public BiographyLike() {
+    }
 
     public BiographyLike(Integer userId, int biographyId) {
         this.userId = userId;
@@ -22,11 +27,19 @@ public class BiographyLike {
         this.userId = userId;
     }
 
-    public int getBiographyId() {
+    public Integer getBiographyId() {
         return biographyId;
     }
 
-    public void setBiographyId(int biographyId) {
+    public void setBiographyId(Integer biographyId) {
         this.biographyId = biographyId;
+    }
+
+    public Biography getUser() {
+        return user;
+    }
+
+    public void setUser(Biography user) {
+        this.user = user;
     }
 }

@@ -2,12 +2,9 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import java.util.Collection;
 
 /**
  * Created by said on 28.10.2018.
@@ -34,9 +31,9 @@ public class SecurityService {
         return null;
     }
 
-    public Authentication authenticate(Object principal, Collection<? extends GrantedAuthority> authorities) {
+    public Authentication authenticate(UserDetails userDetails) {
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(principal, null, authorities);
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

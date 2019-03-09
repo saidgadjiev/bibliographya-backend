@@ -10,7 +10,6 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -37,7 +36,7 @@ public class BiographyFixDao {
     }
 
     public List<BiographyFix> getFixesList(int limit, long offset, Collection<FilterCriteria> criteria, Sort sort) {
-        String clause = FilterUtils.toClause(criteria, "bf");
+        String clause = toClause(criteria, "bf");
         String sortClause = SortUtils.toSql(sort, "b");
 
         return jdbcTemplate.query(

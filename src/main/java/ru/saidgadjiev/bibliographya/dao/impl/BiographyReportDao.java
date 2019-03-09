@@ -5,10 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyReport;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 
 import java.sql.ResultSet;

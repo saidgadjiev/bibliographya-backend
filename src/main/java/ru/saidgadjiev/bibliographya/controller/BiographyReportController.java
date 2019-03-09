@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyReportRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
@@ -15,12 +14,9 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyReportService;
  */
 public class BiographyReportController {
 
-    private final BibliographyaMapper modelMapper;
-
     private final BiographyReportService reportService;
 
-    public BiographyReportController(BibliographyaMapper modelMapper, BiographyReportService reportService) {
-        this.modelMapper = modelMapper;
+    public BiographyReportController(BiographyReportService reportService) {
         this.reportService = reportService;
     }
 

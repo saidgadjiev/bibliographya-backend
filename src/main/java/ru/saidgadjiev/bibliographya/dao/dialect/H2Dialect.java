@@ -5,4 +5,9 @@ public class H2Dialect implements Dialect {
     public boolean supportReturning() {
         return false;
     }
+
+    @Override
+    public boolean supportOnConflict() {
+        return false;
+    }
 }

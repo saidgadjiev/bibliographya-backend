@@ -7,6 +7,8 @@ import java.sql.Timestamp;
  */
 public class BiographyComment {
 
+    public static final String TYPE = "biography_comment";
+
     private int id;
 
     private String content;

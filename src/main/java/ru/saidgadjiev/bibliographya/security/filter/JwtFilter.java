@@ -4,6 +4,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
+import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,17 +27,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (!HttpMethod.OPTIONS.matches(request.getMethod())) {
-            Cookie[] cookies = request.getCookies();
-            Cookie tokenCookie = null;
-
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals("X-TOKEN")) {
-                        tokenCookie = cookie;
-                        break;
-                    }
-                }
-            }
+            Cookie tokenCookie = CookieUtils.getCookie(request, "X-TOKEN");
 
             if (tokenCookie != null) {
                 authService.tokenAuth(tokenCookie.getValue());

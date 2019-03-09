@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import java.sql.SQLException;
@@ -12,8 +13,8 @@ import java.sql.SQLException;
 /**
  * Created by said on 02.01.2019.
  */
-//@RestController
-//@RequestMapping("/api/user-accounts")
+@RestController
+@RequestMapping("/api/user-accounts")
 public class UserAccountController {
 
     private final BibliographyaUserDetailsService userAccountDetailsService;
@@ -22,9 +23,9 @@ public class UserAccountController {
         this.userAccountDetailsService = userAccountDetailsService;
     }
 
-    @RequestMapping(value = "/{username}", method = RequestMethod.HEAD)
-    public ResponseEntity existUserName(@PathVariable(value = "username") String username) throws SQLException {
-        if (userAccountDetailsService.isExistUserName(username)) {
+    @RequestMapping(value = "/{email}", method = RequestMethod.HEAD)
+    public ResponseEntity checkEmail(@PathVariable(value = "email") String email) throws SQLException {
+        if (userAccountDetailsService.isExistEmail(email)) {
             return ResponseEntity.status(HttpStatus.FOUND).build();
         }
 

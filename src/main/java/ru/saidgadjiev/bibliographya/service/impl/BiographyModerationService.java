@@ -55,7 +55,7 @@ public class BiographyModerationService {
         handlerMap.put(Biography.ModerationStatus.REJECTED, new RejectedHandler(biographyModerationDao));
     }
 
-    public Page<Biography> getBiographies(OffsetLimitPageRequest pageRequest, String query) {
+    public Page<Biography> getBiographies(TimeZone timeZone, OffsetLimitPageRequest pageRequest, String query) {
         Collection<FilterCriteria> criteria = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
@@ -76,7 +76,7 @@ public class BiographyModerationService {
                         .build()
         );
 
-        return biographyService.getBiographies(pageRequest, criteria, null);
+        return biographyService.getBiographies(timeZone, pageRequest, criteria, null);
     }
 
     @Transactional

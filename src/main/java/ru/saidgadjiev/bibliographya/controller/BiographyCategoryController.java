@@ -17,6 +17,7 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
 import javax.validation.Valid;
+import java.util.TimeZone;
 
 /**
  * Created by said on 27.11.2018.
@@ -66,11 +67,12 @@ public class BiographyCategoryController {
 
     @GetMapping("/{id:[\\d]+}/biographies")
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
+            TimeZone timeZone,
             @PathVariable("id") Integer id,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
     ) {
-        Page<Biography> page = biographyService.getBiographies(pageRequest, id, autobiographies);
+        Page<Biography> page = biographyService.getBiographies(timeZone, pageRequest, id, autobiographies);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();

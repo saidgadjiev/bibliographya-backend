@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS user_role (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES "user"(id),
-  role_name VARCHAR (255) NOT NULL REFERENCES role(name),
+  role_name VARCHAR (255) NOT NULL REFERENCES role(email),
   UNIQUE (user_id, role_name)
 );
 

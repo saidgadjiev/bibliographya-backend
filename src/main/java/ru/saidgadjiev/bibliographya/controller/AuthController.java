@@ -3,23 +3,24 @@ package ru.saidgadjiev.bibliographya.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.NativeWebRequest;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.domain.RequestResult;
+import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * Created by said on 22.10.2018.
@@ -44,7 +45,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (providerType.equals(ProviderType.USERNAME_PASSWORD)) {
+        if (providerType.equals(ProviderType.EMAIL_PASSWORD)) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -52,11 +53,38 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest signUpRequest, BindingResult bindingResult) throws SQLException {
+    public ResponseEntity<?> signUp(HttpServletRequest request,
+                                    Locale locale,
+                                    @Valid @RequestBody SignUpRequest signUpRequest,
+                                    BindingResult bindingResult) throws MessagingException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        authService.signUp(signUpRequest);
+        HttpStatus status = authService.signUp(request, locale, signUpRequest);
+
+        return ResponseEntity.status(status).build();
+    }
+
+    @PostMapping("/signUp/confirm")
+    public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           @RequestParam("code") Integer code) throws SQLException {
+        if (code == null) {
+            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).build();
+        }
+
+        AuthContext authContext = new AuthContext()
+                .setRequest(request)
+                .setResponse(response);
+
+        SignUpResult signUpResult = authService.confirmSignUp(authContext, code);
+
+        return ResponseEntity.status(signUpResult.getStatus()).body(signUpResult.getUser());
+    }
+
+    @PostMapping("/signUp/cancel")
+    public ResponseEntity<?> cancelSignUp(HttpServletRequest request) throws SQLException {
+        authService.cancelSignUp(request);
 
         return ResponseEntity.ok().build();
     }
@@ -107,17 +135,20 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        try {
-            AuthContext authContext = new AuthContext()
-                    .setProviderType(ProviderType.USERNAME_PASSWORD)
-                    .setResponse(response)
-                    .setRequest(request)
-                    .setSignInRequest(signInRequest);
+        AuthContext authContext = new AuthContext()
+                .setProviderType(ProviderType.EMAIL_PASSWORD)
+                .setResponse(response)
+                .setRequest(request)
+                .setSignInRequest(signInRequest);
 
-            return ResponseEntity.ok(authService.auth(authContext, null));
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(authService.auth(authContext, null));
+    }
+
+    @GetMapping("/signUp/confirmation")
+    public ResponseEntity<?> confirmation(HttpServletRequest request) {
+        RequestResult<?> requestResult = authService.confirmation(request);
+
+        return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
     }
 
     @PostMapping("/signOut")
@@ -132,13 +163,9 @@ public class AuthController {
     }
 
     @GetMapping("/account")
-    public ResponseEntity<UserDetails> signOut() {
-        UserDetails userDetails = authService.account();
+    public ResponseEntity<?> getAccount() {
+        RequestResult requestResult = authService.account();
 
-        if (userDetails == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(userDetails);
+        return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
     }
 }

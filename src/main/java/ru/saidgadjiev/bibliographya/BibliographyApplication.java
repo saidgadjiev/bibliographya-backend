@@ -7,17 +7,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import ru.saidgadjiev.bibliographya.properties.FacebookProperties;
-import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.StorageProperties;
-import ru.saidgadjiev.bibliographya.properties.VKProperties;
+import ru.saidgadjiev.bibliographya.properties.*;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 @EnableConfigurationProperties(value = {
         JwtProperties.class,
 		FacebookProperties.class,
 		VKProperties.class,
-        StorageProperties.class
+        StorageProperties.class,
+		UIProperties.class
 })
 @EnableScheduling
 @SpringBootApplication

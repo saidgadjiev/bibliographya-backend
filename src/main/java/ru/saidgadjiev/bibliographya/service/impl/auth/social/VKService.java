@@ -6,32 +6,33 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.auth.social.TokenInfo;
 import ru.saidgadjiev.bibliographya.auth.social.vk.OAuthVKTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.vk.UserProfileOperations;
 import ru.saidgadjiev.bibliographya.auth.social.vk.VK;
 import ru.saidgadjiev.bibliographya.properties.VKProperties;
+import ru.saidgadjiev.bibliographya.service.api.SocialService;
 
 /**
  * Created by said on 29.12.2018.
  */
 @Service
-public class VKService {
+public class VKService implements SocialService {
 
     private final OAuthVKTemplate oAuthTemplate;
 
     public VKService(VKProperties vkProperties) {
         oAuthTemplate = new OAuthVKTemplate(
                 vkProperties.getAppId(),
-                vkProperties.getAppSecret(),
-                vkProperties.getAppToken()
+                vkProperties.getAppSecret()
         );
     }
 
-    public String createVKAuthorizationUrl(String redirectUri) {
+    @Override
+    public String createOAuth2Url(String redirectUri) {
         return oAuthTemplate.buildOAuthUrl(redirectUri, null);
     }
 
+    @Override
     public AccessGrant createAccessToken(String code, String redirectUri) {
         return oAuthTemplate.exchangeForAccess(
                 code,
@@ -40,6 +41,7 @@ public class VKService {
         );
     }
 
+    @Override
     public SocialUserInfo getUserInfo(String userId, String accessToken) {
         VK vk = new VK(accessToken);
         UserProfileOperations userProfileOperations = vk.getUserProfileOperations();
@@ -59,9 +61,5 @@ public class VKService {
         userInfo.setProviderId(ProviderType.VK.getId());
 
         return userInfo;
-    }
-
-    public TokenInfo checkToken(AccessGrant accessGrant) {
-        return oAuthTemplate.checkToken(accessGrant.getAccessToken());
     }
 }

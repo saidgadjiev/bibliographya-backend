@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.bussiness.bug;
 
-import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
 import java.sql.SQLException;

@@ -7,7 +7,10 @@ import java.util.Objects;
 /**
  * Created by said on 22.10.2018.
  */
+@SuppressWarnings("CPD-START")
 public class Biography {
+
+    public static final String TABLE = "biography";
 
     public static final String ID = "id";
 

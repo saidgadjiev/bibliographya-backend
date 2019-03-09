@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliographya.bussiness.bug.IgnoredHandler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.EmptyHandler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliographya.bussiness.fix.Handler;

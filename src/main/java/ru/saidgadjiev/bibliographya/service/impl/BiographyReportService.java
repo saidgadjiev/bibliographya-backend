@@ -10,7 +10,6 @@ import ru.saidgadjiev.bibliographya.domain.BiographyReport;
 import ru.saidgadjiev.bibliographya.domain.BiographyReportRequest;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 import java.util.Collection;
 import java.util.Collections;

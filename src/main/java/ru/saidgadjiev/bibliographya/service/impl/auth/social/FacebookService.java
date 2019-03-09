@@ -6,19 +6,19 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.auth.social.TokenInfo;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.Facebook;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.OAuthFacebookTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.PermissionOperations;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.UserProfileOperations;
 import ru.saidgadjiev.bibliographya.properties.FacebookProperties;
+import ru.saidgadjiev.bibliographya.service.api.SocialService;
 
 
 /**
  * Created by said on 23.12.2018.
  */
 @Service
-public class FacebookService {
+public class FacebookService implements SocialService {
 
     private final OAuthFacebookTemplate oAuthTemplate;
 
@@ -26,16 +26,17 @@ public class FacebookService {
     public FacebookService(FacebookProperties facebookProperties) {
         oAuthTemplate = new OAuthFacebookTemplate(
                 facebookProperties.getAppId(),
-                facebookProperties.getAppSecret(),
-                facebookProperties.getAppToken()
+                facebookProperties.getAppSecret()
         );
     }
 
-    public String createFacebookAuthorizationUrl(String redirectUri) {
+    @Override
+    public String createOAuth2Url(String redirectUri) {
         return oAuthTemplate.buildOAuthUrl(redirectUri, null);
     }
 
-    public AccessGrant createFacebookAccessToken(String code, String redirectUri) {
+    @Override
+    public AccessGrant createAccessToken(String code, String redirectUri) {
         return oAuthTemplate.exchangeForAccess(
                 code,
                 redirectUri,
@@ -43,7 +44,8 @@ public class FacebookService {
         );
     }
 
-    public SocialUserInfo getUserInfo(String accessToken) {
+    @Override
+    public SocialUserInfo getUserInfo(String userId, String accessToken) {
         Facebook facebook = new Facebook(accessToken);
         UserProfileOperations userProfileOperations = facebook.getUserProfileOperations();
 
@@ -63,10 +65,6 @@ public class FacebookService {
         }
 
         return userInfo;
-    }
-
-    public TokenInfo checkToken(AccessGrant accessGrant) {
-        return oAuthTemplate.checkToken(accessGrant.getAccessToken());
     }
 
     public void logout(String userId, String accessToken) {

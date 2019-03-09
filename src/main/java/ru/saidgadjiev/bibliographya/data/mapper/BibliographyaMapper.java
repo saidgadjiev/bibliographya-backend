@@ -37,6 +37,8 @@ public interface BibliographyaMapper {
 
     List<BiographyFixResponse> convertToBiographyFixResponse(List<BiographyFix> biographyFixes);
 
+    List<ShortBiographyResponse> convertToShortBiographyResponse(List<BiographyLike> biographyLikes);
+
     @Mapping(source = "providerType.id", target = "providerId")
     UserResponse convertToUserResponse(User user);
 
@@ -45,6 +47,20 @@ public interface BibliographyaMapper {
     BugResponse convertToBugResponse(Bug bug);
 
     List<BugResponse> convertToBugResponse(List<Bug> bugs);
+
+    default ShortBiographyResponse convertToShortBiographyResponse(BiographyLike biographyLike) {
+        if (biographyLike == null) {
+            return null;
+        }
+
+        ShortBiographyResponse shortBiographyResponse = new ShortBiographyResponse();
+
+        shortBiographyResponse.setId(biographyLike.getUser().getId());
+        shortBiographyResponse.setFirstName(biographyLike.getUser().getFirstName());
+        shortBiographyResponse.setLastName(biographyLike.getUser().getLastName());
+
+        return shortBiographyResponse;
+    }
 
     default Integer convertPublishStatus(Biography.PublishStatus publishStatus) {
         return publishStatus == null ? null : publishStatus.getCode();

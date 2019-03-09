@@ -25,6 +25,7 @@
         <mockito.junit.jupiter.version>2.23.0</mockito.junit.jupiter.version>
         <junit.platform.version>1.2.0</junit.platform.version>
         <junit.vintage.version>5.2.0</junit.vintage.version>
+        <resource.delimiter>^</resource.delimiter>
     </properties>
 
     <build>
@@ -32,12 +33,36 @@
         <resources>
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
-                <excludes>
-                    <exclude>log4j.properties</exclude>
-                </excludes>
+                <filtering>true</filtering>
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>pmd</goal>
+                            <goal>check</goal>
+                            <goal>cpd</goal>
+                            <goal>cpd-check</goal>
+                        </goals>
+                        <phase>test</phase>
+                    </execution>
+                </executions>
+                <extensions>true</extensions>
+                <configuration>
+                    <linkXRef>true</linkXRef>
+                    <sourceEncoding>utf-8</sourceEncoding>
+                    <minimumTokens>150</minimumTokens>
+                    <targetJdk>1.8</targetJdk>
+                    <excludeRoots>
+                        <excludeRoot>target/generated-sources</excludeRoot>
+                    </excludeRoots>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -76,10 +101,41 @@
                 </dependencies>
             </plugin>
         </plugins>
-
     </build>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>5.1.5.RELEASE</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -132,11 +188,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

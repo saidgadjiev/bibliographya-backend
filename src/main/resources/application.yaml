@@ -7,7 +7,22 @@ spring:
       userName: ${DB_USER_NAME}
       password: ${DB_PASSWORD}
     profiles:
-      active: prod
+      active: ^spring.profiles.active^
+    mail:
+      host: ${MAIL_HOST}
+      port: ${MAIL_PORT}
+      username: ${MAIL_USERNAME}
+      password: ${MAIL_PASSWORD}
+      protocol: smtp
+      properties:
+        mail:
+          transport:
+            protocol: smtp
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+          timeout: 8000
 app:
   social:
     facebook:
@@ -33,3 +48,5 @@ management:
       enabled: true
 logging:
   file: logs/bibliographya.log
+ui:
+  name: localhost

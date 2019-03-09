@@ -3,15 +3,12 @@ package ru.saidgadjiev.bibliographya.bussiness.bug;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.bussiness.bug.operation.*;
-import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 import java.sql.SQLException;

@@ -1,8 +1,9 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
+import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class TokenService {
 
         Long expiredAt = (Long) details.get("expiredAt");
 
-        if (expiredAt != null && isExpired(expiredAt)) {
+        if (TimeUtils.isExpired(expiredAt)) {
             return null;
         }
 
@@ -54,16 +55,14 @@ public class TokenService {
         switch (user.getProviderType()) {
             case FACEBOOK:
                 payload.put("expiredAt", accessGrant.getExpireTime());
+                payload.put("accountId", user.getSocialAccount().getId());
 
                 break;
-            case USERNAME_PASSWORD:
+            case EMAIL_PASSWORD:
+                payload.put("accountId", user.getUserAccount().getId());
                 break;
         }
 
         return jwtTokenService.generate(payload);
-    }
-
-    private boolean isExpired(Long expireTime) {
-        return expireTime != null && System.currentTimeMillis() >= expireTime;
     }
 }

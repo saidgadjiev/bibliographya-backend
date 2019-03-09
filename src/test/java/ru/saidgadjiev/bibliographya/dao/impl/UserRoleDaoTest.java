@@ -15,8 +15,6 @@ import ru.saidgadjiev.bibliographya.domain.Role;
 import java.util.Arrays;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class UserRoleDaoTest {
@@ -31,7 +29,7 @@ class UserRoleDaoTest {
     void init() {
         createTables();
         createRole("ROLE_ADMIN");
-        createUser(ProviderType.USERNAME_PASSWORD);
+        createUser(ProviderType.EMAIL_PASSWORD);
     }
 
     @AfterEach

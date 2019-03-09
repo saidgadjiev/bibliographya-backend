@@ -1,7 +1,7 @@
 package ru.saidgadjiev.bibliographya.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,13 +15,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import ru.saidgadjiev.bibliographya.security.filter.JwtFilter;
-import ru.saidgadjiev.bibliographya.security.handler.Http401UnAuthorizedEntryPoint;
+import ru.saidgadjiev.bibliographya.security.handler.HttpAuthenticationEntryPoint;
 import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
-import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
+import ru.saidgadjiev.bibliographya.service.impl.SessionManager;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 /**
@@ -38,6 +37,26 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private PasswordEncoder passwordEncoder;
 
+    private SessionManager sessionManager;
+
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    public SecurityConfiguration(UserDetailsService userDetailsService,
+                                 PasswordEncoder passwordEncoder,
+                                 SessionManager sessionManager,
+                                 ObjectMapper objectMapper) {
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.sessionManager = sessionManager;
+        this.objectMapper = objectMapper;
+    }
+
+    @Autowired
+    public void setAuthService(AuthService authService) {
+        this.authService = authService;
+    }
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(authenticationProvider());
@@ -53,7 +72,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterAfter(new JwtFilter(authService), BasicAuthenticationFilter.class)
                 .exceptionHandling()
-                .authenticationEntryPoint(new Http401UnAuthorizedEntryPoint())
+                .authenticationEntryPoint(new HttpAuthenticationEntryPoint(sessionManager, objectMapper))
                 .accessDeniedHandler(new Http403AccessDeniedEntryPoint())
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -65,28 +84,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
+    private AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
 
         return authProvider;
-    }
-
-    @Autowired
-    public void setUserDetailsService(@Qualifier("userDetailsService") UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
-    @Autowired
-    public void setAuthService(AuthService authService) {
-        this.authService = authService;
-    }
-
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
     }
 }

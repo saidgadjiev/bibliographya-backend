@@ -5,9 +5,23 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class UserAccount {
 
+    public static final String TABLE = "user_account";
+
+    public static final String ID = "id";
+
+    public static final String EMAIL = "email";
+
+    public static final String EMAIL_VERIFIED = "email_verified";
+
+    public static final String PASSWORD = "password";
+
+    public static final String USER_ID = "user_id";
+
     private int id;
 
-    private String name;
+    private String email;
+
+    private boolean emailVerified;
 
     private String password;
 
@@ -21,12 +35,20 @@ public class UserAccount {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getEmail() {
+        return email;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public String getPassword() {

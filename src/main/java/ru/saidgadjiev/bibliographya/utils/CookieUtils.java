@@ -1,42 +1,41 @@
-package ru.saidgadjiev.bibliographya.service.impl;
-
-import org.springframework.stereotype.Service;
+package ru.saidgadjiev.bibliographya.utils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Created by said on 25.10.2018.
- */
-@Service
-public class TokenCookieService {
+public class CookieUtils {
 
-    public void addCookie(HttpServletRequest request, HttpServletResponse response, String tokenName, String token) {
+    private CookieUtils() { }
+
+
+    public static void addCookie(HttpServletResponse response, String serverName, String tokenName, String token) {
         Cookie cookie = new Cookie(tokenName, token);
 
-        cookie.setDomain(request.getServerName());
+        cookie.setDomain(serverName);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setMaxAge(60 * 60 * 24 * 30); // one month
         response.addCookie(cookie);
     }
 
-    public void deleteCookie(HttpServletResponse response, String tokenName) {
+    public static void deleteCookie(HttpServletResponse response, String serverName, String tokenName) {
         Cookie cookie = new Cookie(tokenName, null);
 
+        cookie.setDomain(serverName);
+        cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
 
-    public String getCookie(HttpServletRequest request, String cookieName) {
+    public static Cookie getCookie(HttpServletRequest request, String cookieName) {
         Cookie[] cookies = request.getCookies();
-        Cookie tokenCookie = null;
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(cookieName)) {
-                    return cookie.getValue();
+                    return cookie;
                 }
             }
         }

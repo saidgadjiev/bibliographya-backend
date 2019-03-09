@@ -8,7 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.bussiness.bug.*;
+import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
+import ru.saidgadjiev.bibliographya.bussiness.bug.Handler;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
@@ -38,17 +39,17 @@ public class BugService {
         this.handlerMap = handlerMap;
     }
 
-    public Bug create(BugRequest bugRequest) {
+    public Bug create(TimeZone timeZone, BugRequest bugRequest) {
         Bug bug = new Bug();
 
         bug.setTheme(bugRequest.getTheme());
         bug.setBugCase(bugRequest.getBugCase());
 
-        return bugDao.create(bug);
+        return bugDao.create(timeZone, bug);
     }
 
-    public CompleteResult<Bug> complete(int bugId, CompleteRequest completeRequest) throws SQLException {
-        Bug updated = doComplete(bugId, completeRequest);
+    public CompleteResult<Bug> complete(TimeZone timeZone, int bugId, CompleteRequest completeRequest) throws SQLException {
+        Bug updated = doComplete(timeZone, bugId, completeRequest);
 
         return new CompleteResult<>(updated == null ? 0 : 1, updated);
     }
@@ -65,7 +66,7 @@ public class BugService {
         );
     }
 
-    public Page<Bug> getBugsTracks(OffsetLimitPageRequest pageRequest, String query) {
+    public Page<Bug> getBugsTracks(TimeZone timeZone, OffsetLimitPageRequest pageRequest, String query) {
         List<FilterCriteria> criteria = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
@@ -78,6 +79,7 @@ public class BugService {
         }
 
         List<Bug> bugs = bugDao.getList(
+                timeZone,
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 Sort.by(Sort.Order.asc("created_at")),
@@ -88,7 +90,7 @@ public class BugService {
         return new PageImpl<>(bugs, pageRequest, bugs.size());
     }
 
-    public Page<Bug> getBugs(OffsetLimitPageRequest pageRequest, String query) {
+    public Page<Bug> getBugs(TimeZone timeZone, OffsetLimitPageRequest pageRequest, String query) {
         List<FilterCriteria> criteria = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
@@ -100,6 +102,7 @@ public class BugService {
         }
 
         List<Bug> bugs = bugDao.getList(
+                timeZone,
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 Sort.by(Sort.Order.asc("created_at")),
@@ -114,7 +117,7 @@ public class BugService {
         return bugDao.getFixerInfo(bugId);
     }
 
-    private Bug doComplete(int bugId, CompleteRequest completeRequest) throws SQLException {
+    private Bug doComplete(TimeZone timeZone, int bugId, CompleteRequest completeRequest) throws SQLException {
         User userDetails = (User) securityService.findLoggedInUser();
 
         Map<String, Object> processValues = new HashMap<>();
@@ -122,6 +125,7 @@ public class BugService {
         processValues.put("bugId", bugId);
         processValues.put("fixerId", userDetails.getId());
         processValues.put("info", completeRequest.getInfo());
+        processValues.put("timeZone", timeZone);
 
         Handler handler = handlerMap.get(
                 Bug.BugStatus.fromCode(completeRequest.getStatus())

@@ -1,26 +1,44 @@
 package ru.saidgadjiev.bibliographya.service.api;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.domain.SaveEmail;
+import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.model.RestorePassword;
+import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * Created by said on 22.10.2018.
  */
-public interface BibliographyaUserDetailsService {
+public interface BibliographyaUserDetailsService extends UserDetailsService {
 
-    UserDetails save(SignUpRequest signUpRequest) throws SQLException;
+    User save(SignUpRequest signUpRequest) throws SQLException;
 
-    UserDetails loadUserById(int userId);
+    User loadUserAccountById(int id);
 
-    boolean isExistUserName(String username);
+    boolean isExistEmail(String username);
 
-    UserDetails loadSocialUserById(int userId);
+    User loadSocialUserById(int userId);
 
-    UserDetails loadSocialUserByAccountId(ProviderType providerType, String accountId);
+    User loadSocialUserByAccountId(ProviderType providerType, String accountId);
 
-    UserDetails saveSocialUser(SocialUserInfo userInfo) throws SQLException;
+    User saveSocialUser(SocialUserInfo userInfo) throws SQLException;
+
+    HttpStatus savePassword(SavePassword savePassword);
+
+    HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
+
+    HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword);
+
+    HttpStatus saveEmailFinish(HttpServletRequest request, SaveEmail saveEmail);
+
+    HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
 }
