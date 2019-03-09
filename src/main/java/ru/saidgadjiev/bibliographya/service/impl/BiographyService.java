@@ -18,6 +18,9 @@ import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -256,15 +259,17 @@ public class BiographyService {
         }
         List<FilterCriteria> criteria = new ArrayList<>();
 
-        Timestamp timestamp = new Timestamp(updateBiographyRequest.getLastModified().getTime());
+        LocalDateTime updatedAt = updateBiographyRequest.getUpdatedAt().toLocalDateTime();
 
-        timestamp.setNanos(updateBiographyRequest.getLastModified().getNanos());
+        ZonedDateTime zonedUpdatedAtDateTime = updatedAt.atZone(timeZone.toZoneId());
+
+        LocalDateTime utcUpdatedAt = zonedUpdatedAtDateTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
 
         criteria.add(
                 new FilterCriteria.Builder<Timestamp>()
                         .propertyName(Biography.UPDATED_AT)
                         .filterOperation(FilterOperation.EQ)
-                        .filterValue(timestamp)
+                        .filterValue(Timestamp.valueOf(utcUpdatedAt))
                         .needPreparedSet(true)
                         .valueSetter(PreparedStatement::setTimestamp)
                         .build()

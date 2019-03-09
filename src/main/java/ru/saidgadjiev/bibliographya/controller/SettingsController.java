@@ -13,6 +13,7 @@ import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.impl.SettingsService;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Locale;
@@ -61,7 +62,7 @@ public class SettingsController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email/start")
-    public ResponseEntity<?> changeEmail(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+    public ResponseEntity<?> changeEmail(HttpServletRequest request, Locale locale, @RequestParam("email") String email) throws MessagingException {
         HttpStatus status = userDetailsService.saveEmailStart(request, locale, email);
 
         return ResponseEntity.status(status).build();
@@ -80,7 +81,7 @@ public class SettingsController {
     }
 
     @PostMapping("/restore-password/start")
-    public ResponseEntity<?> restorePassword(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+    public ResponseEntity<?> restorePassword(HttpServletRequest request, Locale locale, @RequestParam("email") String email) throws MessagingException {
         HttpStatus restoreResult = userDetailsService.restorePasswordStart(request, locale, email);
 
         return ResponseEntity.status(restoreResult).build();

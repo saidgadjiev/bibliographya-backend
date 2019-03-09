@@ -1,6 +1,8 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.ModerationAction;
+import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ public class BiographyModerationResponse {
 
     private Integer moderationStatus;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp moderatedAt;
 
     private Integer moderatorId;

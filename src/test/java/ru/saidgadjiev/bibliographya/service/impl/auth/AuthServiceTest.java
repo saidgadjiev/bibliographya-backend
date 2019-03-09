@@ -28,6 +28,7 @@ import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -240,7 +241,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void signUp() {
+    void signUp() throws Exception {
         SignUpRequest signUpRequest = new SignUpRequest();
 
         signUpRequest.setFirstName(TEST_FIRST_NAME);

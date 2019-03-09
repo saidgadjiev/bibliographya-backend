@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.service.impl.SessionEmailVerificationService;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
@@ -41,7 +42,7 @@ public class EmailVerificationController {
     }
     
     @PostMapping("/resend")
-    public ResponseEntity<?> resend(HttpServletRequest request, Locale locale, @RequestParam("email") String email) {
+    public ResponseEntity<?> resend(HttpServletRequest request, Locale locale, @RequestParam("email") String email) throws MessagingException {
         return ResponseEntity.status(verificationService.sendVerification(request, locale, email)).build();
     }
 }

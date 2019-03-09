@@ -15,6 +15,7 @@ import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -55,7 +56,7 @@ public class AuthController {
     public ResponseEntity<?> signUp(HttpServletRequest request,
                                     Locale locale,
                                     @Valid @RequestBody SignUpRequest signUpRequest,
-                                    BindingResult bindingResult) {
+                                    BindingResult bindingResult) throws MessagingException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }

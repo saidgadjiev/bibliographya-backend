@@ -33,6 +33,7 @@ import ru.saidgadjiev.bibliographya.service.impl.SessionManager;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
@@ -142,7 +143,7 @@ public class AuthService {
         return user;
     }
 
-    public HttpStatus signUp(HttpServletRequest request, Locale locale, SignUpRequest signUpRequest) {
+    public HttpStatus signUp(HttpServletRequest request, Locale locale, SignUpRequest signUpRequest) throws MessagingException {
         if (userAccountDetailsService.isExistEmail(signUpRequest.getEmail())) {
             return HttpStatus.CONFLICT;
         }

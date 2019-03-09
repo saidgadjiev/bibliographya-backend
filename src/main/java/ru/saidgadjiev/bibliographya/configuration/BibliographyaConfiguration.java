@@ -24,7 +24,7 @@ import java.util.TimeZone;
 @Configuration
 public class BibliographyaConfiguration {
 
-    public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss";
+    public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss.SSS";
 
     private UIProperties uiProperties;
 

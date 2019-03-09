@@ -7,6 +7,7 @@ import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Date;
@@ -34,7 +35,7 @@ public class SessionEmailVerificationService {
         this.emailService = emailService;
     }
 
-    public HttpStatus sendVerification(HttpServletRequest request, Locale locale, String email) {
+    public HttpStatus sendVerification(HttpServletRequest request, Locale locale, String email) throws MessagingException {
         SessionState sessionState = sessionManager.getState(request);
 
         if (!Objects.equals(sessionState, SessionState.NONE)) {

@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 
 import java.sql.Timestamp;
@@ -27,9 +29,8 @@ public class BiographyBaseResponse {
 
     private boolean liked;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp updatedAt;
-
-    private LastModified lastModified;
 
     private ShortBiographyResponse creator;
 
@@ -122,14 +123,7 @@ public class BiographyBaseResponse {
     }
 
     public void setUpdatedAt(Timestamp updatedAt) {
-        if (updatedAt != null) {
-            this.updatedAt = updatedAt;
-            this.lastModified = new LastModified(updatedAt.getTime(), updatedAt.getNanos());
-        }
-    }
-
-    public LastModified getLastModified() {
-        return lastModified;
+        this.updatedAt = updatedAt;
     }
 
     public ShortBiographyResponse getCreator() {

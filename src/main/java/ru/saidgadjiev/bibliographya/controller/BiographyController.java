@@ -120,11 +120,7 @@ public class BiographyController {
         if (updateResult.getUpdated() > 0) {
             UpdateBiographyResponse response = new UpdateBiographyResponse();
 
-            response.setLastModified(
-                    new LastModified(
-                            updateResult.getUpdatedAt().getTime(), updateResult.getUpdatedAt().getNanos()
-                    )
-            );
+            response.setUpdatedAt(updateResult.getUpdatedAt());
 
             return ResponseEntity.ok(response);
         }

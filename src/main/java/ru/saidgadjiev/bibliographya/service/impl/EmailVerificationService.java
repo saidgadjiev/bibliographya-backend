@@ -7,6 +7,7 @@ import ru.saidgadjiev.bibliographya.domain.EmailVerification;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
+import javax.mail.MessagingException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,7 +33,7 @@ public class EmailVerificationService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void sendVerification(String email) {
+    public void sendVerification(String email) throws MessagingException {
         EmailVerification verification = emailVerificationDao.getByEmail(email);
 
         if (verification == null) {
@@ -83,19 +84,7 @@ public class EmailVerificationService {
         return verificationResult;
     }
 
-    public int resend(String email) {
-        EmailVerification emailVerification = emailVerificationDao.getByEmail(email);
-
-        if (emailVerification == null) {
-            return 0;
-        }
-
-        resendCode(emailVerification);
-
-        return 1;
-    }
-
-    private void resendCode(EmailVerification emailVerification) {
+    private void resendCode(EmailVerification emailVerification) throws MessagingException {
         if (TimeUtils.isExpired(emailVerification.getExpiredAt().getTime())) {
             int nextCode = codeGenerator.generate();
             emailService.sendEmail(null, null, null);

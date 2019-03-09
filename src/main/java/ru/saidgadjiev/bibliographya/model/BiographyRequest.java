@@ -1,7 +1,11 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.util.Collection;
 
 /**
@@ -23,7 +27,8 @@ public class BiographyRequest {
 
     private Integer userId;
 
-    private LastModified lastModified;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
+    private Timestamp updatedAt;
 
     private Collection<Integer> addCategories;
 
@@ -69,12 +74,12 @@ public class BiographyRequest {
         this.userId = userId;
     }
 
-    public LastModified getLastModified() {
-        return lastModified;
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setLastModified(LastModified lastModified) {
-        this.lastModified = lastModified;
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public Collection<Integer> getAddCategories() {

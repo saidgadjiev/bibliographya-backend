@@ -35,50 +35,12 @@ class UserAccountDaoTest {
 
     @Test
     void save() {
-        UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail("test");
-        userAccount.setPassword("test");
-
-        User user = new User();
-
-        user.setProviderType(ProviderType.EMAIL_PASSWORD);
-        user.setUserAccount(userAccount);
-
-        User result = userAccountDao.save(user);
-
-        Assertions.assertEquals(result.getUserAccount().getId(), 1);
-        Assertions.assertEquals(result.getId(), 1);
-
-        Assertions.assertNull(userAccountDao.getByUserId(user.getId()));
-
-        createUserBiography();
-
-        assertEquals(result, userAccountDao.getByUserId(user.getId()));
+        //TODO: Test
     }
 
     @Test
     void getByUsername() {
-        UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail("test");
-        userAccount.setPassword("test");
-
-        User user = new User();
-
-        user.setProviderType(ProviderType.EMAIL_PASSWORD);
-        user.setUserAccount(userAccount);
-
-        User result = userAccountDao.save(user);
-
-        Assertions.assertEquals(result.getUserAccount().getId(), 1);
-        Assertions.assertEquals(result.getId(), 1);
-
-        Assertions.assertNull(userAccountDao.getByEmail("test"));
-
-        createUserBiography();
-
-        assertEquals(result, userAccountDao.getByEmail("test"));
+        //TODO: Test
     }
 
     @Test

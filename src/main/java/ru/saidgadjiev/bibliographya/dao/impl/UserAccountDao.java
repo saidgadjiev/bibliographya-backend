@@ -119,49 +119,40 @@ public class UserAccountDao {
         return user;
     }
 
-    public User getByEmail(String email) {
+    public User get(Collection<FilterCriteria> userCriteria, Collection<FilterCriteria> userAccountCriteria) {
+        String userClause = FilterUtils.toClause(userCriteria, "u");
+        String userAccountClause = FilterUtils.toClause(userAccountCriteria, "ua");
+
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ").append(selectList()).append(" ")
+                .append("FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id WHERE 1 = 1 ");
+
+        if (StringUtils.isNotBlank(userClause)) {
+            sql.append("AND ").append(userClause).append(" ");
+        }
+        if (StringUtils.isNotBlank(userAccountClause)) {
+            sql.append("AND ").append(userAccountClause).append(" ");
+        }
+
         return jdbcTemplate.query(
-                "SELECT\n" +
-                        selectList() +
-                        "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE ua.email = ? AND ua.email_verified = true",
+                sql.toString(),
                 ps -> {
-                    ps.setString(1, email);
+                    int i = 0;
+
+                    for (FilterCriteria criterion : userCriteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
+
+                    for (FilterCriteria criterion : userAccountCriteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
                 },
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
-        );
-    }
-
-    public User getByUserId(int userId) {
-        return jdbcTemplate.query(
-                "SELECT\n" +
-                        selectList() +
-                        "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE u.id = ? AND ua.email_verified = true",
-                ps -> ps.setInt(1, userId),
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
-        );
-    }
-
-    public User getById(int id) {
-        return jdbcTemplate.query(
-                "SELECT\n" +
-                        selectList() +
-                        "FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id \n" +
-                        "WHERE ua.id = ?",
-                ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);

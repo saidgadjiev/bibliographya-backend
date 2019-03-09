@@ -1,6 +1,8 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
+import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -15,6 +17,7 @@ public class BugResponse {
 
     private Integer fixerId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp createdAt;
 
     private ShortBiographyResponse fixer;

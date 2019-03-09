@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.util.Locale;
@@ -33,11 +34,11 @@ public interface BibliographyaUserDetailsService extends UserDetailsService {
 
     HttpStatus savePassword(SavePassword savePassword);
 
-    HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email);
+    HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
 
     HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword);
 
     HttpStatus saveEmailFinish(HttpServletRequest request, SaveEmail saveEmail);
 
-    HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email);
+    HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
 }
