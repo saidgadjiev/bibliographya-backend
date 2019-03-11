@@ -3,12 +3,12 @@ package ru.saidgadjiev.bibliographya.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.RequestResult;
+import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
@@ -52,34 +52,32 @@ public class AuthController {
         return ResponseEntity.ok(authService.getOauthUrl(providerType, redirectUri));
     }
 
-    @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(HttpServletRequest request,
-                                    Locale locale,
-                                    @Valid @RequestBody SignUpRequest signUpRequest,
-                                    BindingResult bindingResult) throws MessagingException {
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().build();
-        }
-        HttpStatus status = authService.signUp(request, locale, signUpRequest);
-
-        return ResponseEntity.status(status).build();
-    }
-
-    @PostMapping("/signUp/confirm")
+    @PostMapping("/signUp/confirm-finish")
     public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
                                            HttpServletResponse response,
-                                           @RequestParam("code") Integer code) throws SQLException {
-        if (code == null) {
-            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).build();
+                                           @Valid @RequestBody SignUpConfirmation signUpConfirmation,
+                                           BindingResult bindingResult) throws SQLException {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
         }
 
         AuthContext authContext = new AuthContext()
                 .setRequest(request)
-                .setResponse(response);
+                .setResponse(response)
+                .setBody(signUpConfirmation);
 
-        SignUpResult signUpResult = authService.confirmSignUp(authContext, code);
+        SignUpResult signUpResult = authService.confirmSignUpFinish(authContext);
 
         return ResponseEntity.status(signUpResult.getStatus()).body(signUpResult.getUser());
+    }
+
+    @PostMapping("/signUp/confirm-start")
+    public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
+                                           Locale locale,
+                                           @RequestParam("email") String email) throws MessagingException {
+        HttpStatus status = authService.confirmSignUpStart(request, locale, email);
+
+        return ResponseEntity.status(status).build();
     }
 
     @PostMapping("/signUp/cancel")
@@ -89,35 +87,54 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/signUp")
+    public ResponseEntity<?> signUp(HttpServletRequest request,
+                                    @Valid @RequestBody SignUpRequest signUpRequest,
+                                    BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        AuthContext authContext = new AuthContext()
+                .setProviderType(ProviderType.EMAIL_PASSWORD)
+                .setRequest(request)
+                .setBody(signUpRequest);
+
+        HttpStatus status = authService.signUp(authContext, null);
+
+        return ResponseEntity.status(status).build();
+    }
+
     @PostMapping(value = "/signUp/{providerId}", params = "code")
-    public ResponseEntity<?> singInSocial(
+    public ResponseEntity<?> singUpSocial(
             HttpServletRequest request,
-            HttpServletResponse response,
             @PathVariable("providerId") String providerId,
             @RequestParam("code") String code,
             @RequestParam("redirectUri") String redirectUri
-    ) throws SQLException {
+    ) {
         ProviderType providerType = ProviderType.fromId(providerId);
 
         if (providerType == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        try {
-            AuthContext authContext = new AuthContext()
-                    .setProviderType(providerType)
-                    .setRequest(request)
-                    .setCode(code)
-                    .setResponse(response);
+        AuthContext authContext = new AuthContext()
+                .setProviderType(providerType)
+                .setRequest(request)
+                .setCode(code);
 
-            return ResponseEntity.ok(authService.auth(authContext, redirectUri));
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(authService.signUp(authContext, redirectUri));
     }
 
-    @PostMapping(value = "/signIn/{providerId}", params = "error")
-    public ResponseEntity<?> errorSignInSocial(
+    @GetMapping("/signUp/confirmation")
+    public ResponseEntity<?> confirmation(HttpServletRequest request) {
+        HttpStatus status = authService.confirmation(request);
+
+        return ResponseEntity.status(status).build();
+    }
+
+    @PostMapping(value = "/signUp/{providerId}", params = "error")
+    public ResponseEntity<?> errorSignUpSocial(
             @RequestParam("error") String error,
             @RequestParam(value = "error_description", required = false) String errorDescription
     ) {
@@ -126,29 +143,15 @@ public class AuthController {
 
     @PostMapping("/signIn")
     public ResponseEntity<?> singIn(
-            HttpServletRequest request,
             HttpServletResponse response,
             @Valid @RequestBody SignInRequest signInRequest,
             BindingResult bindingResult
-    ) throws SQLException {
+    ) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        AuthContext authContext = new AuthContext()
-                .setProviderType(ProviderType.EMAIL_PASSWORD)
-                .setResponse(response)
-                .setRequest(request)
-                .setSignUpRequest(signInRequest);
-
-        return ResponseEntity.ok(authService.auth(authContext, null));
-    }
-
-    @GetMapping("/signUp/confirmation")
-    public ResponseEntity<?> confirmation(HttpServletRequest request) {
-        RequestResult<?> requestResult = authService.confirmation(request);
-
-        return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
+        return ResponseEntity.ok(authService.auth(response, signInRequest));
     }
 
     @PostMapping("/signOut")

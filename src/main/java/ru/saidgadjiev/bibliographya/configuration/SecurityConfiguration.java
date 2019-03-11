@@ -20,6 +20,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import ru.saidgadjiev.bibliographya.security.filter.JwtFilter;
 import ru.saidgadjiev.bibliographya.security.handler.HttpAuthenticationEntryPoint;
 import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
+import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
+import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.impl.SessionManager;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
@@ -58,8 +60,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider());
+    protected void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(jwtAuthenticationProvider()).authenticationProvider(daoAuthenticationProvider());
     }
 
     @Override
@@ -84,11 +86,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    private AuthenticationProvider authenticationProvider() {
+    private AuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
+
+        return authProvider;
+    }
+
+
+    private AuthenticationProvider jwtAuthenticationProvider() {
+        JwtTokenAuthenticationProvider authProvider = new JwtTokenAuthenticationProvider();
+
+        authProvider.setUserDetailsService((BibliographyaUserDetailsService) userDetailsService);
 
         return authProvider;
     }

@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliographya.domain;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 
-public class SaveEmail {
+public class EmailConfirmation {
 
     @NotNull
     @Email

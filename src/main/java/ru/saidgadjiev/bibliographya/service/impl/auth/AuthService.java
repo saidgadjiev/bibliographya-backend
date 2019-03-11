@@ -1,13 +1,11 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
@@ -18,13 +16,12 @@ import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
-import ru.saidgadjiev.bibliographya.domain.RequestResult;
-import ru.saidgadjiev.bibliographya.domain.SignUpResult;
-import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
+import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
+import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -62,8 +59,6 @@ public class AuthService {
 
     private SessionManager sessionManager;
 
-    private ObjectMapper objectMapper;
-
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
             (request, response, authentication) -> CookieUtils.deleteCookie(response, uiProperties.getName(), "X-TOKEN"),
             new SecurityContextLogoutHandler()
@@ -76,8 +71,7 @@ public class AuthService {
                        SecurityService securityService,
                        SessionEmailVerificationService emailVerificationService,
                        UIProperties uiProperties,
-                       SessionManager sessionManager,
-                       ObjectMapper objectMapper) {
+                       SessionManager sessionManager) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
@@ -85,7 +79,6 @@ public class AuthService {
         this.emailVerificationService = emailVerificationService;
         this.uiProperties = uiProperties;
         this.sessionManager = sessionManager;
-        this.objectMapper = objectMapper;
     }
 
     @Autowired
@@ -103,70 +96,81 @@ public class AuthService {
         return socialService.createOAuth2Url(redirectUri);
     }
 
-    public User auth(AuthContext authContext, String redirectUri) throws SQLException {
-        User user = null;
-        AccessGrant accessGrant = null;
+    public User auth(HttpServletResponse response, SignInRequest signInRequest) {
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                        signInRequest.getEmail(),
+                        signInRequest.getPassword()
+                );
 
-        SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
+        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        User user = (User) authentication.getPrincipal();
 
-        switch (authContext.getProviderType()) {
-            case VK:
-            case FACEBOOK: {
-                accessGrant = socialService.createAccessToken(authContext.getCode(), redirectUri);
-
-                SocialUserInfo userInfo = socialService.getUserInfo(null, accessGrant.getAccessToken());
-
-                user = userAccountDetailsService.loadSocialUserByAccountId(authContext.getProviderType(), userInfo.getId());
-
-                if (user == null) {
-                    user = userAccountDetailsService.saveSocialUser(userInfo);
-
-                    user.setIsNew(true);
-                }
-
-                break;
-            }
-            case EMAIL_PASSWORD:
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(
-                                authContext.getSignUpRequest().getEmail(),
-                                authContext.getSignUpRequest().getPassword()
-                        );
-                Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-
-                user = (User) authentication.getPrincipal();
-                break;
-        }
-
-        auth(authContext.getResponse(), user, accessGrant);
+        auth(response, user);
 
         return user;
     }
 
-    public HttpStatus signUp(HttpServletRequest request, Locale locale, SignUpRequest signUpRequest) throws MessagingException {
-        if (userAccountDetailsService.isExistEmail(signUpRequest.getEmail())) {
-            return HttpStatus.CONFLICT;
-        }
-        sessionManager.setSignUp(request, signUpRequest);
+    public HttpStatus signUp(AuthContext authContext, String redirectUri) {
+        SignUpRequest signUpRequest = null;
+        SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
 
-        emailVerificationService.sendVerification(request, locale, signUpRequest.getEmail());
+        switch (authContext.getProviderType()) {
+            case FACEBOOK:
+            case VK:
+                AccessGrant accessGrant = socialService.createAccessToken(authContext.getCode(), redirectUri);
+
+                SocialUserInfo userInfo = socialService.getUserInfo(null, accessGrant.getAccessToken());
+
+                signUpRequest = new SignUpRequest();
+
+                signUpRequest.setFirstName(userInfo.getFirstName());
+                signUpRequest.setLastName(userInfo.getLastName());
+                signUpRequest.setMiddleName(userInfo.getMiddleName());
+
+                break;
+            case EMAIL_PASSWORD:
+                signUpRequest = (SignUpRequest) authContext.getBody();
+
+                break;
+        }
+
+        sessionManager.setSignUp(authContext.getRequest(), signUpRequest);
 
         return HttpStatus.OK;
     }
 
-    public SignUpResult confirmSignUp(AuthContext authContext, Integer code) throws SQLException {
+    public SignUpResult confirmSignUpFinish(AuthContext authContext) throws SQLException {
         SignUpRequest signUpRequest = sessionManager.getSignUp(authContext.getRequest());
+        SignUpConfirmation signUpConfirmation = (SignUpConfirmation) authContext.getBody();
 
         if (signUpRequest != null) {
-            EmailVerificationResult result = emailVerificationService.verify(authContext.getRequest(), signUpRequest.getEmail(), code);
+            EmailVerificationResult result = emailVerificationService.verify(
+                    authContext.getRequest(),
+                    signUpConfirmation.getEmail(),
+                    signUpConfirmation.getCode()
+            );
 
             if (result.isValid()) {
-                User user = userAccountDetailsService.save(signUpRequest);
+                User saveUser = new User();
+
+                saveUser.setEmail(signUpConfirmation.getEmail());
+                saveUser.setPassword(signUpConfirmation.getPassword());
+
+                Biography biography = new Biography();
+
+                biography.setFirstName(signUpRequest.getFirstName());
+                biography.setLastName(signUpRequest.getLastName());
+                biography.setMiddleName(signUpRequest.getMiddleName());
+
+                saveUser.setBiography(biography);
+
+                User user = userAccountDetailsService.save(saveUser);
 
                 user.setIsNew(true);
                 sessionManager.removeState(authContext.getRequest());
 
-                auth(authContext.getResponse(), user, null);
+                auth(authContext.getResponse(), user);
 
                 return new SignUpResult().setStatus(HttpStatus.OK).setUser(user);
             }
@@ -175,6 +179,16 @@ public class AuthService {
         }
 
         return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    public HttpStatus confirmSignUpStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
+        if (userAccountDetailsService.isExistEmail(email)) {
+            return HttpStatus.CONFLICT;
+        }
+
+        emailVerificationService.sendVerification(request, locale, email);
+
+        return HttpStatus.OK;
     }
 
     public User signOut(HttpServletRequest request, HttpServletResponse response) {
@@ -202,37 +216,16 @@ public class AuthService {
     }
 
     public void tokenAuth(String token) {
-        Map<String, Object> details = tokenService.validate(token);
+        Map<String, Object> claims = tokenService.validate(token);
 
-        if (details == null) {
+        try {
+            Authentication authenticationToken = authenticationManager.authenticate(
+                    new JwtAuthenticationToken(claims)
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        } catch (BadCredentialsException ex) {
             SecurityContextHolder.getContext().setAuthentication(null);
-        } else {
-            ProviderType providerType = ProviderType.fromId((String) details.get("providerId"));
-            Integer userId = (Integer) details.get("userId");
-            UserDetails userDetails = null;
-
-            switch (providerType) {
-                case VK:
-                case FACEBOOK:
-                    userDetails = userAccountDetailsService.loadSocialUserById(userId);
-                    break;
-                case EMAIL_PASSWORD:
-                    Integer accountId = (Integer) details.get("accountId");
-
-                    userDetails = userAccountDetailsService.loadUserAccountById(accountId);
-                    break;
-            }
-
-            if (userDetails != null) {
-                ((CredentialsContainer) userDetails).eraseCredentials();
-
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            } else {
-                SecurityContextHolder.getContext().setAuthentication(null);
-            }
         }
     }
 
@@ -240,25 +233,21 @@ public class AuthService {
         sessionManager.removeState(request);
     }
 
-    private void auth(HttpServletResponse response, User user, AccessGrant accessGrant) {
+    private void auth(HttpServletResponse response, User user) {
         securityService.authenticate(user);
 
-        String token = tokenService.createToken(user, accessGrant);
+        String token = tokenService.createToken(user);
 
         CookieUtils.addCookie(response, uiProperties.getName(), "X-TOKEN", token);
-
     }
 
-    public RequestResult<?> confirmation(HttpServletRequest request) {
+    public HttpStatus confirmation(HttpServletRequest request) {
         SignUpRequest signUpRequest = sessionManager.getSignUp(request);
 
         if (signUpRequest == null) {
-            return new RequestResult<ObjectNode>().setStatus(HttpStatus.FOUND);
+            return HttpStatus.FOUND;
         }
-        ObjectNode objectNode = objectMapper.createObjectNode();
 
-        objectNode.put("email", signUpRequest.getEmail());
-
-        return new RequestResult<ObjectNode>().setStatus(HttpStatus.OK).setBody(objectNode);
+        return HttpStatus.OK;
     }
 }

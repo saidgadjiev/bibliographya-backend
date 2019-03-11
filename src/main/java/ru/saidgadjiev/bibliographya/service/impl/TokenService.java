@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
@@ -46,22 +45,10 @@ public class TokenService {
         return (String) details.get("userId");
     }
 
-    public String createToken(User user, AccessGrant accessGrant) {
+    public String createToken(User user) {
         Map<String, Object> payload = new HashMap<String, Object>() {{
-            put("providerId", user.getProviderType().getId());
             put("userId", user.getId());
         }};
-
-        switch (user.getProviderType()) {
-            case FACEBOOK:
-                payload.put("expiredAt", accessGrant.getExpireTime());
-                payload.put("accountId", user.getSocialAccount().getId());
-
-                break;
-            case EMAIL_PASSWORD:
-                payload.put("accountId", user.getUserAccount().getId());
-                break;
-        }
 
         return jwtTokenService.generate(payload);
     }

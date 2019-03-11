@@ -52,47 +52,6 @@ public class TestModelsUtils {
         TEST_TOKEN_REMOVE_COOKIE.setDomain(TEST_SERVER_NAME);
         TEST_TOKEN_REMOVE_COOKIE.setPath("/");
         TEST_TOKEN_REMOVE_COOKIE.setHttpOnly(true);
-
-        SocialAccount facebookSocialAccount = new SocialAccount();
-
-        facebookSocialAccount.setUserId(TEST_FACEBOOK_USER_ID);
-        facebookSocialAccount.setAccountId(TEST_SOCIAL_USER_ID);
-        facebookSocialAccount.setId(1);
-
-        TEST_USERS.put(
-                TEST_FACEBOOK_USER_ID,
-                createUser(
-                        TEST_FACEBOOK_USER_ID,
-                        TEST_FIRST_NAME,
-                        TEST_LAST_NAME,
-                        TEST_MIDDLE_NAME,
-                        ProviderType.FACEBOOK,
-                        Collections.singleton(new Role(Role.ROLE_SOCIAL_USER)),
-                        null,
-                        facebookSocialAccount
-
-                ));
-
-        UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail(TEST_EMAIL);
-        userAccount.setUserId(TEST_EMAIL_USER_ID);
-        userAccount.setId(1);
-        userAccount.setPassword("Test");
-
-        TEST_USERS.put(
-                TEST_EMAIL_USER_ID,
-                createUser(
-                        TEST_EMAIL_USER_ID,
-                        TEST_FIRST_NAME,
-                        TEST_LAST_NAME,
-                        TEST_MIDDLE_NAME,
-                        ProviderType.EMAIL_PASSWORD,
-                        Collections.singleton(new Role(Role.ROLE_USER)),
-                        userAccount,
-                        null
-
-                ));
     }
 
     private TestModelsUtils() {
@@ -103,16 +62,11 @@ public class TestModelsUtils {
                                   String lastName,
                                   String middleName,
                                   ProviderType providerType,
-                                  Set<Role> roles,
-                                  UserAccount userAccount,
-                                  SocialAccount socialAccount) {
+                                  Set<Role> roles) {
         User user = new User();
 
         user.setId(id);
         user.setRoles(roles);
-        user.setUserAccount(userAccount);
-        user.setSocialAccount(socialAccount);
-        user.setProviderType(providerType);
 
         Biography biography = new Biography();
 
@@ -129,29 +83,15 @@ public class TestModelsUtils {
     }
 
     public static User createTestUser(ProviderType providerType,
-                                      Set<Role> roles,
-                                      UserAccount userAccount,
-                                      SocialAccount socialAccount) {
+                                      Set<Role> roles) {
         return TestModelsUtils.createUser(
                 1,
                 TEST_FIRST_NAME,
                 TEST_LAST_NAME,
                 TEST_MIDDLE_NAME,
                 providerType,
-                roles,
-                userAccount,
-                socialAccount
+                roles
         );
-    }
-
-    public static SocialAccount socialAccount(int id, int userId) {
-        SocialAccount socialAccount = new SocialAccount();
-
-        socialAccount.setUserId(userId);
-        socialAccount.setAccountId(TEST_SOCIAL_USER_ID);
-        socialAccount.setId(id);
-
-        return socialAccount;
     }
 
     public static SocialUserInfo socialUserInfo(ProviderType providerType) {

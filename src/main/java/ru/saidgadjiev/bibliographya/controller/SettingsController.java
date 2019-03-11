@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliographya.domain.SaveEmail;
+import ru.saidgadjiev.bibliographya.domain.EmailConfirmation;
 import ru.saidgadjiev.bibliographya.model.GeneralSettings;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
@@ -50,19 +50,23 @@ public class SettingsController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email/finish")
-    public ResponseEntity<?> saveEmail(HttpServletRequest request, @Valid @RequestBody SaveEmail saveEmail, BindingResult bindingResult) {
+    public ResponseEntity<?> saveEmail(HttpServletRequest request,
+                                       @Valid @RequestBody EmailConfirmation emailConfirmation,
+                                       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        HttpStatus status = userDetailsService.saveEmailFinish(request, saveEmail);
+        HttpStatus status = userDetailsService.saveEmailFinish(request, emailConfirmation);
 
         return ResponseEntity.status(status).build();
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email/start")
-    public ResponseEntity<?> changeEmail(HttpServletRequest request, Locale locale, @RequestParam("email") String email) throws MessagingException {
+    public ResponseEntity<?> changeEmail(HttpServletRequest request,
+                                         Locale locale,
+                                         @RequestParam("email") String email) throws MessagingException {
         HttpStatus status = userDetailsService.saveEmailStart(request, locale, email);
 
         return ResponseEntity.status(status).build();

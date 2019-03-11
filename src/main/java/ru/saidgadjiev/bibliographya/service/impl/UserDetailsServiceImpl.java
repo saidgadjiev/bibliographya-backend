@@ -7,11 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
-import ru.saidgadjiev.bibliographya.dao.impl.SocialAccountDao;
-import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
+import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
@@ -20,7 +17,6 @@ import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
-import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import javax.mail.MessagingException;
@@ -37,9 +33,7 @@ import java.util.stream.Stream;
 @Service("userDetailsService")
 public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
-    private final UserAccountDao userAccountDao;
-
-    private final SocialAccountDao socialAccountDao;
+    private final UserDao userDao;
 
     private final GeneralDao generalDao;
 
@@ -56,8 +50,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     private final SessionManager sessionManager;
 
     @Autowired
-    public UserDetailsServiceImpl(UserAccountDao userAccountDao,
-                                  SocialAccountDao socialAccountDao,
+    public UserDetailsServiceImpl(UserDao userDao,
                                   GeneralDao generalDao,
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
@@ -65,8 +58,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   SessionEmailVerificationService emailVerificationService,
                                   SecurityService securityService,
                                   SessionManager sessionManager) {
-        this.userAccountDao = userAccountDao;
-        this.socialAccountDao = socialAccountDao;
+        this.userDao = userDao;
         this.generalDao = generalDao;
         this.userRoleDao = userRoleDao;
         this.biographyService = biographyService;
@@ -82,7 +74,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         userAccountCriteria.add(
                 new FilterCriteria.Builder<String>()
-                        .propertyName(UserAccount.EMAIL)
+                        .propertyName(User.EMAIL)
                         .valueSetter(PreparedStatement::setString)
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(email)
@@ -91,7 +83,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         );
         userAccountCriteria.add(
                 new FilterCriteria.Builder<Boolean>()
-                        .propertyName(UserAccount.EMAIL_VERIFIED)
+                        .propertyName(User.EMAIL_VERIFIED)
                         .valueSetter(PreparedStatement::setBoolean)
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(true)
@@ -99,7 +91,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         );
 
-        User user = userAccountDao.get(Collections.emptyList(), userAccountCriteria);
+        User user = userDao.get(Collections.emptyList(), userAccountCriteria);
 
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
@@ -112,41 +104,38 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public User save(SignUpRequest signUpRequest) throws SQLException {
-        unverifyEmails(signUpRequest.getEmail());
-
-        UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail(signUpRequest.getEmail());
-        userAccount.setEmailVerified(true);
-        userAccount.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+    public User save(User saveUser) throws SQLException {
+        Biography saveBiography = saveUser.getBiography();
+        unverifyEmails(saveUser.getEmail());
 
         User user = new User();
 
-        user.setProviderType(ProviderType.EMAIL_PASSWORD);
-        user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
-        user.setUserAccount(userAccount);
-        user = userAccountDao.save(user);
+        user.setEmail(saveUser.getEmail());
+        user.setEmailVerified(true);
+        user.setPassword(passwordEncoder.encode(saveUser.getPassword()));
 
-        postSave(user, signUpRequest.getFirstName(), signUpRequest.getLastName(), signUpRequest.getMiddleName());
+        user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
+        user = userDao.save(user);
+
+        postSave(user, saveBiography.getFirstName(), saveBiography.getLastName(), saveBiography.getMiddleName());
 
         return user;
     }
 
     @Override
-    public User loadUserAccountById(int id) {
+    public User loadUserById(int id) {
         Collection<FilterCriteria> userAccountCriteria = new ArrayList<>();
 
         userAccountCriteria.add(
                 new FilterCriteria.Builder<Integer>()
-                        .propertyName(UserAccount.ID)
+                        .propertyName(User.ID)
                         .valueSetter(PreparedStatement::setInt)
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(id)
                         .build()
-
         );
-        User user = userAccountDao.get(Collections.emptyList(), userAccountCriteria);
+
+        User user = userDao.get(Collections.emptyList(), userAccountCriteria);
 
         if (user != null) {
             user.setRoles(userRoleDao.getRoles(user.getId()));
@@ -157,80 +146,35 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public boolean isExistEmail(String email) {
-        return userAccountDao.isExistEmail(email);
-    }
-
-    @Override
-    public User loadSocialUserById(int userId) {
-        User user = socialAccountDao.getByUserId(userId);
-
-        if (user != null) {
-            user.setRoles(userRoleDao.getRoles(userId));
-        }
-
-        return user;
-    }
-
-    @Override
-    public User loadSocialUserByAccountId(ProviderType providerType, String accountId) {
-        User user = socialAccountDao.getByAccountId(providerType, accountId);
-
-        if (user != null) {
-            user.setRoles(userRoleDao.getRoles(user.getId()));
-        }
-
-        return user;
-    }
-
-    @Override
-    @Transactional
-    public User saveSocialUser(SocialUserInfo userInfo) throws SQLException {
-        SocialAccount socialAccount = new SocialAccount();
-
-        socialAccount.setAccountId(userInfo.getId());
-
-        User user = new User();
-
-        user.setProviderType(ProviderType.fromId(userInfo.getProviderId()));
-        user.setRoles(Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()));
-        user.setSocialAccount(socialAccount);
-
-        user = socialAccountDao.save(user);
-
-        postSave(user, userInfo.getFirstName(), userInfo.getLastName(), userInfo.getMiddleName());
-
-        return user;
+        return userDao.isExistEmail(email);
     }
 
     @Override
     public HttpStatus savePassword(SavePassword savePassword) {
         User user = (User) securityService.findLoggedInUser();
 
-        if (!user.getProviderType().equals(ProviderType.EMAIL_PASSWORD)) {
-            return HttpStatus.BAD_REQUEST;
-        }
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
-                UserAccount.TABLE,
-                Collections.singletonList(UserAccount.PASSWORD),
+                User.TABLE,
+                Collections.singletonList(User.PASSWORD),
                 Collections.singletonList(
                         new FilterCriteria.Builder<Integer>()
-                                .propertyName(UserAccount.ID)
+                                .propertyName(User.ID)
                                 .filterOperation(FilterOperation.EQ)
-                                .filterValue(user.getUserAccount().getId())
+                                .filterValue(user.getId())
                                 .needPreparedSet(true)
                                 .valueSetter(PreparedStatement::setInt)
                                 .build()
                 )
         );
         Map<String, Object> row = fieldsValues.get(0);
-        String password = (String) row.get(UserAccount.PASSWORD);
+        String password = (String) row.get(User.PASSWORD);
 
         if (passwordEncoder.matches(savePassword.getOldPassword(), password)) {
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
                     new UpdateValue<>(
-                            UserAccount.PASSWORD,
+                            User.PASSWORD,
                             passwordEncoder.encode(savePassword.getNewPassword()),
                             PreparedStatement::setString
                     )
@@ -240,14 +184,14 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             criteria.add(
                     new FilterCriteria.Builder<Integer>()
                             .filterOperation(FilterOperation.EQ)
-                            .filterValue(user.getUserAccount().getId())
+                            .filterValue(user.getId())
                             .needPreparedSet(true)
-                            .propertyName(UserAccount.ID)
+                            .propertyName(User.ID)
                             .valueSetter(PreparedStatement::setInt)
                             .build()
             );
 
-            userAccountDao.update(values, criteria);
+            userDao.update(values, criteria);
 
             return HttpStatus.OK;
         }
@@ -261,7 +205,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         userAccountCriteria.add(
                 new FilterCriteria.Builder<String>()
-                        .propertyName(UserAccount.EMAIL)
+                        .propertyName(User.EMAIL)
                         .valueSetter(PreparedStatement::setString)
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(email)
@@ -270,7 +214,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         );
         userAccountCriteria.add(
                 new FilterCriteria.Builder<Boolean>()
-                        .propertyName(UserAccount.EMAIL_VERIFIED)
+                        .propertyName(User.EMAIL_VERIFIED)
                         .valueSetter(PreparedStatement::setBoolean)
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(true)
@@ -278,7 +222,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         );
 
-        User actual = userAccountDao.get(Collections.emptyList(), userAccountCriteria);
+        User actual = userDao.get(Collections.emptyList(), userAccountCriteria);
 
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
@@ -302,7 +246,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             values.add(
                     new UpdateValue<>(
-                            UserAccount.PASSWORD,
+                            User.PASSWORD,
                             passwordEncoder.encode(restorePassword.getPassword()),
                             PreparedStatement::setString
                     )
@@ -314,7 +258,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .filterOperation(FilterOperation.EQ)
                             .filterValue(restorePassword.getEmail())
                             .needPreparedSet(true)
-                            .propertyName(UserAccount.EMAIL)
+                            .propertyName(User.EMAIL)
                             .valueSetter(PreparedStatement::setString)
                             .build()
             );
@@ -323,12 +267,12 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .filterOperation(FilterOperation.EQ)
                             .filterValue(true)
                             .needPreparedSet(true)
-                            .propertyName(UserAccount.EMAIL_VERIFIED)
+                            .propertyName(User.EMAIL_VERIFIED)
                             .valueSetter(PreparedStatement::setBoolean)
                             .build()
             );
 
-            int updated = userAccountDao.update(values, criteria);
+            int updated = userDao.update(values, criteria);
 
             if (updated == 0) {
                 return HttpStatus.NOT_FOUND;
@@ -343,33 +287,33 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus saveEmailFinish(HttpServletRequest request, SaveEmail saveEmail) {
+    public HttpStatus saveEmailFinish(HttpServletRequest request, EmailConfirmation emailConfirmation) {
         User actual = (User) securityService.findLoggedInUser();
 
         EmailVerificationResult emailVerificationResult = emailVerificationService.verify(
                 request,
-                saveEmail.getEmail(),
-                saveEmail.getCode()
+                emailConfirmation.getEmail(),
+                emailConfirmation.getCode()
         );
 
         if (emailVerificationResult.isValid()) {
             //1. Отвязываем почту у всех людей
-            unverifyEmails(saveEmail.getEmail());
+            unverifyEmails(emailConfirmation.getEmail());
 
             //1. Обновление email с привязкой данного пользователя
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
                     new UpdateValue<>(
-                            UserAccount.EMAIL,
-                            saveEmail.getEmail(),
+                            User.EMAIL,
+                            emailConfirmation.getEmail(),
                             PreparedStatement::setString
                     )
             );
 
             values.add(
                     new UpdateValue<>(
-                            UserAccount.EMAIL_VERIFIED,
+                            User.EMAIL_VERIFIED,
                             true,
                             PreparedStatement::setBoolean
                     )
@@ -380,14 +324,14 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             criteria.add(
                     new FilterCriteria.Builder<Integer>()
                             .filterOperation(FilterOperation.EQ)
-                            .filterValue(actual.getUserAccount().getId())
+                            .filterValue(actual.getId())
                             .needPreparedSet(true)
-                            .propertyName(UserAccount.ID)
+                            .propertyName(User.ID)
                             .valueSetter(PreparedStatement::setInt)
                             .build()
             );
 
-            userAccountDao.update(values, criteria);
+            userDao.update(values, criteria);
 
             sessionManager.removeState(request);
 
@@ -428,7 +372,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
-                        UserAccount.EMAIL_VERIFIED,
+                        User.EMAIL_VERIFIED,
                         false,
                         PreparedStatement::setBoolean
                 )
@@ -441,11 +385,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(email)
                         .needPreparedSet(true)
-                        .propertyName(UserAccount.EMAIL)
+                        .propertyName(User.EMAIL)
                         .valueSetter(PreparedStatement::setString)
                         .build()
         );
 
-        userAccountDao.update(valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
+        userDao.update(valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
     }
 }

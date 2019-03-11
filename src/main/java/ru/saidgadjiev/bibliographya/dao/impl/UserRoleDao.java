@@ -8,6 +8,7 @@ import ru.saidgadjiev.bibliographya.domain.Role;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class UserRoleDao {
@@ -67,6 +68,27 @@ public class UserRoleDao {
                 ps -> ps.setInt(1, userId),
                 rs -> {
                     roles.add(new Role(rs.getString("role_name")));
+                }
+        );
+
+        return roles;
+    }
+
+    public Map<Integer, Set<Role>> getRoles(Collection<Integer> userIds) {
+        if (userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<Integer, Set<Role>> roles = new HashMap<>();
+        String inClause = userIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+        jdbcTemplate.query(
+                "SELECT * FROM user_role WHERE user_id IN (" + inClause + ") ",
+                rs -> {
+                    int userId = rs.getInt("user_id");
+
+                    roles.putIfAbsent(userId, new LinkedHashSet<>());
+
+                    roles.get(userId).add(new Role(rs.getString("role_name")));
                 }
         );
 

@@ -3,20 +3,28 @@ package ru.saidgadjiev.bibliographya.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
 import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Created by said on 22.10.2018.
+ */
 @Repository
 public class UserDao {
 
@@ -25,6 +33,150 @@ public class UserDao {
     @Autowired
     public UserDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public int update(List<UpdateValue> values, Collection<FilterCriteria> criteria) {
+        String clause = FilterUtils.toClause(criteria, null);
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("UPDATE user SET ");
+
+        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
+            sql.append(iterator.next().getName()).append(" = ?");
+
+            if (iterator.hasNext()) {
+                sql.append(", ");
+            }
+        }
+
+        if (StringUtils.isNotBlank(clause)) {
+            sql.append(" WHERE ").append(clause);
+        }
+
+        return jdbcTemplate.update(
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (UpdateValue updateValue : values) {
+                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                    }
+                    for (FilterCriteria criterion : criteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
+                }
+        );
+    }
+
+    public User save(User user) {
+        KeyHolder keyHolderUser = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(
+                con -> {
+                    PreparedStatement ps = con.prepareStatement(
+                            "INSERT INTO \"user\"(email, email_verified, password) VALUES (?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS
+                    );
+
+                    ps.setString(1, user.getUsername());
+                    ps.setBoolean(2, user.isEmailVerified());
+                    ps.setString(3, user.getPassword());
+
+                    return ps;
+                },
+                keyHolderUser
+        );
+        Map<String, Object> keys = keyHolderUser.getKeys();
+
+        if (keys != null && keys.containsKey("id")) {
+            user.setId(((Number) keys.get("id")).intValue());
+        }
+
+        return user;
+    }
+
+    public User get(Collection<FilterCriteria> userCriteria, Collection<FilterCriteria> userAccountCriteria) {
+        String userClause = FilterUtils.toClause(userCriteria, "u");
+        String userAccountClause = FilterUtils.toClause(userAccountCriteria, "ua");
+
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ").append(selectList()).append(" ")
+                .append("FROM \"user\" u INNER JOIN biography b ON u.id = b.user_id WHERE 1 = 1 ");
+
+        if (StringUtils.isNotBlank(userClause)) {
+            sql.append("AND ").append(userClause).append(" ");
+        }
+        if (StringUtils.isNotBlank(userAccountClause)) {
+            sql.append("AND ").append(userAccountClause).append(" ");
+        }
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (FilterCriteria criterion : userCriteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
+
+                    for (FilterCriteria criterion : userAccountCriteria) {
+                        if (criterion.isNeedPreparedSet()) {
+                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                        }
+                    }
+                },
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    public boolean isExistEmail(String email) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM \"user\" WHERE email = ? AND email_verified = ?",
+                preparedStatement -> {
+                    preparedStatement.setString(1, email);
+                    preparedStatement.setBoolean(2, true);
+                },
+                rs -> rs.next() && rs.getLong("cnt") > 0
+        );
+    }
+
+    public UsersStats getStats() {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM \"user\"",
+                resultSet -> {
+                    if (resultSet.next()) {
+                        UsersStats stats = new UsersStats();
+
+                        stats.setCount(resultSet.getLong("cnt"));
+
+                        return stats;
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    public int markDelete(int id, boolean deleted) {
+        return jdbcTemplate.update(
+                "UPDATE \"user\" SET deleted = ? WHERE id = ?",
+                preparedStatement -> {
+                    preparedStatement.setBoolean(1, deleted);
+                    preparedStatement.setInt(2, id);
+                }
+        );
     }
 
     public List<User> getUsers(Integer limit, Long offset, Collection<FilterCriteria> roleCriteria) {
@@ -46,7 +198,7 @@ public class UserDao {
             sql.append("OFFSET ").append(offset);
         }
 
-        List<User> users = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 sql.toString(),
                 ps -> {
                     int i = 0;
@@ -55,48 +207,7 @@ public class UserDao {
                         criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                     }
                 },
-        (resultSet, i) -> map(resultSet)
-        );
-
-        Collection<Integer> ids = users.stream().map(User::getId).collect(Collectors.toList());
-        Map<Integer, Set<Role>> roles = getRoles(ids);
-
-        for (User user: users) {
-            user.setRoles(roles.get(user.getId()));
-        }
-
-        return users;
-    }
-
-    public UsersStats getStats() {
-        UsersStats usersStats = new UsersStats();
-
-        Map<ProviderType, Integer> countByProviderType = jdbcTemplate.query(
-                "SELECT provider_id, COUNT(provider_id) as cnt FROM \"user\" GROUP BY provider_id",
-                resultSet -> {
-                    Map<ProviderType, Integer> stats = new LinkedHashMap<>();
-
-                    while (resultSet.next()) {
-                        stats.put(ProviderType.fromId(resultSet.getString("provider_id")), resultSet.getInt("cnt"));
-                    }
-
-                    return stats;
-                }
-        );
-
-        usersStats.setUsersByProvider(countByProviderType);
-        usersStats.setCount(countByProviderType.values().stream().count());
-
-        return usersStats;
-    }
-
-    public int markDelete(int id, boolean deleted) {
-        return jdbcTemplate.update(
-                "UPDATE \"user\" SET deleted = ? WHERE id = ?",
-                preparedStatement -> {
-                    preparedStatement.setBoolean(1, deleted);
-                    preparedStatement.setInt(2, id);
-                }
+                (resultSet, i) -> map(resultSet)
         );
     }
 
@@ -104,54 +215,30 @@ public class UserDao {
         User user = new User();
 
         user.setId(rs.getInt("u_id"));
-        user.setProviderType(ProviderType.fromId(rs.getString("u_provider_id")));
-        user.setDeleted(rs.getBoolean("u_deleted"));
+
+        user.setEmailVerified(rs.getBoolean("u_verified"));
+        user.setEmail(rs.getString("u_email"));
+        user.setPassword(rs.getString("u_password"));
 
         Biography biography = new Biography();
 
-        biography.setId(rs.getInt("ba_id"));
-        biography.setFirstName(rs.getString("ba_first_name"));
-        biography.setLastName(rs.getString("ba_last_name"));
-        biography.setUserId(user.getId());
+        biography.setId(rs.getInt("b_id"));
+        biography.setFirstName(rs.getString("b_first_name"));
+        biography.setLastName(rs.getString("b_last_name"));
 
         user.setBiography(biography);
 
         return user;
     }
 
-
-    private Map<Integer, Set<Role>> getRoles(Collection<Integer> userIds) {
-        if (userIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        Map<Integer, Set<Role>> roles = new HashMap<>();
-        String inClause = userIds.stream().map(String::valueOf).collect(Collectors.joining(","));
-
-        jdbcTemplate.query(
-                "SELECT * FROM user_role WHERE user_id IN (" + inClause + ") ",
-                rs -> {
-                    int userId = rs.getInt("user_id");
-
-                    roles.putIfAbsent(userId, new LinkedHashSet<>());
-
-                    roles.get(userId).add(new Role(rs.getString("role_name")));
-                }
-        );
-
-        return roles;
-    }
-
     private String selectList() {
-        StringBuilder selectList = new StringBuilder();
-
-        selectList
-                .append("u.id as u_id,")
-                .append("u.deleted as u_deleted,")
-                .append("u.provider_id as u_provider_id,")
-                .append("ba.id as ba_id,")
-                .append("ba.first_name as ba_first_name,")
-                .append("ba.last_name as ba_last_name");
-
-        return selectList.toString();
+        return "  u.id AS u_id,\n" +
+                "  u.provider_id AS u_provider_id,\n" +
+                "  u.email_verified as u_verified,\n" +
+                "  u.email AS u_email,\n" +
+                "  u.password AS u_password,\n" +
+                "  b.id AS b_id,\n" +
+                "  b.first_name AS b_first_name,\n" +
+                "  b.last_name AS b_last_name\n";
     }
 }

@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.data.mapper;
 
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.*;
 
@@ -39,7 +38,6 @@ public interface BibliographyaMapper {
 
     List<ShortBiographyResponse> convertToShortBiographyResponse(List<BiographyLike> biographyLikes);
 
-    @Mapping(source = "providerType.id", target = "providerId")
     UserResponse convertToUserResponse(User user);
 
     List<UserResponse> convertToUserResponse(List<User> users);

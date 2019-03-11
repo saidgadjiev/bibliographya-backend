@@ -25,7 +25,9 @@ public class SessionManager {
     }
 
     public void setRestorePassword(HttpServletRequest request, User user) {
-        setState(request, SessionState.RESTORE_PASSWORD, user, null);
+        setState(request, SessionState.RESTORE_PASSWORD, user, new HashMap<String, Object>() {{
+            put("email", user.getEmail());
+        }});
     }
 
     public void setChangeEmail(HttpServletRequest request, String email, User user) {
@@ -38,11 +40,9 @@ public class SessionManager {
         HttpSession session = request.getSession(true);
 
         session.setAttribute("state", SessionState.SIGN_UP_CONFIRM);
-        session.setAttribute("email", signUpRequest.getEmail());
         session.setAttribute("firstName", signUpRequest.getFirstName());
         session.setAttribute("lastName", signUpRequest.getLastName());
         session.setAttribute("middleName", signUpRequest.getMiddleName());
-        session.setAttribute("password", signUpRequest.getPassword());
     }
 
     public SignUpRequest getSignUp(HttpServletRequest request) {
@@ -53,11 +53,9 @@ public class SessionManager {
         }
         SignUpRequest signUpRequest = new SignUpRequest();
 
-        signUpRequest.setEmail((String) session.getAttribute("email"));
         signUpRequest.setFirstName((String) session.getAttribute("firstName"));
         signUpRequest.setLastName((String) session.getAttribute("lastName"));
         signUpRequest.setMiddleName((String) session.getAttribute("middleName"));
-        signUpRequest.setPassword((String) session.getAttribute("password"));
 
         return signUpRequest;
     }
@@ -195,7 +193,6 @@ public class SessionManager {
 
         if (user != null) {
             session.setAttribute("firstName", user.getBiography().getFirstName());
-            session.setAttribute("email", user.getUserAccount().getEmail());
         }
 
         if (args != null) {

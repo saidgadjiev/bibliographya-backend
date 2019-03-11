@@ -3,7 +3,6 @@ package ru.saidgadjiev.bibliographya.domain;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -13,13 +12,23 @@ import java.util.Set;
  */
 public class User implements UserDetails, CredentialsContainer {
 
+    public static final String ID = "id";
+
+    public static final String TABLE = "user";
+
+    public static final String EMAIL = "email";
+
+    public static final String EMAIL_VERIFIED = "email_verified";
+
+    public static final String PASSWORD = "password";
+
     private int id;
 
-    private ProviderType providerType;
+    private String email;
 
-    private UserAccount userAccount;
+    private boolean emailVerified;
 
-    private SocialAccount socialAccount;
+    private String password;
 
     private Biography biography;
 
@@ -38,12 +47,12 @@ public class User implements UserDetails, CredentialsContainer {
     }
 
     public String getPassword() {
-        return userAccount == null ? null : userAccount.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return userAccount == null ? null : userAccount.getEmail();
+        return email;
     }
 
     @Override
@@ -70,18 +79,6 @@ public class User implements UserDetails, CredentialsContainer {
         return roles;
     }
 
-    public void setName(String name) {
-        if (userAccount != null) {
-            userAccount.setEmail(name);
-        }
-    }
-
-    public void setPassword(String password) {
-        if (userAccount != null) {
-            userAccount.setPassword(password);
-        }
-    }
-
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
@@ -96,9 +93,35 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public void eraseCredentials() {
-        if (userAccount != null) {
-            userAccount.setPassword(null);
-        }
+        password = null;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Boolean getNew() {
+        return isNew;
+    }
+
+    public void setNew(Boolean aNew) {
+        isNew = aNew;
     }
 
     public int getId() {
@@ -107,30 +130,6 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public ProviderType getProviderType() {
-        return providerType;
-    }
-
-    public void setProviderType(ProviderType providerType) {
-        this.providerType = providerType;
-    }
-
-    public UserAccount getUserAccount() {
-        return userAccount;
-    }
-
-    public void setUserAccount(UserAccount userAccount) {
-        this.userAccount = userAccount;
-    }
-
-    public SocialAccount getSocialAccount() {
-        return socialAccount;
-    }
-
-    public void setSocialAccount(SocialAccount socialAccount) {
-        this.socialAccount = socialAccount;
     }
 
     public Boolean getIsNew() {

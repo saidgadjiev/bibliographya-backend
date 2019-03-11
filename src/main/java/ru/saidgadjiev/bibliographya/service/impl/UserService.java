@@ -15,9 +15,8 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -43,6 +42,12 @@ public class UserService {
         }
 
         List<User> userList = userDao.getUsers(pageRequest.getPageSize(), pageRequest.getOffset(), roleCriteria);
+        Collection<Integer> userIds = userList.stream().map(User::getId).collect(Collectors.toList());
+        Map<Integer, Set<Role>> roles = userRoleDao.getRoles(userIds);
+
+        for (User user: userList) {
+            user.setRoles(roles.get(user.getId()));
+        }
 
         return new PageImpl<>(userList);
     }

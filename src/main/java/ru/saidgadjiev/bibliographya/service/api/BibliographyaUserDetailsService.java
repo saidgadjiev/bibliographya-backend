@@ -2,13 +2,10 @@ package ru.saidgadjiev.bibliographya.service.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.domain.SaveEmail;
+import ru.saidgadjiev.bibliographya.domain.EmailConfirmation;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
-import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,17 +17,11 @@ import java.util.Locale;
  */
 public interface BibliographyaUserDetailsService extends UserDetailsService {
 
-    User save(SignUpRequest signUpRequest) throws SQLException;
+    User save(User user) throws SQLException;
 
-    User loadUserAccountById(int id);
+    User loadUserById(int id);
 
     boolean isExistEmail(String username);
-
-    User loadSocialUserById(int userId);
-
-    User loadSocialUserByAccountId(ProviderType providerType, String accountId);
-
-    User saveSocialUser(SocialUserInfo userInfo) throws SQLException;
 
     HttpStatus savePassword(SavePassword savePassword);
 
@@ -38,7 +29,7 @@ public interface BibliographyaUserDetailsService extends UserDetailsService {
 
     HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword);
 
-    HttpStatus saveEmailFinish(HttpServletRequest request, SaveEmail saveEmail);
+    HttpStatus saveEmailFinish(HttpServletRequest request, EmailConfirmation emailConfirmation);
 
     HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
 }
