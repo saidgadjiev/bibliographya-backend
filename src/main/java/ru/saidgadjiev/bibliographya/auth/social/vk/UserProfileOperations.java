@@ -18,7 +18,13 @@ public class UserProfileOperations {
         this.vkApi = vkApi;
     }
 
-    public ResponseEntity<ObjectNode> getFiels(String userId, String ...fields) {
+    public ResponseEntity<ObjectNode> getCurrentUserFields(String ... fields) {
+        return vkApi.get("users.get", new LinkedMultiValueMap<String, String>() {{
+            addAll("fields", Arrays.asList(fields));
+        }});
+    }
+
+    public ResponseEntity<ObjectNode> getFields(String userId, String ...fields) {
         return vkApi.get("users.get", new LinkedMultiValueMap<String, String>() {{
             addAll("user_ids", Collections.singletonList(userId));
             addAll("fields", Arrays.asList(fields));

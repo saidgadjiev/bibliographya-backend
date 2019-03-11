@@ -129,8 +129,8 @@ public class AuthService {
             case EMAIL_PASSWORD:
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(
-                                authContext.getSignInRequest().getEmail(),
-                                authContext.getSignInRequest().getPassword()
+                                authContext.getSignUpRequest().getEmail(),
+                                authContext.getSignUpRequest().getPassword()
                         );
                 Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 

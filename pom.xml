@@ -26,6 +26,7 @@
         <junit.platform.version>1.2.0</junit.platform.version>
         <junit.vintage.version>5.2.0</junit.vintage.version>
         <resource.delimiter>^</resource.delimiter>
+        <caffeine.version>2.7.0</caffeine.version>
     </properties>
 
     <build>
@@ -247,6 +248,10 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>${mockito.junit.jupiter.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
     </dependencies>
 

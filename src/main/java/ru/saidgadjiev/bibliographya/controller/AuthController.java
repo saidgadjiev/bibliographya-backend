@@ -89,7 +89,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(value = "/signIn/{providerId}", params = "code")
+    @PostMapping(value = "/signUp/{providerId}", params = "code")
     public ResponseEntity<?> singInSocial(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -139,7 +139,7 @@ public class AuthController {
                 .setProviderType(ProviderType.EMAIL_PASSWORD)
                 .setResponse(response)
                 .setRequest(request)
-                .setSignInRequest(signInRequest);
+                .setSignUpRequest(signInRequest);
 
         return ResponseEntity.ok(authService.auth(authContext, null));
     }

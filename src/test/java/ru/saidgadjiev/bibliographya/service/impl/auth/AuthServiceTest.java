@@ -28,7 +28,6 @@ import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -199,7 +198,7 @@ class AuthServiceTest {
                 .setProviderType(ProviderType.EMAIL_PASSWORD)
                 .setResponse(response)
                 .setRequest(request)
-                .setSignInRequest(signInRequest);
+                .setSignUpRequest(signInRequest);
 
         User testUser = TEST_USERS.get(TEST_EMAIL_USER_ID);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

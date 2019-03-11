@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.auth.common;
 
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
+import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +19,7 @@ public class AuthContext {
 
     private String code;
 
-    private SignInRequest signInRequest;
+    private SignUpRequest signUpRequest;
 
     public HttpServletRequest getRequest() {
         return request;
@@ -60,12 +61,12 @@ public class AuthContext {
         return this;
     }
 
-    public SignInRequest getSignInRequest() {
-        return signInRequest;
+    public SignUpRequest getSignUpRequest() {
+        return signUpRequest;
     }
 
-    public AuthContext setSignInRequest(SignInRequest signInRequest) {
-        this.signInRequest = signInRequest;
+    public AuthContext setSignUpRequest(SignUpRequest signUpRequest) {
+        this.signUpRequest = signUpRequest;
 
         return this;
     }

@@ -11,7 +11,7 @@ import java.util.Collection;
 /**
  * Created by said on 22.10.2018.
  */
-public class BiographyModerationResponse {
+public class BiographyModerationResponse extends BiographyBaseResponse {
 
     private Integer moderationStatus;
 
