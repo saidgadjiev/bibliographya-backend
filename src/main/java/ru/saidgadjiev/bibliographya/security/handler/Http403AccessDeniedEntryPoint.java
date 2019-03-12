@@ -1,7 +1,5 @@
 package ru.saidgadjiev.bibliographya.security.handler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import ru.saidgadjiev.bibliographya.utils.ResponseUtils;
@@ -16,13 +14,8 @@ import java.io.IOException;
  */
 public class Http403AccessDeniedEntryPoint implements AccessDeniedHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Http403AccessDeniedEntryPoint.class);
-
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        LOGGER.debug("Access denied");
-        LOGGER.error(accessDeniedException.getMessage(), accessDeniedException);
-
         ResponseUtils.sendResponseMessage(response, HttpServletResponse.SC_FORBIDDEN);
     }
 }

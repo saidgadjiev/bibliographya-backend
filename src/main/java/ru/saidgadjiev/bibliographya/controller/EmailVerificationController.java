@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
-import ru.saidgadjiev.bibliographya.service.impl.SessionEmailVerificationService;
+import ru.saidgadjiev.bibliographya.service.impl.HttpSessionEmailVerificationService;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,9 +20,9 @@ import java.util.Locale;
 @RequestMapping("/api/emails")
 public class EmailVerificationController {
     
-    private final SessionEmailVerificationService verificationService;
+    private final HttpSessionEmailVerificationService verificationService;
 
-    public EmailVerificationController(SessionEmailVerificationService verificationService) {
+    public EmailVerificationController(HttpSessionEmailVerificationService verificationService) {
         this.verificationService = verificationService;
     }
 

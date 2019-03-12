@@ -18,25 +18,25 @@ import java.util.Objects;
  * Created by said on 24.02.2019.
  */
 @Service
-public class SessionEmailVerificationService {
+public class HttpSessionEmailVerificationService {
 
-    private SessionManager sessionManager;
+    private HttpSessionManager httpSessionManager;
 
     private final CodeGenerator codeGenerator;
 
     private final EmailService emailService;
 
     @Autowired
-    public SessionEmailVerificationService(SessionManager sessionManager,
-                                           CodeGenerator codeGenerator,
-                                           EmailService emailService) {
-        this.sessionManager = sessionManager;
+    public HttpSessionEmailVerificationService(HttpSessionManager httpSessionManager,
+                                               CodeGenerator codeGenerator,
+                                               EmailService emailService) {
+        this.httpSessionManager = httpSessionManager;
         this.codeGenerator = codeGenerator;
         this.emailService = emailService;
     }
 
     public HttpStatus sendVerification(HttpServletRequest request, Locale locale, String email) throws MessagingException {
-        SessionState sessionState = sessionManager.getState(request);
+        SessionState sessionState = httpSessionManager.getState(request);
 
         if (!Objects.equals(sessionState, SessionState.NONE)) {
             int code = codeGenerator.generate();
@@ -46,12 +46,12 @@ public class SessionEmailVerificationService {
             calendar.setTime(new Date());
             calendar.add(Calendar.DATE, 1);
 
-            sessionManager.setCode(request, code, calendar.getTimeInMillis());
+            httpSessionManager.setCode(request, code, calendar.getTimeInMillis());
 
             emailService.sendEmail(
                     email,
-                    sessionManager.getEmailSubject(request, locale),
-                    sessionManager.getEmailMessage(request, locale)
+                    httpSessionManager.getEmailSubject(request, locale),
+                    httpSessionManager.getEmailMessage(request, locale)
             );
 
             return HttpStatus.OK;
@@ -61,20 +61,20 @@ public class SessionEmailVerificationService {
     }
 
     public EmailVerificationResult verify(HttpServletRequest request, String email, int code) {
-        SessionState sessionState = sessionManager.getState(request);
+        SessionState sessionState = httpSessionManager.getState(request);
 
         if (Objects.equals(sessionState, SessionState.NONE)) {
             return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
         }
 
-        String currentEmail = sessionManager.getEmail(request);
+        String currentEmail = httpSessionManager.getEmail(request);
 
         if (!Objects.equals(currentEmail, email)) {
             return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.INVALID);
         }
 
-        int currentCode = sessionManager.getCode(request);
-        long expiredAt = sessionManager.getExpiredAt(request);
+        int currentCode = httpSessionManager.getCode(request);
+        long expiredAt = httpSessionManager.getExpiredAt(request);
 
         if (TimeUtils.isExpired(expiredAt)) {
             return new EmailVerificationResult().setStatus(EmailVerificationResult.Status.EXPIRED);

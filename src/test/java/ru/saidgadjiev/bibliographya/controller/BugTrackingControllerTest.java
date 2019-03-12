@@ -71,12 +71,12 @@ class BugTrackingControllerTest {
         bug.setBugCase("Тест");
         bug.setCreatedAt(new Timestamp(new Date().getTime()));
         bug.setStatus(Bug.BugStatus.PENDING);
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         Mockito.when(bugService.create(any(), any())).thenReturn(bug);
         Mockito.when(bugService.getActions(any())).thenReturn(Collections.emptyList());
@@ -118,12 +118,12 @@ class BugTrackingControllerTest {
 
         bugs.add(bug);
         bugs.add(bug1);
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
                 .setLimit(10)
@@ -196,12 +196,12 @@ class BugTrackingControllerTest {
 
         bugs.add(bug);
         bugs.add(bug1);
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
                 .setLimit(10)
@@ -281,12 +281,12 @@ class BugTrackingControllerTest {
 
         bugs.add(bug);
         bugs.add(bug1);
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
                 .setLimit(10)
@@ -370,12 +370,12 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getFixerInfo(eq(1))).thenReturn(fixerInfo);
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
@@ -436,12 +436,12 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getFixerInfo(eq(1))).thenReturn(fixerInfo);
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
@@ -479,12 +479,14 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
+/*
 
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
         }).when(authService).tokenAuth("TestToken");
+*/
 
         ObjectMapper objectMapper = new ObjectMapper();
 

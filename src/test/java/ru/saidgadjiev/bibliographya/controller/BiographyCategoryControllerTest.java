@@ -126,12 +126,12 @@ class BiographyCategoryControllerTest {
 
         request.setName("Test");
         request.setImagePath("Test.jpg");
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         mockMvc.perform(
                 post("/api/categories")
@@ -166,12 +166,12 @@ class BiographyCategoryControllerTest {
                 return 1;
             }
         }).when(biographyCategoryService).deleteById(eq(1));
-
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         mockMvc.perform(
                 MockMvcRequestBuilders.delete("/api/categories/1")
@@ -209,11 +209,12 @@ class BiographyCategoryControllerTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
+/*
         Mockito.doAnswer(invocationOnMock -> {
             authenticate();
 
             return null;
-        }).when(authService).tokenAuth("TestToken");
+        }).when(authService).tokenAuth("TestToken");*/
 
         mockMvc.perform(
                 put("/api/categories/1")

@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.service.impl;
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.Node;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,8 @@ import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.security.event.AddRoleEvent;
+import ru.saidgadjiev.bibliographya.security.event.DeleteRoleEvent;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,9 +28,12 @@ public class UserService {
 
     private final UserRoleDao userRoleDao;
 
-    public UserService(UserDao userDao, UserRoleDao userRoleDao) {
+    private ApplicationEventPublisher eventPublisher;
+
+    public UserService(UserDao userDao, UserRoleDao userRoleDao, ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.userRoleDao = userRoleDao;
+        this.eventPublisher = eventPublisher;
     }
 
     public Page<User> getUsers(OffsetLimitPageRequest pageRequest, String roleQuery) {
@@ -53,11 +59,23 @@ public class UserService {
     }
 
     public int addRole(int userId, String role) {
-        return userRoleDao.addRole(userId, new Role(role));
+        Role r = new Role(role);
+
+        int added = userRoleDao.addRole(userId, r);
+
+        eventPublisher.publishEvent(new AddRoleEvent(r, userId));
+
+        return added;
     }
 
     public int deleteRole(int userId, String role) {
-        return userRoleDao.deleteRole(userId, new Role(role));
+        Role r = new Role(role);
+
+        int deleted = userRoleDao.deleteRole(userId, r);
+
+        eventPublisher.publishEvent(new DeleteRoleEvent(r, userId));
+
+        return deleted;
     }
 
     public int deleteUser(int userId) {

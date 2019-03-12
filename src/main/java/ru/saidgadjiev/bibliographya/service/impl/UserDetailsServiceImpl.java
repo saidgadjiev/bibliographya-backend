@@ -46,11 +46,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final SessionEmailVerificationService emailVerificationService;
+    private final HttpSessionEmailVerificationService emailVerificationService;
 
     private final SecurityService securityService;
 
-    private final SessionManager sessionManager;
+    private final HttpSessionManager httpSessionManager;
 
     private ApplicationEventPublisher eventPublisher;
 
@@ -60,9 +60,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
-                                  SessionEmailVerificationService emailVerificationService,
+                                  HttpSessionEmailVerificationService emailVerificationService,
                                   SecurityService securityService,
-                                  SessionManager sessionManager,
+                                  HttpSessionManager httpSessionManager,
                                   ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.generalDao = generalDao;
@@ -71,7 +71,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
         this.securityService = securityService;
-        this.sessionManager = sessionManager;
+        this.httpSessionManager = httpSessionManager;
         this.eventPublisher = eventPublisher;
     }
 
@@ -236,7 +236,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
         }
-        sessionManager.setRestorePassword(request, actual);
+        httpSessionManager.setRestorePassword(request, actual);
         emailVerificationService.sendVerification(request, locale, email);
 
         return HttpStatus.OK;
@@ -287,7 +287,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 return HttpStatus.NOT_FOUND;
             }
 
-            sessionManager.removeState(request);
+            httpSessionManager.removeState(request);
 
             return HttpStatus.OK;
         }
@@ -342,7 +342,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             userDao.update(values, criteria);
 
-            sessionManager.removeState(request);
+            httpSessionManager.removeState(request);
 
             actual.setEmail(emailConfirmation.getEmail());
             actual.setEmailVerified(true);
@@ -359,7 +359,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
-        sessionManager.setChangeEmail(request, email, user);
+        httpSessionManager.setChangeEmail(request, email, user);
 
         emailVerificationService.sendVerification(request, locale, email);
 

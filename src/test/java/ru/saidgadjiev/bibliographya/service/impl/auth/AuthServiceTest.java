@@ -14,12 +14,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
-import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.domain.RequestResult;
+import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.SessionState;
-import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -28,16 +26,12 @@ import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static org.mockito.ArgumentMatchers.*;
-import static ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils.assertCookieEquals;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils.assertUserEquals;
 import static ru.saidgadjiev.bibliographya.utils.TestModelsUtils.*;
 
@@ -364,105 +358,4 @@ class AuthServiceTest {
         Mockito.verify(userDetailsService, Mockito.never()).save(any(SignUpRequest.class));*/
     }
 
-    @Test
-    void signOut() {
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-
-        Mockito.when(request.getServerName()).thenReturn(TEST_SERVER_NAME);
-
-        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        List<Cookie> cookies = new ArrayList<>();
-
-        Mockito.doAnswer(invocation -> {
-            Cookie cookie = (Cookie) invocation.getArguments()[0];
-
-            cookies.add(cookie);
-
-            return null;
-        }).when(response).addCookie(any(Cookie.class));
-
-        User testUser = TEST_USERS.get(TEST_FACEBOOK_USER_ID);
-
-        Authentication authentication = authenticate(testUser);
-
-        Mockito.when(securityService.findLoggedInUserAuthentication()).thenReturn(authentication);
-
-        User actual = authService.signOut(request, response);
-
-        Assertions.assertFalse(cookies.isEmpty());
-
-        assertCookieEquals(TEST_TOKEN_REMOVE_COOKIE, cookies.get(0));
-        assertUserEquals(testUser, actual);
-        Assertions.assertNull(SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    @Test
-    void anonymousSignOut() {
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-
-        User actual = authService.signOut(request, response);
-        Assertions.assertNull(actual);
-    }
-
-    @Test
-    void signedInAccount() {
-        User testUser = TEST_USERS.get(TEST_FACEBOOK_USER_ID);
-
-        Mockito.when(securityService.findLoggedInUser()).thenReturn(testUser);
-
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-
-        RequestResult requestResult = authService.account();
-
-        Assertions.assertEquals(requestResult.getStatus(), HttpStatus.OK);
-        assertUserEquals(testUser, (User) requestResult.getBody());
-    }
-
-    @Test
-    void anonymousAccount() {
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-
-        RequestResult requestResult = authService.account();
-
-        Assertions.assertEquals(requestResult.getStatus(), HttpStatus.NOT_FOUND);
-        Assertions.assertNull(requestResult.getBody());
-    }
-
-    @Test
-    void signingUpAccount() {
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        HttpSession session = Mockito.mock(HttpSession.class);
-
-        Mockito.when(request.getSession(anyBoolean())).thenReturn(session);
-        Mockito.when(session.getAttribute(eq("state"))).thenReturn(SessionState.SIGN_UP_CONFIRM);
-
-        RequestResult requestResult = authService.account();
-
-        Assertions.assertEquals(requestResult.getStatus(), HttpStatus.PRECONDITION_REQUIRED);
-        Assertions.assertNull(requestResult.getBody());
-    }
-
-    @Test
-    void tokenAuth() {
-    }
-
-    private Authentication authenticate(UserDetails userDetails) {
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return authentication;
-    }
-
-    private SignUpRequest signUpRequest() {
-        SignUpRequest signUpRequest = new SignUpRequest();
-
-        signUpRequest.setFirstName(TEST_FIRST_NAME);
-        signUpRequest.setLastName(TEST_LAST_NAME);
-        signUpRequest.setMiddleName(TEST_MIDDLE_NAME);
-
-        return signUpRequest;
-    }
 }

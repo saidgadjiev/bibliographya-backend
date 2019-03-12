@@ -12,14 +12,14 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 
 @Service
-public class SessionManager {
+public class HttpSessionManager {
 
     private MessageSource messageSource;
 
     private SecurityService securityService;
 
     @Autowired
-    public SessionManager(MessageSource messageSource, SecurityService securityService) {
+    public HttpSessionManager(MessageSource messageSource, SecurityService securityService) {
         this.messageSource = messageSource;
         this.securityService = securityService;
     }

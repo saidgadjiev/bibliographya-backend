@@ -22,4 +22,8 @@ public class JwtProperties {
     public SignatureAlgorithm alg() {
         return SignatureAlgorithm.HS512;
     }
+
+    public String cookieName() {
+        return "X-TOKEN";
+    }
 }

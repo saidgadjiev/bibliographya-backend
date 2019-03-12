@@ -1,6 +1,9 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +14,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SecurityService {
+
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    public SecurityService(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     public UserDetails findLoggedInUser() {
         Authentication authentication = findLoggedInUserAuthentication();
@@ -31,11 +41,13 @@ public class SecurityService {
         return null;
     }
 
-    public Authentication authenticate(UserDetails userDetails) {
+    public Authentication autoLogin(UserDetails userDetails) {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        eventPublisher.publishEvent(new AuthenticationSuccessEvent(authentication));
 
         return authentication;
     }
