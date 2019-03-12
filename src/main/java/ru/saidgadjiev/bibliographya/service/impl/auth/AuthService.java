@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,6 +22,7 @@ import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
+import ru.saidgadjiev.bibliographya.security.event.SignOutSuccessEvent;
 import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
@@ -59,6 +61,8 @@ public class AuthService {
 
     private SessionManager sessionManager;
 
+    private ApplicationEventPublisher eventPublisher;
+
     private LogoutHandler logoutHandler = new CompositeLogoutHandler(
             (request, response, authentication) -> CookieUtils.deleteCookie(response, uiProperties.getName(), "X-TOKEN"),
             new SecurityContextLogoutHandler()
@@ -71,7 +75,8 @@ public class AuthService {
                        SecurityService securityService,
                        SessionEmailVerificationService emailVerificationService,
                        UIProperties uiProperties,
-                       SessionManager sessionManager) {
+                       SessionManager sessionManager,
+                       ApplicationEventPublisher eventPublisher) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
@@ -79,6 +84,7 @@ public class AuthService {
         this.emailVerificationService = emailVerificationService;
         this.uiProperties = uiProperties;
         this.sessionManager = sessionManager;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
@@ -198,6 +204,8 @@ public class AuthService {
             User user = (User) authentication.getPrincipal();
 
             logoutHandler.logout(request, response, authentication);
+
+            eventPublisher.publishEvent(new SignOutSuccessEvent(authentication));
 
             return user;
         }

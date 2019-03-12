@@ -14,9 +14,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
 import ru.saidgadjiev.bibliographya.security.filter.JwtFilter;
 import ru.saidgadjiev.bibliographya.security.handler.HttpAuthenticationEntryPoint;
 import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
@@ -43,15 +45,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private ObjectMapper objectMapper;
 
+    private UserCache userCache;
+
     @Autowired
     public SecurityConfiguration(UserDetailsService userDetailsService,
                                  PasswordEncoder passwordEncoder,
                                  SessionManager sessionManager,
-                                 ObjectMapper objectMapper) {
+                                 ObjectMapper objectMapper,
+                                 UserCache userCache) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.sessionManager = sessionManager;
         this.objectMapper = objectMapper;
+        this.userCache = userCache;
     }
 
     @Autowired
@@ -100,6 +106,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         JwtTokenAuthenticationProvider authProvider = new JwtTokenAuthenticationProvider();
 
         authProvider.setUserDetailsService((BibliographyaUserDetailsService) userDetailsService);
+        authProvider.setUserCache((BibliographyaUserCache) userCache);
 
         return authProvider;
     }

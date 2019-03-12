@@ -6,11 +6,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
     private BibliographyaUserDetailsService userDetailsService;
+
+    private BibliographyaUserCache bibliographyaUserCache;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -20,10 +23,16 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Bad credentials");
         }
 
-        User user = userDetailsService.loadUserById(userId);
+        User user = bibliographyaUserCache.getUserFromCache(userId);
 
         if (user == null) {
-            throw new BadCredentialsException("Bad credentials");
+            user = userDetailsService.loadUserById(userId);
+
+            if (user == null) {
+                throw new BadCredentialsException("Bad credentials");
+            }
+
+            bibliographyaUserCache.putUserInCache(user);
         }
 
         return new UsernamePasswordAuthenticationToken(
@@ -40,5 +49,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
     public void setUserDetailsService(BibliographyaUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
+    }
+
+    public void setUserCache(BibliographyaUserCache userCache) {
+        this.bibliographyaUserCache = userCache;
     }
 }
