@@ -1,7 +1,7 @@
 package ru.saidgadjiev.bibliographya.security.filter;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,12 +28,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProperties jwtProperties;
 
-    private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationManager authenticationManager;
 
-    public JwtFilter(TokenService tokenService, JwtProperties jwtProperties, AuthenticationProvider authenticationProvider) {
+    public JwtFilter(TokenService tokenService, JwtProperties jwtProperties, AuthenticationManager authenticationManager) {
         this.tokenService = tokenService;
         this.jwtProperties = jwtProperties;
-        this.authenticationProvider = authenticationProvider;
+        this.authenticationManager = authenticationManager;
     }
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -44,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Map<String, Object> claims = tokenService.validate(tokenCookie.getValue());
 
                 try {
-                    Authentication authentication = authenticationProvider.authenticate(new JwtAuthenticationToken(claims));
+                    Authentication authentication = authenticationManager.authenticate(new JwtAuthenticationToken(claims));
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } catch (BadCredentialsException ex) {

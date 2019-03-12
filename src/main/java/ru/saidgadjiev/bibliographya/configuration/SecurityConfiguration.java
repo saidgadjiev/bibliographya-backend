@@ -77,7 +77,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(daoAuthenticationProvider());
+        auth.authenticationProvider(jwtAuthenticationProvider()).authenticationProvider(daoAuthenticationProvider());
     }
 
     @Override
@@ -88,7 +88,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .antMatchers("/actuator/**").hasAuthority("ROLE_ADMIN")
                     .anyRequest().permitAll()
                 .and()
-                    .addFilterAt(new JwtFilter(tokenService, jwtProperties, jwtAuthenticationProvider()), BasicAuthenticationFilter.class)
+                    .addFilterAt(new JwtFilter(tokenService, jwtProperties, authenticationManager()), BasicAuthenticationFilter.class)
                     .addFilterAt(authenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling()
                     .accessDeniedHandler(new Http403AccessDeniedEntryPoint())
@@ -139,7 +139,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         objectMapper,
                         tokenService,
                         uiProperties,
-                        jwtProperties
+                        jwtProperties,
+                        eventPublisher
                 )
         );
         authenticationFilter.setAuthenticationFailureHandler(new AuthenticationFailureHandlerImpl());

@@ -3,6 +3,8 @@ package ru.saidgadjiev.bibliographya.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -32,14 +34,18 @@ public class AuthenticationSuccessHandlerImpl extends SimpleUrlAuthenticationSuc
 
     private final JwtProperties jwtProperties;
 
+    private ApplicationEventPublisher eventPublisher;
+
     public AuthenticationSuccessHandlerImpl(ObjectMapper objectMapper,
                                             TokenService tokenService,
                                             UIProperties uiProperties,
-                                            JwtProperties jwtProperties) {
+                                            JwtProperties jwtProperties,
+                                            ApplicationEventPublisher eventPublisher) {
         this.objectMapper = objectMapper;
         this.tokenService = tokenService;
         this.uiProperties = uiProperties;
         this.jwtProperties = jwtProperties;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -52,6 +58,8 @@ public class AuthenticationSuccessHandlerImpl extends SimpleUrlAuthenticationSuc
         CookieUtils.addCookie(response, uiProperties.getName(), jwtProperties.cookieName(), token);
 
         String body = objectMapper.writeValueAsString(user);
+
+        eventPublisher.publishEvent(new AuthenticationSuccessEvent(authentication));
 
         ResponseUtils.sendResponseMessage(response, 200, body);
     }
