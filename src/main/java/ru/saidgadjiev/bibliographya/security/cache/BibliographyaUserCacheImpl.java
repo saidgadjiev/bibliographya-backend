@@ -1,13 +1,12 @@
 package ru.saidgadjiev.bibliographya.security.cache;
 
 import org.springframework.cache.Cache;
-import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.cache.SpringCacheBasedUserCache;
 import ru.saidgadjiev.bibliographya.domain.User;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
 
@@ -24,6 +23,18 @@ public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
         Map<String, User> userMap = nativeCache.asMap();
 
         return userMap.values().stream().filter(user -> user.getId() == id).findAny().orElse(null);
+    }
+
+    @Override
+    public void removeUserFromCache(int id) {
+        cache.evict(id);
+    }
+
+    @Override
+    public Collection<User> getUsersFromCache(String email) {
+        com.github.benmanes.caffeine.cache.Cache<Integer, User> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Integer, User>) cache.getNativeCache();
+
+        return nativeCache.asMap().values().stream().filter(user -> user.getEmail().equals(email)).collect(Collectors.toList());
     }
 
     @Override

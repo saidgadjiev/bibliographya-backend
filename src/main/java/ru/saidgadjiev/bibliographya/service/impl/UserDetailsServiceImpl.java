@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +18,8 @@ import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
+import ru.saidgadjiev.bibliographya.security.event.UnverifyEmailsEvent;
+import ru.saidgadjiev.bibliographya.security.event.ChangeEmailEvent;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import javax.mail.MessagingException;
@@ -49,6 +52,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final SessionManager sessionManager;
 
+    private ApplicationEventPublisher eventPublisher;
+
     @Autowired
     public UserDetailsServiceImpl(UserDao userDao,
                                   GeneralDao generalDao,
@@ -57,7 +62,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   PasswordEncoder passwordEncoder,
                                   SessionEmailVerificationService emailVerificationService,
                                   SecurityService securityService,
-                                  SessionManager sessionManager) {
+                                  SessionManager sessionManager,
+                                  ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.generalDao = generalDao;
         this.userRoleDao = userRoleDao;
@@ -66,6 +72,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         this.emailVerificationService = emailVerificationService;
         this.securityService = securityService;
         this.sessionManager = sessionManager;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -118,6 +125,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         user = userDao.save(user);
 
         postSave(user, saveBiography.getFirstName(), saveBiography.getLastName(), saveBiography.getMiddleName());
+
+        eventPublisher.publishEvent(new ChangeEmailEvent(user));
 
         return user;
     }
@@ -335,6 +344,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             sessionManager.removeState(request);
 
+            actual.setEmail(emailConfirmation.getEmail());
+            actual.setEmailVerified(true);
+
+            eventPublisher.publishEvent(new ChangeEmailEvent(actual));
+
             return HttpStatus.OK;
         }
 
@@ -391,5 +405,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         );
 
         userDao.update(valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
+
+        eventPublisher.publishEvent(new UnverifyEmailsEvent(email));
     }
 }
