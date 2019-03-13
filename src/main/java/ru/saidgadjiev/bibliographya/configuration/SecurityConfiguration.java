@@ -19,15 +19,15 @@ import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
+import ru.saidgadjiev.bibliographya.security.context.JwtSecurityContextRepository;
 import ru.saidgadjiev.bibliographya.security.filter.AuthenticationFilter;
-import ru.saidgadjiev.bibliographya.security.filter.JwtFilter;
 import ru.saidgadjiev.bibliographya.security.handler.*;
 import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
@@ -96,12 +96,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .antMatchers("/actuator/**").hasAuthority("ROLE_ADMIN")
                     .anyRequest().permitAll()
                 .and()
-                    .addFilterAt(new JwtFilter(tokenService, jwtProperties, authenticationManager()), BasicAuthenticationFilter.class)
                     .addFilterAt(authenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling()
                     .accessDeniedHandler(new Http403AccessDeniedEntryPoint())
                 .and()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .securityContext().securityContextRepository(securityContextRepository())
                 .and()
                     .logout()
                     .logoutUrl("/api/auth/signOut")
@@ -170,5 +172,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
+    }
+
+    private SecurityContextRepository securityContextRepository() throws Exception {
+        return new JwtSecurityContextRepository(tokenService, jwtProperties, authenticationManager());
     }
 }
