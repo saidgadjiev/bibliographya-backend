@@ -39,7 +39,7 @@ public class UserDao {
         String clause = FilterUtils.toClause(criteria, null);
         StringBuilder sql = new StringBuilder();
 
-        sql.append("UPDATE user SET ");
+        sql.append("UPDATE \"user\" SET ");
 
         for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
             sql.append(iterator.next().getName()).append(" = ?");

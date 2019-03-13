@@ -145,6 +145,6 @@ public class AuthController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(authentication.getDetails());
+        return ResponseEntity.ok(authentication.getPrincipal());
     }
 }

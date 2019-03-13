@@ -46,7 +46,7 @@ public class HttpSessionEmailVerificationService {
             calendar.setTime(new Date());
             calendar.add(Calendar.DATE, 1);
 
-            httpSessionManager.setCode(request, code, calendar.getTimeInMillis());
+            httpSessionManager.setCode(request, email, code, calendar.getTimeInMillis());
 
             emailService.sendEmail(
                     email,

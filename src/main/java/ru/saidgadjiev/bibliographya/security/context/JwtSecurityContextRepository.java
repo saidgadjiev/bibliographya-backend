@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.web.cors.CorsUtils;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
@@ -35,22 +36,25 @@ public class JwtSecurityContextRepository implements SecurityContextRepository {
 
     @Override
     public SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
-        Cookie tokenCookie = CookieUtils.getCookie(requestResponseHolder.getRequest(), jwtProperties.cookieName());
         SecurityContext context = SecurityContextHolder.getContext();
 
         if (context == null) {
             context = SecurityContextHolder.createEmptyContext();
         }
 
-        if (tokenCookie != null) {
-            Map<String, Object> claims = tokenService.validate(tokenCookie.getValue());
+        if (!CorsUtils.isPreFlightRequest(requestResponseHolder.getRequest())) {
+            Cookie tokenCookie = CookieUtils.getCookie(requestResponseHolder.getRequest(), jwtProperties.cookieName());
 
-            try {
-                Authentication authentication = authenticationManager.authenticate(new JwtAuthenticationToken(claims));
+            if (tokenCookie != null) {
+                Map<String, Object> claims = tokenService.validate(tokenCookie.getValue());
 
-                context.setAuthentication(authentication);
-            } catch (BadCredentialsException ex) {
-                context.setAuthentication(null);
+                try {
+                    Authentication authentication = authenticationManager.authenticate(new JwtAuthenticationToken(claims));
+
+                    context.setAuthentication(authentication);
+                } catch (BadCredentialsException ex) {
+                    context.setAuthentication(null);
+                }
             }
         }
 

@@ -25,15 +25,11 @@ public class HttpSessionManager {
     }
 
     public void setRestorePassword(HttpServletRequest request, User user) {
-        setState(request, SessionState.RESTORE_PASSWORD, user, new HashMap<String, Object>() {{
-            put("email", user.getEmail());
-        }});
+        setState(request, SessionState.RESTORE_PASSWORD, user);
     }
 
     public void setChangeEmail(HttpServletRequest request, String email, User user) {
-        setState(request, SessionState.CHANGE_EMAIL, user, new HashMap<String, Object>() {{
-            put("email", email);
-        }});
+        setState(request, SessionState.CHANGE_EMAIL, user);
     }
 
     public void setSignUp(HttpServletRequest request, SignUpRequest signUpRequest) {
@@ -72,7 +68,7 @@ public class HttpSessionManager {
         return sessionState == null ? SessionState.NONE : sessionState;
     }
 
-    public void setCode(HttpServletRequest request, int code, long expiredAt) {
+    public void setCode(HttpServletRequest request, String email, int code, long expiredAt) {
         HttpSession session = request.getSession(false);
 
         if (session == null) {
@@ -81,6 +77,7 @@ public class HttpSessionManager {
 
         session.setAttribute("code", code);
         session.setAttribute("expiredAt", expiredAt);
+        session.setAttribute("email", email);
     }
 
     public Integer getCode(HttpServletRequest request) {
@@ -186,17 +183,13 @@ public class HttpSessionManager {
         return null;
     }
 
-    private void setState(HttpServletRequest request, SessionState state, User user, Map<String, Object> args) {
+    private void setState(HttpServletRequest request, SessionState state, User user) {
         HttpSession session = request.getSession(true);
 
         session.setAttribute("state", state);
 
         if (user != null) {
             session.setAttribute("firstName", user.getBiography().getFirstName());
-        }
-
-        if (args != null) {
-            args.forEach(session::setAttribute);
         }
     }
 }
