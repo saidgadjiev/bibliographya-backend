@@ -77,9 +77,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Collection<FilterCriteria> userAccountCriteria = new ArrayList<>();
+        Collection<FilterCriteria> userCriteria = new ArrayList<>();
 
-        userAccountCriteria.add(
+        userCriteria.add(
                 new FilterCriteria.Builder<String>()
                         .propertyName(User.EMAIL)
                         .valueSetter(PreparedStatement::setString)
@@ -88,7 +88,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .build()
 
         );
-        userAccountCriteria.add(
+        userCriteria.add(
                 new FilterCriteria.Builder<Boolean>()
                         .propertyName(User.EMAIL_VERIFIED)
                         .valueSetter(PreparedStatement::setBoolean)
@@ -98,7 +98,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         );
 
-        User user = userDao.get(Collections.emptyList(), userAccountCriteria);
+        User user = userDao.get(userCriteria);
 
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
@@ -133,9 +133,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public User loadUserById(int id) {
-        Collection<FilterCriteria> userAccountCriteria = new ArrayList<>();
+        Collection<FilterCriteria> userCriteria = new ArrayList<>();
 
-        userAccountCriteria.add(
+        userCriteria.add(
                 new FilterCriteria.Builder<Integer>()
                         .propertyName(User.ID)
                         .valueSetter(PreparedStatement::setInt)
@@ -144,7 +144,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .build()
         );
 
-        User user = userDao.get(Collections.emptyList(), userAccountCriteria);
+        User user = userDao.get(userCriteria);
 
         if (user != null) {
             user.setRoles(userRoleDao.getRoles(user.getId()));
@@ -210,9 +210,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
-        Collection<FilterCriteria> userAccountCriteria = new ArrayList<>();
+        Collection<FilterCriteria> userCriteria = new ArrayList<>();
 
-        userAccountCriteria.add(
+        userCriteria.add(
                 new FilterCriteria.Builder<String>()
                         .propertyName(User.EMAIL)
                         .valueSetter(PreparedStatement::setString)
@@ -221,7 +221,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .build()
 
         );
-        userAccountCriteria.add(
+        userCriteria.add(
                 new FilterCriteria.Builder<Boolean>()
                         .propertyName(User.EMAIL_VERIFIED)
                         .valueSetter(PreparedStatement::setBoolean)
@@ -231,7 +231,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         );
 
-        User actual = userDao.get(Collections.emptyList(), userAccountCriteria);
+        User actual = userDao.get(userCriteria);
 
         if (actual == null) {
             return HttpStatus.NOT_FOUND;

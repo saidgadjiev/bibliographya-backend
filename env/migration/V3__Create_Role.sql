@@ -1,7 +1,22 @@
+CREATE TABLE IF NOT EXISTS role (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO role("name") VALUES('ROLE_ADMIN');
+
+INSERT INTO role("name") VALUES('ROLE_MODERATOR');
+
+INSERT INTO role("name") VALUES('ROLE_USER');
+
+INSERT INTO role("name") VALUES('ROLE_SOCIAL_USER');
+
+INSERT INTO role("name") VALUES('ROLE_DEVELOPER');
+
 CREATE TABLE IF NOT EXISTS user_role (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES "user"(id),
-  role_name VARCHAR (255) NOT NULL REFERENCES role(email),
+  role_name VARCHAR (255) NOT NULL REFERENCES role(name),
   UNIQUE (user_id, role_name)
 );
 

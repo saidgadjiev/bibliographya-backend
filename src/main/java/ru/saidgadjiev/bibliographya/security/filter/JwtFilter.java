@@ -5,6 +5,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
@@ -37,7 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (!HttpMethod.OPTIONS.matches(request.getMethod())) {
+        if (!CorsUtils.isPreFlightRequest(request)) {
             Cookie tokenCookie = CookieUtils.getCookie(request, jwtProperties.cookieName());
 
             if (tokenCookie != null) {

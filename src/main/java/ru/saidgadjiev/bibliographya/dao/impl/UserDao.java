@@ -97,9 +97,8 @@ public class UserDao {
         return user;
     }
 
-    public User get(Collection<FilterCriteria> userCriteria, Collection<FilterCriteria> userAccountCriteria) {
+    public User get(Collection<FilterCriteria> userCriteria) {
         String userClause = FilterUtils.toClause(userCriteria, "u");
-        String userAccountClause = FilterUtils.toClause(userAccountCriteria, "ua");
 
         StringBuilder sql = new StringBuilder();
 
@@ -110,9 +109,6 @@ public class UserDao {
         if (StringUtils.isNotBlank(userClause)) {
             sql.append("AND ").append(userClause).append(" ");
         }
-        if (StringUtils.isNotBlank(userAccountClause)) {
-            sql.append("AND ").append(userAccountClause).append(" ");
-        }
 
         return jdbcTemplate.query(
                 sql.toString(),
@@ -120,12 +116,6 @@ public class UserDao {
                     int i = 0;
 
                     for (FilterCriteria criterion : userCriteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
-                    }
-
-                    for (FilterCriteria criterion : userAccountCriteria) {
                         if (criterion.isNeedPreparedSet()) {
                             criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                         }
@@ -233,7 +223,6 @@ public class UserDao {
 
     private String selectList() {
         return "  u.id AS u_id,\n" +
-                "  u.provider_id AS u_provider_id,\n" +
                 "  u.email_verified as u_verified,\n" +
                 "  u.email AS u_email,\n" +
                 "  u.password AS u_password,\n" +
