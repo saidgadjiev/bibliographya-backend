@@ -25,7 +25,6 @@ import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.util.Locale;
 
@@ -177,12 +176,6 @@ public class AuthService {
     }
 
     public void cancelSignUp(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            session.invalidate();
-        }
-
         httpSessionManager.removeState(request);
     }
 
