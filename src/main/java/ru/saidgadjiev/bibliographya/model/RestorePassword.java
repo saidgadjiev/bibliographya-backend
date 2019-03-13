@@ -10,7 +10,7 @@ public class RestorePassword {
     private String email;
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 6)
     private String password;
 
     @NotNull

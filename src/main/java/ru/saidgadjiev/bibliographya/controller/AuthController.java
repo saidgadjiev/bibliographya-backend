@@ -51,7 +51,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp/confirm-finish")
-    public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
+    public ResponseEntity<?> confirmSignUpFinish(HttpServletRequest request,
                                            HttpServletResponse response,
                                            @Valid @RequestBody SignUpConfirmation signUpConfirmation,
                                            BindingResult bindingResult) throws SQLException {

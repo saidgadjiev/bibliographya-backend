@@ -10,7 +10,7 @@ public class SavePassword {
     private String oldPassword;
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 6)
     private String newPassword;
 
 
