@@ -33,7 +33,7 @@ public class BiographyCommentDao {
                 connection -> {
                     PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
                             "(content, biography_id, user_id, parent_id) " +
-                            "VALUES(?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS);
+                            "VALUES(?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setString(1, biographyComment.getContent());
                     ps.setInt(2, biographyComment.getBiographyId());

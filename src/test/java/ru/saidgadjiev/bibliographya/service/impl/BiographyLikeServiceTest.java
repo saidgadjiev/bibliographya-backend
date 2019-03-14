@@ -20,8 +20,7 @@ import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -113,6 +112,6 @@ class BiographyLikeServiceTest {
     }
 
     private void authenticate() {
-        Mockito.when(securityService.findLoggedInUser()).thenReturn(TestModelsUtils.TEST_USERS.get(TestModelsUtils.TEST_FACEBOOK_USER_ID));
+        Mockito.when(securityService.findLoggedInUser()).thenReturn(TestModelsUtils.TEST_USERS.get(-1));
     }
 }

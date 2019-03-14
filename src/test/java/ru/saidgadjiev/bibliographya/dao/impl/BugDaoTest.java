@@ -13,7 +13,6 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
 import java.sql.PreparedStatement;
@@ -175,77 +174,6 @@ class BugDaoTest {
         Assertions.assertEquals(1, (int) bug.getFixer().getUserId());
         Assertions.assertEquals("Тест", bug.getFixer().getFirstName());
         Assertions.assertEquals("Тест", bug.getFixer().getLastName());
-    }
-
-    @Test
-    void getListWithFields() {
-        createUser(ProviderType.FACEBOOK);
-        createUserBiography();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
-        );
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
-        );
-
-        List<Bug> bugsWithFixerList = bugDao.getList(null, 10, 0L, null, Collections.emptyList(), Collections.singleton("fixer"));
-
-        Assertions.assertEquals(2, bugsWithFixerList.size());
-        Bug expected1 = new Bug();
-
-        expected1.setId(1);
-        expected1.setTheme("Тест");
-        expected1.setBugCase("Тест");
-        expected1.setFixerId(1);
-        expected1.setStatus(Bug.BugStatus.PENDING);
-        Biography fixer = new Biography();
-
-        fixer.setId(1);
-        fixer.setFirstName("Тест");
-        fixer.setLastName("Тест");
-
-        expected1.setFixer(fixer);
-
-        assertEquals(expected1, bugsWithFixerList.get(0), Collections.singleton("fixer"));
-
-        expected1.setId(2);
-        expected1.setTheme("Тест2");
-        expected1.setBugCase("Тест2");
-
-        assertEquals(expected1, bugsWithFixerList.get(1), Collections.singleton("fixer"));
-    }
-
-    @Test
-    void getListWithoutFields() {
-        createUser(ProviderType.FACEBOOK);
-        createUserBiography();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
-        );
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
-        );
-
-        List<Bug> bugsList = bugDao.getList(null, 10, 0L, null, Collections.emptyList(), Collections.emptySet());
-        Assertions.assertEquals(2, bugsList.size());
-
-        Bug expected1 = new Bug();
-
-        expected1.setId(1);
-        expected1.setTheme("Тест");
-        expected1.setBugCase("Тест");
-        expected1.setStatus(Bug.BugStatus.PENDING);
-        expected1.setFixerId(1);
-
-        assertEquals(expected1, bugsList.get(0), Collections.emptySet());
-
-        expected1.setId(2);
-        expected1.setTheme("Тест2");
-        expected1.setBugCase("Тест2");
-
-        assertEquals(expected1, bugsList.get(1), Collections.emptySet());
     }
 
     @Test

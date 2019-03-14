@@ -173,7 +173,7 @@ public class UserDao {
         StringBuilder sql = new StringBuilder();
 
         sql.append("SELECT ").append(selectList()).append(" FROM \"user\" u ");
-        sql.append("INNER JOIN biography ba ON u.id = ba.user_id ");
+        sql.append("INNER JOIN biography b ON u.id = b.user_id ");
 
         String clause = FilterUtils.toClause(roleCriteria, null);
 

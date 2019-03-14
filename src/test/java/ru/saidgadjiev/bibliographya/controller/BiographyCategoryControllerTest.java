@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -16,7 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -25,7 +28,6 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
-import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 import javax.servlet.http.Cookie;
 import java.util.ArrayList;
@@ -50,10 +52,15 @@ class BiographyCategoryControllerTest {
     private BiographyCategoryService biographyCategoryService;
 
     @MockBean
-    private AuthService authService;
+    private SecurityContextRepository contextRepository;
 
     @Autowired
     private MockMvc mockMvc;
+
+    @BeforeEach
+    public void before() {
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(SecurityContextHolder.createEmptyContext());
+    }
 
     @Test
     void getCategories() throws Exception {
@@ -126,12 +133,8 @@ class BiographyCategoryControllerTest {
 
         request.setName("Test");
         request.setImagePath("Test.jpg");
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         mockMvc.perform(
                 post("/api/categories")
@@ -166,12 +169,8 @@ class BiographyCategoryControllerTest {
                 return 1;
             }
         }).when(biographyCategoryService).deleteById(eq(1));
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         mockMvc.perform(
                 MockMvcRequestBuilders.delete("/api/categories/1")
@@ -209,12 +208,7 @@ class BiographyCategoryControllerTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
-
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         mockMvc.perform(
                 put("/api/categories/1")
@@ -240,7 +234,7 @@ class BiographyCategoryControllerTest {
         return category;
     }
 
-    private void authenticate() {
+    private SecurityContext loadTestContext() {
         User user = new User();
 
         user.setId(1);
@@ -250,7 +244,11 @@ class BiographyCategoryControllerTest {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toSet()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+
+        context.setAuthentication(authentication);
+
+        return context;
     }
 
     private void logout() {

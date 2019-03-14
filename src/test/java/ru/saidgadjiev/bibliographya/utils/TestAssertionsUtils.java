@@ -33,23 +33,10 @@ public class TestAssertionsUtils {
     }
 
     public static void assertUserEquals(User expected, User actual) {
-        /*Assertions.assertEquals(expected.getId(), actual.getId());
-        Assertions.assertEquals(expected.getProviderType(), actual.getProviderType());
+        Assertions.assertEquals(expected.getId(), actual.getId());
 
-        if (expected.getUserAccount() != null) {
-            Assertions.assertNotNull(actual.getUserAccount());
-
-            Assertions.assertEquals(expected.getUserAccount().getId(), actual.getUserAccount().getId());
-            Assertions.assertEquals(expected.getUserAccount().getEmail(), actual.getUserAccount().getEmail());
-        }
-
-        if (expected.getSocialAccount() != null) {
-            Assertions.assertNotNull(actual.getSocialAccount());
-
-            Assertions.assertEquals(expected.getSocialAccount().getId(), actual.getSocialAccount().getId());
-            Assertions.assertEquals(expected.getSocialAccount().getAccountId(), actual.getSocialAccount().getAccountId());
-            Assertions.assertEquals(expected.getSocialAccount().getUserId(), actual.getSocialAccount().getUserId());
-        }
+        Assertions.assertEquals(expected.getEmail(), actual.getEmail());
+        Assertions.assertEquals(expected.isEmailVerified(), actual.isEmailVerified());
 
         Assertions.assertEquals(expected.getRoles(), actual.getRoles());
         Assertions.assertEquals(expected.getBiography().getId(), actual.getBiography().getId());
@@ -57,7 +44,7 @@ public class TestAssertionsUtils {
         Assertions.assertEquals(expected.getBiography().getLastName(), actual.getBiography().getLastName());
         Assertions.assertEquals(expected.getBiography().getMiddleName(), actual.getBiography().getMiddleName());
         Assertions.assertEquals(expected.getBiography().getUserId(), actual.getBiography().getUserId());
-        Assertions.assertEquals(expected.getBiography().getCreatorId(), actual.getBiography().getCreatorId());*/
+        Assertions.assertEquals(expected.getBiography().getCreatorId(), actual.getBiography().getCreatorId());
     }
 
     public static void assertCookieEquals(Cookie expected, Cookie actual) {

@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.security.context;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -7,6 +8,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsUtils;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
@@ -18,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
+@Component
 public class JwtSecurityContextRepository implements SecurityContextRepository {
 
     private TokenService tokenService;
@@ -27,10 +30,13 @@ public class JwtSecurityContextRepository implements SecurityContextRepository {
     private AuthenticationManager authenticationManager;
 
     public JwtSecurityContextRepository(TokenService tokenService,
-                                        JwtProperties jwtProperties,
-                                        AuthenticationManager authenticationManager) {
+                                        JwtProperties jwtProperties) {
         this.tokenService = tokenService;
         this.jwtProperties = jwtProperties;
+    }
+
+    @Autowired
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 

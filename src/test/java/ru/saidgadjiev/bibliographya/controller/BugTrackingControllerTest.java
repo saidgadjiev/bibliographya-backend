@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -15,7 +16,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
@@ -28,7 +31,6 @@ import ru.saidgadjiev.bibliographya.model.BugRequest;
 import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BugService;
-import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 import javax.servlet.http.Cookie;
 import java.sql.Timestamp;
@@ -52,10 +54,15 @@ class BugTrackingControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private BugService bugService;
+    private SecurityContextRepository contextRepository;
 
     @MockBean
-    private AuthService authService;
+    private BugService bugService;
+
+    @BeforeEach
+    public void before() {
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(SecurityContextHolder.createEmptyContext());
+    }
 
     @Test
     void create() throws Exception {
@@ -71,12 +78,8 @@ class BugTrackingControllerTest {
         bug.setBugCase("Тест");
         bug.setCreatedAt(new Timestamp(new Date().getTime()));
         bug.setStatus(Bug.BugStatus.PENDING);
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         Mockito.when(bugService.create(any(), any())).thenReturn(bug);
         Mockito.when(bugService.getActions(any())).thenReturn(Collections.emptyList());
@@ -118,12 +121,8 @@ class BugTrackingControllerTest {
 
         bugs.add(bug);
         bugs.add(bug1);
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
                 .setLimit(10)
@@ -196,12 +195,8 @@ class BugTrackingControllerTest {
 
         bugs.add(bug);
         bugs.add(bug1);
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
                 .setLimit(10)
@@ -281,12 +276,8 @@ class BugTrackingControllerTest {
 
         bugs.add(bug);
         bugs.add(bug1);
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         OffsetLimitPageRequest pageRequest = new OffsetLimitPageRequest.Builder()
                 .setLimit(10)
@@ -370,12 +361,8 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getFixerInfo(eq(1))).thenReturn(fixerInfo);
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
@@ -436,12 +423,8 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getFixerInfo(eq(1))).thenReturn(fixerInfo);
-/*
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
 
-            return null;
-        }).when(authService).tokenAuth("TestToken");*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
 
@@ -479,14 +462,8 @@ class BugTrackingControllerTest {
 
         Mockito.when(bugService.complete(any(), eq(1), eq(completeRequest))).thenReturn(completeResult);
         Mockito.when(bugService.getActions(any())).thenReturn(Arrays.asList(BugAction.ignore(), BugAction.close(), BugAction.release()));
-/*
 
-        Mockito.doAnswer(invocationOnMock -> {
-            authenticate();
-
-            return null;
-        }).when(authService).tokenAuth("TestToken");
-*/
+        Mockito.when(contextRepository.loadContext(any())).thenReturn(loadTestContext());
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -511,7 +488,7 @@ class BugTrackingControllerTest {
                 .andExpect(jsonPath("$.actions[2].signal", is("release")));
     }
 
-    private void authenticate() {
+    private SecurityContext loadTestContext() {
         User user = new User();
 
         user.setId(1);
@@ -521,7 +498,11 @@ class BugTrackingControllerTest {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toSet()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+
+        context.setAuthentication(authentication);
+
+        return context;
     }
 
     private void logout() {

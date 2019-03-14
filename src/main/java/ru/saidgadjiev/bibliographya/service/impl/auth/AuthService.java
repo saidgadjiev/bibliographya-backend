@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
@@ -48,8 +47,6 @@ public class AuthService {
 
     private JwtProperties jwtProperties;
 
-    private ApplicationEventPublisher eventPublisher;
-
     @Autowired
     public AuthService(SocialServiceFactory socialServiceFactory,
                        BibliographyaUserDetailsService userAccountDetailsService,
@@ -58,8 +55,7 @@ public class AuthService {
                        HttpSessionEmailVerificationService emailVerificationService,
                        UIProperties uiProperties,
                        HttpSessionManager httpSessionManager,
-                       JwtProperties jwtProperties,
-                       ApplicationEventPublisher eventPublisher) {
+                       JwtProperties jwtProperties) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
@@ -68,7 +64,6 @@ public class AuthService {
         this.uiProperties = uiProperties;
         this.httpSessionManager = httpSessionManager;
         this.jwtProperties = jwtProperties;
-        this.eventPublisher = eventPublisher;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri) {

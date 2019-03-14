@@ -12,8 +12,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 
-import java.util.List;
-
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class BiographyCommentDaoImplTest {
@@ -95,27 +93,9 @@ class BiographyCommentDaoImplTest {
     }
 
     @Test
-    void getComments() {
-        jdbcTemplate.update(
-                "INSERT INTO biography_comment(content, biography_id, user_id) VALUES ('Test', 1, 1)"
-        );
-
-        List<BiographyComment> comments = biographyCommentDao.getComments(null, 1, null, 10, 0);
-
-        BiographyComment expected = new BiographyComment();
-
-        expected.setContent("Test");
-        expected.setBiographyId(1);
-        expected.setUserId(1);
-
-        Assertions.assertFalse(comments.isEmpty());
-        TestAssertionsUtils.assertCommentsEquals(expected, comments.get(0));
-    }
-
-    @Test
     void countOffByBiographyId() {
         jdbcTemplate.update(
-                "INSERT INTO biography_comment(content, biography_id, user_id) VALUES ('Test', 1, 1)"
+                "INSERT INTO biography_comment(content, biography_id, user_id) VALUES ('Test', 2, 1)"
         );
 
         Assertions.assertEquals(1, biographyCommentDao.countOffByBiographyId(1));
@@ -145,7 +125,7 @@ class BiographyCommentDaoImplTest {
 
     private void createTestUser() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(provider_id) VALUES ('facebook')"
+                "INSERT INTO \"user\"(password, email) VALUES ('test', 'test@mail.ru')"
         );
     }
 

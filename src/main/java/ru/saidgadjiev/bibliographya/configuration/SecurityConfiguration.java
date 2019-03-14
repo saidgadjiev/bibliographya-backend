@@ -26,7 +26,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
-import ru.saidgadjiev.bibliographya.security.context.JwtSecurityContextRepository;
 import ru.saidgadjiev.bibliographya.security.filter.AuthenticationFilter;
 import ru.saidgadjiev.bibliographya.security.handler.*;
 import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
@@ -61,6 +60,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private TokenService tokenService;
 
+    private SecurityContextRepository securityContextRepository;
+
     @Autowired
     public SecurityConfiguration(UserDetailsService userDetailsService,
                                  PasswordEncoder passwordEncoder,
@@ -78,6 +79,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.userCache = userCache;
         this.uiProperties = uiProperties;
         this.jwtProperties = jwtProperties;
+    }
+
+    @Autowired
+    public void setSecurityContextRepository(SecurityContextRepository securityContextRepository) {
+        this.securityContextRepository = securityContextRepository;
     }
 
     @Override
@@ -103,7 +109,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .securityContext().securityContextRepository(securityContextRepository())
+                .securityContext().securityContextRepository(securityContextRepository)
                 .and()
                     .logout()
                     .logoutUrl("/api/auth/signOut")
@@ -172,9 +178,5 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
-    }
-
-    private SecurityContextRepository securityContextRepository() throws Exception {
-        return new JwtSecurityContextRepository(tokenService, jwtProperties, authenticationManager());
     }
 }
