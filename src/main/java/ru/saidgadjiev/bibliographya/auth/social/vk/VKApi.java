@@ -10,6 +10,4 @@ import org.springframework.util.MultiValueMap;
 public interface VKApi {
 
     ResponseEntity<ObjectNode> get(String method, MultiValueMap<String, String> parameters);
-
-
 }

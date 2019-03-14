@@ -3,7 +3,6 @@ package ru.saidgadjiev.bibliographya.service.impl.auth.social;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.auth.social.vk.OAuthVKTemplate;
@@ -46,7 +45,7 @@ public class VKService implements SocialService {
         VK vk = new VK(accessToken);
         UserProfileOperations userProfileOperations = vk.getUserProfileOperations();
 
-        ObjectNode objectNode = userProfileOperations.getCurrentUserFields("id", "first_name", "last_name").getBody();
+        ObjectNode objectNode = userProfileOperations.getFields(userId, "id", "first_name", "last_name").getBody();
         JsonNode response = objectNode.get("response");
         JsonNode userInfoNode = response.iterator().next();
         SocialUserInfo userInfo = new SocialUserInfo();
