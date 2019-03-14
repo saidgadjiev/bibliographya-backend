@@ -55,7 +55,7 @@ public class BiographyCommentDao {
         if (keys != null && keys.containsKey("id")) {
             biographyComment.setId(((Number) keys.get("id")).intValue());
         }
-
+        biographyComment.setCreatedAt((Timestamp) keys.get("created_at"));
     }
 
     public int delete(int commentId) {

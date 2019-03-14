@@ -17,7 +17,6 @@ public class TableUtils {
                         "  email VARCHAR(512) NOT NULL,\n" +
                         "  email_verified BOOLEAN DEFAULT FALSE,\n" +
                         "  deleted BOOLEAN NOT NULL DEFAULT FALSE,\n" +
-                        "  UNIQUE (email, email_verified)\n" +
                         ")");
     }
 
@@ -70,9 +69,50 @@ public class TableUtils {
                 ")");
     }
 
+    public static void deleteTableUserRole(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "DROP TABLE IF EXISTS user_role"
+        );
+    }
+
     public static void deleteTableRole(JdbcTemplate jdbcTemplate) {
         jdbcTemplate.execute(
                 "DROP TABLE IF EXISTS role"
+        );
+    }
+
+    public static void createTableBiographyCategory(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS biography_category (\n" +
+                        "  id SERIAL PRIMARY KEY,\n" +
+                        "  name VARCHAR(128) NOT NULL UNIQUE,\n" +
+                        "  image_path VARCHAR(128) NOT NULL\n" +
+                        ")"
+        );
+    }
+
+    public static void deleteTableBiographyCategory(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "DROP TABLE IF EXISTS biography_category"
+        );
+    }
+
+    public static void createTableBiographyComment(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS biography_comment (\n" +
+                        "  id SERIAL PRIMARY KEY,\n" +
+                        "  content TEXT NOT NULL,\n" +
+                        "  created_at TIMESTAMP NOT NULL DEFAULT NOW(),\n" +
+                        "  biography_id INTEGER NOT NULL REFERENCES biography(id) ON DELETE CASCADE,\n" +
+                        "  user_id INTEGER NOT NULL REFERENCES \"user\"(id),\n" +
+                        "  parent_id INTEGER REFERENCES biography_comment(id)\n" +
+                        ")"
+        );
+    }
+
+    public static void deleteTableBiographyComment(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "DROP TABLE IF EXISTS biography_comment"
         );
     }
 }

@@ -47,8 +47,8 @@ class UserDaoTest {
     @AfterEach
     void after() {
         TableUtils.deleteTableBiography(jdbcTemplate);
-        TableUtils.createUserRoleTable(jdbcTemplate);
-        TableUtils.createRoleTable(jdbcTemplate);
+        TableUtils.deleteTableRole(jdbcTemplate);
+        TableUtils.deleteTableUserRole(jdbcTemplate);
         TableUtils.deleteTableUser(jdbcTemplate);
     }
 

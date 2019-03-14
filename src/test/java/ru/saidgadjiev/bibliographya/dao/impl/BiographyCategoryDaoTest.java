@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+import ru.saidgadjiev.bibliographya.utils.TableUtils;
 
 import java.util.List;
 
@@ -25,12 +26,12 @@ class BiographyCategoryDaoTest {
 
     @BeforeEach
     void init() {
-        createTables();
+        TableUtils.createTableBiographyCategory(jdbcTemplate);
     }
 
     @AfterEach
     void after() {
-        deleteTables();
+        TableUtils.deleteTableBiographyCategory(jdbcTemplate);
     }
 
     @Test
@@ -171,21 +172,5 @@ class BiographyCategoryDaoTest {
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(actual.getName(), "test1");
         Assertions.assertEquals(actual.getImagePath(), "test1.jpg");
-    }
-
-    private void createTables() {
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS biography_category (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  name VARCHAR(128) NOT NULL UNIQUE,\n" +
-                        "  image_path VARCHAR(128) NOT NULL\n" +
-                        ")"
-        );
-    }
-
-    private void deleteTables() {
-        jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS biography_category"
-        );
     }
 }
