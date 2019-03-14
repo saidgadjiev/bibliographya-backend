@@ -46,19 +46,14 @@ public class VKService implements SocialService {
         VK vk = new VK(accessToken);
         UserProfileOperations userProfileOperations = vk.getUserProfileOperations();
 
-        ObjectNode objectNode = userProfileOperations.getFields(
-                userId, "id", "first_name", "last_name"
-        ).getBody();
-
+        ObjectNode objectNode = userProfileOperations.getCurrentUserFields("id", "first_name", "last_name").getBody();
         JsonNode response = objectNode.get("response");
-
         JsonNode userInfoNode = response.iterator().next();
         SocialUserInfo userInfo = new SocialUserInfo();
 
         userInfo.setId(userInfoNode.get("id").asText());
         userInfo.setFirstName(userInfoNode.get("first_name").asText());
         userInfo.setLastName(userInfoNode.get("last_name").asText());
-        userInfo.setProviderId(ProviderType.VK.getId());
 
         return userInfo;
     }

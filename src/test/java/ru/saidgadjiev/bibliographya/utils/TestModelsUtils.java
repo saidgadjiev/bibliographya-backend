@@ -3,10 +3,15 @@ package ru.saidgadjiev.bibliographya.utils;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
-import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.domain.Biography;
+import ru.saidgadjiev.bibliographya.domain.Role;
+import ru.saidgadjiev.bibliographya.domain.User;
 
 import javax.servlet.http.Cookie;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class TestModelsUtils {
 
@@ -94,11 +99,10 @@ public class TestModelsUtils {
         );
     }
 
-    public static SocialUserInfo socialUserInfo(ProviderType providerType) {
+    public static SocialUserInfo socialUserInfo() {
         SocialUserInfo userInfo = new SocialUserInfo();
 
         userInfo.setId(TEST_SOCIAL_USER_ID);
-        userInfo.setProviderId(providerType.getId());
         userInfo.setFirstName(TEST_FIRST_NAME);
         userInfo.setLastName(TEST_LAST_NAME);
         userInfo.setMiddleName(TEST_MIDDLE_NAME);

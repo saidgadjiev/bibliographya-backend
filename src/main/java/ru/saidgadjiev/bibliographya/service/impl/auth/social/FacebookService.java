@@ -3,12 +3,10 @@ package ru.saidgadjiev.bibliographya.service.impl.auth.social;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.Facebook;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.OAuthFacebookTemplate;
-import ru.saidgadjiev.bibliographya.auth.social.facebook.PermissionOperations;
 import ru.saidgadjiev.bibliographya.auth.social.facebook.UserProfileOperations;
 import ru.saidgadjiev.bibliographya.properties.FacebookProperties;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
@@ -58,19 +56,11 @@ public class FacebookService implements SocialService {
         userInfo.setId(objectNode.get("id").asText());
         userInfo.setFirstName(objectNode.get("first_name").asText());
         userInfo.setLastName(objectNode.get("last_name").asText());
-        userInfo.setProviderId(ProviderType.FACEBOOK.getId());
 
         if (objectNode.has("middle_name")) {
             userInfo.setMiddleName(objectNode.get("middle_name").asText());
         }
 
         return userInfo;
-    }
-
-    public void logout(String userId, String accessToken) {
-        Facebook facebook = new Facebook(accessToken);
-        PermissionOperations permissionOperations = facebook.getPermissionOperations();
-
-        permissionOperations.deletePermissions(userId);
     }
 }

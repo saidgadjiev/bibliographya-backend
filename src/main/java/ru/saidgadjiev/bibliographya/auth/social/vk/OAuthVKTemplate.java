@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.auth.social.vk;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.OAuthTemplate;
 
 /**
@@ -21,16 +20,14 @@ public class OAuthVKTemplate extends OAuthTemplate {
         super(clientId, clientSecret, OAUTH_URL, ACCESS_TOKEN_URL);
     }
 
-    public AccessGrant exchangeForAccess(String code,
-                                         String redirectUri,
-                                         MultiValueMap<String, String> parameters) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-
-        if (parameters != null) {
-            params.addAll(parameters);
+    @Override
+    public String buildOAuthUrl(String redirectUri, MultiValueMap<String, String> parameters) {
+        if (parameters == null) {
+            parameters = new LinkedMultiValueMap<>();
         }
-        params.set("v", API_VERSION);
 
-        return super.exchangeForAccess(code, redirectUri, params);
+        parameters.set("v", API_VERSION);
+
+        return super.buildOAuthUrl(redirectUri, parameters);
     }
 }

@@ -89,10 +89,6 @@ public class OAuthTemplate {
         ResponseEntity<ObjectNode> exchangeResponse = getRestTemplate().getForEntity(url, ObjectNode.class);
         ObjectNode body = exchangeResponse.getBody();
 
-        if (body == null) {
-            return null;
-        }
-
         return new AccessGrant(
                 body.get("access_token").asText(),
                 body.get("expires_in").asLong(),
