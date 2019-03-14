@@ -12,11 +12,12 @@ public class TableUtils {
         jdbcTemplate.execute(
                 "CREATE TABLE IF NOT EXISTS \"user\" (\n" +
                         "  id SERIAL PRIMARY KEY,\n" +
-                        "  created_at TIMESTAMP DEFAULT NOW(),\n" +
-                        "  email VARCHAR(128) UNIQUE NOT NULL,\n" +
-                        "  email_verified BOOLEAN DEFAULT FALSE,\n" +
+                        "  created_at TIMESTAMP(3) DEFAULT NOW(),\n" +
                         "  password VARCHAR(1024) NOT NULL,\n" +
-                        "  deleted BOOLEAN NOT NULL DEFAULT FALSE\n" +
+                        "  email VARCHAR(512) NOT NULL,\n" +
+                        "  email_verified BOOLEAN DEFAULT FALSE,\n" +
+                        "  deleted BOOLEAN NOT NULL DEFAULT FALSE,\n" +
+                        "  UNIQUE (email, email_verified)\n" +
                         ")");
     }
 

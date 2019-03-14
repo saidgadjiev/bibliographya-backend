@@ -11,9 +11,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.UsersStats;
 import ru.saidgadjiev.bibliographya.utils.TableUtils;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
@@ -48,6 +50,70 @@ class UserDaoTest {
         TableUtils.createUserRoleTable(jdbcTemplate);
         TableUtils.createRoleTable(jdbcTemplate);
         TableUtils.deleteTableUser(jdbcTemplate);
+    }
+
+    @Test
+    void update() {
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
+        );
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
+        );
+
+        List<UpdateValue> updateValues = new ArrayList<>();
+
+        updateValues.add(
+                new UpdateValue<>(
+                        User.EMAIL,
+                        TestModelsUtils.TEST_EMAIL,
+                        PreparedStatement::setString
+                )
+        );
+
+        Collection<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName(User.ID)
+                        .filterValue(TestModelsUtils.TEST_USER_ID)
+                        .filterOperation(FilterOperation.EQ)
+                        .needPreparedSet(true)
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
+        );
+
+        int updated = userDao.update(updateValues, criteria);
+
+        Assertions.assertEquals(1, updated);
+
+        User actual = jdbcTemplate.query(
+                "SELECT u.* FROM \"user\" u WHERE u.id = " + TestModelsUtils.TEST_USER_ID,
+                resultSet -> {
+                    if (resultSet.next()) {
+                        User user = new User();
+
+                        user.setId(resultSet.getInt("id"));
+                        user.setEmail(resultSet.getString("email"));
+                        user.setEmailVerified(resultSet.getBoolean("email_verified"));
+                        user.setPassword(resultSet.getString("password"));
+
+                        return user;
+                    }
+
+                    return null;
+                }
+        );
+
+        Assertions.assertEquals(TestModelsUtils.TEST_EMAIL, actual.getEmail());
     }
 
     @Test
@@ -260,14 +326,24 @@ class UserDaoTest {
 
     @Test
     void getStats() {
-        /*createUser(ProviderType.FACEBOOK);
-        createUser(ProviderType.VK);
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL);
+                    preparedStatement.setString(2, "Test");
+                }
+        );
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL + "2");
+                    preparedStatement.setString(2, "Test2");
+                }
+        );
 
         UsersStats usersStats = userDao.getStats();
 
         Assertions.assertEquals(usersStats.getCount(), 2);
-        Assertions.assertEquals((int) usersStats.getUsersByProvider().get(ProviderType.FACEBOOK), 1);
-        Assertions.assertEquals((int) usersStats.getUsersByProvider().get(ProviderType.VK), 1);*/
     }
 
     @Test
@@ -285,21 +361,16 @@ class UserDaoTest {
     }
 
     @Test
-    void isExistUsername() {
-        /*UserAccount userAccount = new UserAccount();
-
-        userAccount.setEmail("test");
-        userAccount.setPassword("test");
-
-        User user = new User();
-
-        user.setProviderType(ProviderType.EMAIL_PASSWORD);
-        user.setUserAccount(userAccount);
+    void isExistEmail() {
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL);
+                    preparedStatement.setString(2, "Test");
+                }
+        );
 
         Assertions.assertFalse(userDao.isExistEmail("test"));
-
-        userDao.save(user);
-
-        Assertions.assertTrue(userDao.isExistEmail("test"));*/
+        Assertions.assertTrue(userDao.isExistEmail(TestModelsUtils.TEST_EMAIL));
     }
 }

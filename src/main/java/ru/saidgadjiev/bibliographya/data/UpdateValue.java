@@ -11,9 +11,6 @@ public class UpdateValue<T> {
 
     private PreparedSetter<T> setter;
 
-    public UpdateValue() {
-    }
-
     public UpdateValue(String name, T value, PreparedSetter<T> setter) {
         this.name = name;
         this.value = value;
