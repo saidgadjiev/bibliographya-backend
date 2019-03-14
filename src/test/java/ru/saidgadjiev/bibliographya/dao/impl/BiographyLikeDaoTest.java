@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
+import ru.saidgadjiev.bibliographya.utils.TableUtils;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
@@ -30,14 +31,18 @@ class BiographyLikeDaoTest {
 
     @BeforeEach
     void init() {
-        createTables();
+        TableUtils.createTableUser(jdbcTemplate);
+        TableUtils.createTableBiography(jdbcTemplate);
+        TableUtils.createTableBiographyLike(jdbcTemplate);
         createTestUser();
         createUserBiography();
     }
 
     @AfterEach
     void after() {
-        deleteTables();
+        TableUtils.deleteTableBiographyLike(jdbcTemplate);
+        TableUtils.deleteTableBiography(jdbcTemplate);
+        TableUtils.deleteTableUser(jdbcTemplate);
     }
 
     @Test
@@ -176,7 +181,11 @@ class BiographyLikeDaoTest {
 
     private void createTestUser() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(provider_id) VALUES ('facebook')"
+                "INSERT INTO \"user\"(email, password) VALUES(?, ?)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
         );
     }
 
@@ -184,54 +193,5 @@ class BiographyLikeDaoTest {
         jdbcTemplate.update(
                 "INSERT INTO biography(first_name, last_name, creator_id, user_id) VALUES('Test', 'Test', 1, 1)"
         );
-    }
-
-    private void createTables() {
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS \"user\" (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  created_at TIMESTAMP DEFAULT NOW(),\n" +
-                        "  provider_id VARCHAR(30) NOT NULL,\n" +
-                        "  deleted BOOLEAN NOT NULL DEFAULT FALSE\n" +
-                        ");"
-        );
-
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS biography (\n" +
-                        "  id                SERIAL PRIMARY KEY,\n" +
-                        "  first_name        VARCHAR(512) NOT NULL,\n" +
-                        "  last_name         VARCHAR(512) NOT NULL,\n" +
-                        "  middle_name       VARCHAR(512),\n" +
-                        "  creator_id        INTEGER      NOT NULL REFERENCES \"user\" (id),\n" +
-                        "  user_id           INTEGER UNIQUE REFERENCES \"user\" (id),\n" +
-                        "  biography         TEXT,\n" +
-                        "  created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),\n" +
-                        "  updated_at        TIMESTAMP    NOT NULL DEFAULT NOW(),\n" +
-                        "  moderation_status INTEGER      NOT NULL DEFAULT 0,\n" +
-                        "  moderation_info   TEXT,\n" +
-                        "  moderated_at      TIMESTAMP,\n" +
-                        "  moderator_id      INTEGER REFERENCES \"user\" (id),\n" +
-                        "  publish_status    INTEGER      NOT NULL DEFAULT 0\n" +
-                        ");"
-        );
-
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS biography_like (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  biography_id INTEGER NOT NULL REFERENCES biography(id) ON DELETE CASCADE,\n" +
-                        "  user_id INTEGER NOT NULL REFERENCES \"user\"(id),\n" +
-                        "  UNIQUE (biography_id, user_id)\n" +
-                        ")"
-        );
-    }
-
-    private void deleteTables() {
-        jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS biography_like"
-        );
-
-        jdbcTemplate.execute("DROP TABLE IF EXISTS \"user\"");
-
-        jdbcTemplate.execute("DROP TABLE IF EXISTS biography");
     }
 }

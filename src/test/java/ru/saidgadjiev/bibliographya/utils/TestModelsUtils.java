@@ -7,12 +7,11 @@ import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 import javax.servlet.http.Cookie;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TestModelsUtils {
+
+    public static final TimeZone TEST_TIME_ZONE = TimeZone.getTimeZone("Europe/Moscow");
 
     public static final String TEST_AUTH_CODE = "AuthCode";
 

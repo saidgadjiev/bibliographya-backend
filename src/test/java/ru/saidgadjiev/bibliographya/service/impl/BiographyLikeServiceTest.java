@@ -112,6 +112,6 @@ class BiographyLikeServiceTest {
     }
 
     private void authenticate() {
-        Mockito.when(securityService.findLoggedInUser()).thenReturn(TestModelsUtils.TEST_USERS.get(-1));
+        Mockito.when(securityService.findLoggedInUser()).thenReturn(TestModelsUtils.TEST_USERS.get(TestModelsUtils.TEST_USER_ID));
     }
 }

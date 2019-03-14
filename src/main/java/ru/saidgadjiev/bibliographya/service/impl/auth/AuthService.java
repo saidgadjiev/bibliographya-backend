@@ -78,11 +78,11 @@ public class AuthService {
 
     public HttpStatus signUp(AuthContext authContext, String redirectUri) {
         SignUpRequest signUpRequest = null;
-        SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
 
         switch (authContext.getProviderType()) {
             case FACEBOOK:
             case VK:
+                SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
                 AccessGrant accessGrant = socialService.createAccessToken(authContext.getCode(), redirectUri);
 
                 SocialUserInfo userInfo = socialService.getUserInfo(null, accessGrant.getAccessToken());

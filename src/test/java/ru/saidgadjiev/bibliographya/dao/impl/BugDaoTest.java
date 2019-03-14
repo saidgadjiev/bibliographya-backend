@@ -9,11 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Bug;
+import ru.saidgadjiev.bibliographya.utils.TableUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,12 +32,16 @@ class BugDaoTest {
 
     @BeforeEach
     void init() {
-        createTables();
+        TableUtils.createTableUser(jdbcTemplate);
+        TableUtils.createTableBiography(jdbcTemplate);
+        TableUtils.createBugTable(jdbcTemplate);
     }
 
     @AfterEach
     void after() {
-        deleteTables();
+        TableUtils.deleteTableBug(jdbcTemplate);
+        TableUtils.deleteTableBiography(jdbcTemplate);
+        TableUtils.deleteTableUser(jdbcTemplate);
     }
 
     @Test
@@ -157,7 +161,7 @@ class BugDaoTest {
 
     @Test
     void getFixerInfo() {
-        createUser(ProviderType.FACEBOOK);
+        createUser();
         createUserBiography();
 
         jdbcTemplate.update(
@@ -172,47 +176,8 @@ class BugDaoTest {
         Assertions.assertEquals(1, (int) bug.getFixerId());
         Assertions.assertEquals(1, (int) bug.getFixer().getId());
         Assertions.assertEquals(1, (int) bug.getFixer().getUserId());
-        Assertions.assertEquals("Тест", bug.getFixer().getFirstName());
-        Assertions.assertEquals("Тест", bug.getFixer().getLastName());
-    }
-
-    @Test
-    void getListWithCriteria() {
-        createUser(ProviderType.FACEBOOK);
-        createUserBiography();
-
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест', 'Тест', 1)"
-        );
-        jdbcTemplate.update(
-                "INSERT INTO bug(theme, bug_case, fixer_id) VALUES('Тест2', 'Тест2', 1)"
-        );
-
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName("bug_case")
-                        .valueSetter(PreparedStatement::setString)
-                        .filterValue("Тест2")
-                        .needPreparedSet(true)
-                        .filterOperation(FilterOperation.EQ)
-                        .build()
-        );
-
-        List<Bug> bugsList = bugDao.getList(null, 10, 0L, null, criteria, Collections.emptySet());
-
-        Assertions.assertEquals(1, bugsList.size());
-
-        Bug expected1 = new Bug();
-
-        expected1.setId(2);
-        expected1.setTheme("Тест2");
-        expected1.setBugCase("Тест2");
-        expected1.setStatus(Bug.BugStatus.PENDING);
-        expected1.setFixerId(1);
-
-        assertEquals(expected1, bugsList.get(0), Collections.emptySet());
+        Assertions.assertEquals("Test", bug.getFixer().getFirstName());
+        Assertions.assertEquals("Test", bug.getFixer().getLastName());
     }
 
     private void assertEquals(Bug expected, Bug actual, Set<String> fields) {
@@ -232,63 +197,6 @@ class BugDaoTest {
         }
     }
 
-    private void createTables() {
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS \"user\" (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  created_at TIMESTAMP DEFAULT NOW(),\n" +
-                        "  provider_id VARCHAR(30) NOT NULL,\n" +
-                        "  deleted BOOLEAN NOT NULL DEFAULT FALSE\n" +
-                        ")"
-        );
-
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS biography (\n" +
-                        "  id                SERIAL PRIMARY KEY,\n" +
-                        "  first_name        VARCHAR(512) NOT NULL,\n" +
-                        "  last_name         VARCHAR(512) NOT NULL,\n" +
-                        "  middle_name       VARCHAR(512),\n" +
-                        "  creator_id        INTEGER      NOT NULL REFERENCES \"user\" (id),\n" +
-                        "  user_id           INTEGER UNIQUE REFERENCES \"user\" (id),\n" +
-                        "  biography         TEXT,\n" +
-                        "  created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),\n" +
-                        "  updated_at        TIMESTAMP    NOT NULL DEFAULT NOW(),\n" +
-                        "  moderation_status INTEGER      NOT NULL DEFAULT 0,\n" +
-                        "  moderation_info   TEXT,\n" +
-                        "  moderated_at      TIMESTAMP,\n" +
-                        "  moderator_id      INTEGER REFERENCES \"user\" (id),\n" +
-                        "  publish_status    INTEGER      NOT NULL DEFAULT 0\n" +
-                        ")"
-        );
-
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS bug (\n" +
-                        "  id       SERIAL PRIMARY KEY,\n" +
-                        "  created_at TIMESTAMP NOT NULL DEFAULT now(),\n" +
-                        "  fixed_at TIMESTAMP,\n" +
-                        "  theme    TEXT NOT NULL,\n" +
-                        "  bug_case TEXT NOT NULL,\n" +
-                        "  fixer_id INTEGER REFERENCES \"user\" (id),\n" +
-                        "  status   INTEGER DEFAULT 0,\n" +
-                        "  info     TEXT\n" +
-                        ");;"
-        );
-    }
-
-    private void deleteTables() {
-        jdbcTemplate.execute(
-                "DROP TABLE bug"
-        );
-
-        jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS biography"
-        );
-
-        jdbcTemplate.execute(
-                "DROP TABLE \"user\""
-        );
-    }
-
     private Bug map(ResultSet resultSet) throws SQLException {
         Bug result = new Bug();
 
@@ -301,15 +209,19 @@ class BugDaoTest {
         return result;
     }
 
-    private void createUserBiography() {
+    private void createUser() {
         jdbcTemplate.update(
-                "INSERT INTO biography(first_name, last_name, creator_id, user_id) VALUES('Тест', 'Тест', 1, 1)"
+                "INSERT INTO \"user\"(email, password) VALUES(?, ?)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
         );
     }
 
-    private void createUser(ProviderType providerType) {
+    private void createUserBiography() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(provider_id) VALUES('" + providerType.getId() + "')"
+                "INSERT INTO biography(first_name, last_name, creator_id, user_id) VALUES('Test', 'Test', 1, 1)"
         );
     }
 }

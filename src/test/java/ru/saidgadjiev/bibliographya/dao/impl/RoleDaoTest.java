@@ -11,6 +11,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.Role;
+import ru.saidgadjiev.bibliographya.utils.TableUtils;
 
 import java.sql.PreparedStatement;
 import java.util.*;
@@ -27,12 +28,12 @@ class RoleDaoTest {
 
     @BeforeEach
     void init() {
-        createTableRole();
+        TableUtils.createRoleTable(jdbcTemplate);
     }
 
     @AfterEach
     void after() {
-        deleteTableRole();
+        TableUtils.deleteTableRole(jdbcTemplate);
     }
 
     @org.junit.jupiter.api.Test
@@ -85,20 +86,5 @@ class RoleDaoTest {
         );
 
         Assertions.assertEquals(roles.get(0), role);
-    }
-
-    private void createTableRole() {
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS role (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  name VARCHAR(255) NOT NULL UNIQUE\n" +
-                        ")"
-        );
-    }
-
-    private void deleteTableRole() {
-        jdbcTemplate.execute(
-                "DROP TABLE role"
-        );
     }
 }

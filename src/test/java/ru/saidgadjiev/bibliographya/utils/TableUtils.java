@@ -4,8 +4,44 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 public class TableUtils {
 
-    private TableUtils() {
+    private TableUtils() { }
 
+    public static void createBugTable(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS bug (\n" +
+                        "  id       SERIAL PRIMARY KEY,\n" +
+                        "  created_at TIMESTAMP NOT NULL DEFAULT now(),\n" +
+                        "  fixed_at TIMESTAMP,\n" +
+                        "  theme    TEXT NOT NULL,\n" +
+                        "  bug_case TEXT NOT NULL,\n" +
+                        "  fixer_id INTEGER REFERENCES \"user\" (id),\n" +
+                        "  status   INTEGER DEFAULT 0,\n" +
+                        "  info     TEXT\n" +
+                        ")"
+        );
+    }
+
+    public static void deleteTableBug(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "DROP TABLE IF EXISTS bug"
+        );
+    }
+
+    public static void createTableBiographyLike(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS biography_like (\n" +
+                        "  id SERIAL PRIMARY KEY,\n" +
+                        "  biography_id INTEGER NOT NULL REFERENCES biography(id) ON DELETE CASCADE,\n" +
+                        "  user_id INTEGER NOT NULL REFERENCES \"user\"(id),\n" +
+                        "  UNIQUE (biography_id, user_id)\n" +
+                        ")"
+        );
+    }
+
+    public static void deleteTableBiographyLike(JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute(
+                "DROP TABLE IF EXISTS biography_like"
+        );
     }
 
     public static void createTableUser(JdbcTemplate jdbcTemplate) {

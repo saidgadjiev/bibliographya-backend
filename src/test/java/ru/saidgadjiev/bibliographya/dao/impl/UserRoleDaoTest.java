@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.Role;
+import ru.saidgadjiev.bibliographya.utils.TableUtils;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -27,14 +27,18 @@ class UserRoleDaoTest {
 
     @BeforeEach
     void init() {
-        createTables();
+        TableUtils.createTableUser(jdbcTemplate);
+        TableUtils.createRoleTable(jdbcTemplate);
+        TableUtils.createUserRoleTable(jdbcTemplate);
         createRole("ROLE_ADMIN");
-        createUser(ProviderType.EMAIL_PASSWORD);
+        createUser();
     }
 
     @AfterEach
     void after() {
-        deleteTables();
+        TableUtils.deleteTableUserRole(jdbcTemplate);
+        TableUtils.deleteTableRole(jdbcTemplate);
+        TableUtils.deleteTableUser(jdbcTemplate);
     }
 
     @Test
@@ -74,54 +78,17 @@ class UserRoleDaoTest {
         Assertions.assertTrue(userRoleDao.getRoles(1).isEmpty());
     }
 
-    private void createTables() {
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS \"user\" (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  created_at TIMESTAMP DEFAULT NOW(),\n" +
-                        "  provider_id VARCHAR(30) NOT NULL,\n" +
-                        "  deleted BOOLEAN NOT NULL DEFAULT FALSE\n" +
-                        ")"
-        );
-
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS role (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  name VARCHAR(255) NOT NULL UNIQUE\n" +
-                        ")"
-        );
-
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS user_role (\n" +
-                        "  id SERIAL PRIMARY KEY,\n" +
-                        "  user_id INTEGER NOT NULL REFERENCES \"user\"(id),\n" +
-                        "  role_name VARCHAR (255) NOT NULL REFERENCES role(name),\n" +
-                        "  UNIQUE (user_id, role_name)\n" +
-                        ")"
-        );
-    }
-
-    private void deleteTables() {
-        jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS user_role"
-        );
-
-        jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS role"
-        );
-
-        jdbcTemplate.execute(
-                "DROP TABLE IF EXISTS \"user\""
-        );
-    }
-
     private void createRole(String role) {
         jdbcTemplate.update("INSERT INTO role(name) VALUES('" + role + "')");
     }
 
-    private void createUser(ProviderType providerType) {
+    private void createUser() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(provider_id) VALUES('" + providerType.getId() + "')"
+                "INSERT INTO \"user\"(email, password) VALUES(?, ?)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
         );
     }
 }

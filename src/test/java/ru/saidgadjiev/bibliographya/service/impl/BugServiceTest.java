@@ -23,6 +23,7 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.BugRequest;
 import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -65,7 +66,7 @@ class BugServiceTest {
         List<Bug> db = new ArrayList<>();
 
         Mockito.when(bugDao.create(any(), any())).thenAnswer(invocationOnMock -> {
-            Bug bug = (Bug) invocationOnMock.getArguments()[0];
+            Bug bug = (Bug) invocationOnMock.getArguments()[1];
 
             bug.setId(1);
             bug.setStatus(Bug.BugStatus.PENDING);
@@ -80,7 +81,7 @@ class BugServiceTest {
         request.setTheme("Тест");
         request.setBugCase("Тест");
 
-        Bug created = bugService.create(TimeZone.getDefault(), request);
+        Bug created = bugService.create(TestModelsUtils.TEST_TIME_ZONE, request);
 
         Assertions.assertEquals(1, db.size());
 
@@ -105,6 +106,7 @@ class BugServiceTest {
             put("bugId", 1);
             put("fixerId", 1);
             put("info", null);
+            put("timeZone", TestModelsUtils.TEST_TIME_ZONE);
         }})).thenAnswer(invocationOnMock -> {
             current.setId(1);
             current.setStatus(Bug.BugStatus.PENDING);
@@ -118,7 +120,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.ASSIGN_ME.getDesc());
         completeRequest.setStatus(Bug.BugStatus.PENDING.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(null, 1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(TestModelsUtils.TEST_TIME_ZONE, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.PENDING, 1);
 
@@ -137,6 +139,7 @@ class BugServiceTest {
             put("bugId", 1);
             put("fixerId", 1);
             put("info", null);
+            put("timeZone", TestModelsUtils.TEST_TIME_ZONE);
         }})).thenAnswer(invocationOnMock -> {
             current.setId(1);
             current.setStatus(Bug.BugStatus.CLOSED);
@@ -149,7 +152,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.CLOSE.getDesc());
         completeRequest.setStatus(Bug.BugStatus.PENDING.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(null, 1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(TestModelsUtils.TEST_TIME_ZONE, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.CLOSED, 1);
 
@@ -168,6 +171,7 @@ class BugServiceTest {
             put("bugId", 1);
             put("fixerId", 1);
             put("info", "Тест");
+            put("timeZone", TestModelsUtils.TEST_TIME_ZONE);
         }})).thenAnswer(invocationOnMock -> {
             current.setId(1);
             current.setStatus(Bug.BugStatus.IGNORED);
@@ -182,7 +186,7 @@ class BugServiceTest {
         completeRequest.setStatus(Bug.BugStatus.PENDING.getCode());
         completeRequest.setInfo("Тест");
 
-        CompleteResult<Bug> completeResult = bugService.complete(null, 1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(TestModelsUtils.TEST_TIME_ZONE, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.IGNORED, 1);
 
@@ -203,6 +207,7 @@ class BugServiceTest {
             put("bugId", 1);
             put("fixerId", 1);
             put("info", null);
+            put("timeZone", TestModelsUtils.TEST_TIME_ZONE);
         }})).thenAnswer(invocationOnMock -> {
             current.setId(1);
             current.setStatus(Bug.BugStatus.PENDING);
@@ -215,7 +220,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.RELEASE.getDesc());
         completeRequest.setStatus(Bug.BugStatus.IGNORED.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(any(), 1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(TestModelsUtils.TEST_TIME_ZONE, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.PENDING, null);
 
@@ -234,6 +239,7 @@ class BugServiceTest {
             put("bugId", 1);
             put("fixerId", 1);
             put("info", null);
+            put("timeZone", TestModelsUtils.TEST_TIME_ZONE);
         }})).thenAnswer(invocationOnMock -> {
             current.setId(1);
             current.setStatus(Bug.BugStatus.PENDING);
@@ -246,7 +252,7 @@ class BugServiceTest {
         completeRequest.setSignal(Handler.Signal.RELEASE.getDesc());
         completeRequest.setStatus(Bug.BugStatus.CLOSED.getCode());
 
-        CompleteResult<Bug> completeResult = bugService.complete(any(), 1, completeRequest);
+        CompleteResult<Bug> completeResult = bugService.complete(TestModelsUtils.TEST_TIME_ZONE, 1, completeRequest);
 
         Bug expected = createMockBug(Bug.BugStatus.PENDING, null);
 
@@ -382,7 +388,7 @@ class BugServiceTest {
                 )
         ).thenReturn(bugs);
 
-        Page<Bug> page = bugService.getBugs(any(), pageRequest, null);
+        Page<Bug> page = bugService.getBugs(TestModelsUtils.TEST_TIME_ZONE, pageRequest, null);
 
         Assertions.assertEquals(page.getContent().size(), 2);
         assertEquals(bug1, page.getContent().get(0), Collections.emptySet());
@@ -437,7 +443,7 @@ class BugServiceTest {
                 )
         ).thenReturn(bugs);
 
-        Page<Bug> page = bugService.getBugsTracks(any(), pageRequest, null);
+        Page<Bug> page = bugService.getBugsTracks(TestModelsUtils.TEST_TIME_ZONE, pageRequest, null);
 
         Assertions.assertEquals(page.getContent().size(), 2);
         assertEquals(bug1, page.getContent().get(0), Collections.singleton("fixer"));
@@ -484,7 +490,7 @@ class BugServiceTest {
                 )
         ).thenReturn(bugs);
 
-        Page<Bug> page = bugService.getBugs(any(), pageRequest, "status==0");
+        Page<Bug> page = bugService.getBugs(TestModelsUtils.TEST_TIME_ZONE, pageRequest, "status==0");
 
         Assertions.assertEquals(page.getContent().size(), 1);
         assertEquals(bug1, page.getContent().get(0), Collections.emptySet());
