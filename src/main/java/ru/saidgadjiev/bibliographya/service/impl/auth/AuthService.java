@@ -3,8 +3,6 @@ package ru.saidgadjiev.bibliographya.service.impl.auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
@@ -143,7 +141,7 @@ public class AuthService {
 
                 httpSessionManager.removeState(authContext.getRequest());
 
-                Authentication authentication = securityService.autoLogin(user);
+                securityService.autoLogin(user);
 
                 String token = tokenService.createToken(user);
 
@@ -153,8 +151,6 @@ public class AuthService {
                         jwtProperties.cookieName(),
                         token
                 );
-
-                eventPublisher.publishEvent(new AuthenticationSuccessEvent(authentication));
 
                 return new SignUpResult().setStatus(HttpStatus.OK).setUser(user);
             }

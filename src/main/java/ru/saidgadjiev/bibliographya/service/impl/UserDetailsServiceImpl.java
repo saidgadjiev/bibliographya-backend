@@ -126,8 +126,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         postSave(user, saveBiography.getFirstName(), saveBiography.getLastName(), saveBiography.getMiddleName());
 
-        eventPublisher.publishEvent(new ChangeEmailEvent(user));
-
         return user;
     }
 

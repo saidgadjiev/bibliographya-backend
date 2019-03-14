@@ -46,21 +46,27 @@ public class BibliographyaCacheListener {
     public void handle(ChangeEmailEvent changeEmailEvent) {
         User user = userCache.getUserFromCache(changeEmailEvent.getUser().getId());
 
-        user.setEmailVerified(true);
-        user.setEmail(changeEmailEvent.getUser().getEmail());
+        if (user != null) {
+            user.setEmailVerified(true);
+            user.setEmail(changeEmailEvent.getUser().getEmail());
+        }
     }
 
     @EventListener
     public void handle(DeleteRoleEvent deleteRoleEvent) {
         User user = userCache.getUserFromCache(deleteRoleEvent.getUserId());
 
-        user.getRoles().remove(deleteRoleEvent.getRole());
+        if (user != null) {
+            user.getRoles().remove(deleteRoleEvent.getRole());
+        }
     }
 
     @EventListener
     public void handle(AddRoleEvent addRoleEvent) {
         User user = userCache.getUserFromCache(addRoleEvent.getUserId());
 
-        user.getRoles().add(addRoleEvent.getRole());
+        if (user != null) {
+            user.getRoles().add(addRoleEvent.getRole());
+        }
     }
 }
