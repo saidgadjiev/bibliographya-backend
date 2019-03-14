@@ -85,7 +85,7 @@ public class AuthService {
                 SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
                 AccessGrant accessGrant = socialService.createAccessToken(authContext.getCode(), redirectUri);
 
-                SocialUserInfo userInfo = socialService.getUserInfo(null, accessGrant.getAccessToken());
+                SocialUserInfo userInfo = socialService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 
                 signUpRequest = new SignUpRequest();
 
