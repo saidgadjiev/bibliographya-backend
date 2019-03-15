@@ -37,7 +37,7 @@ public class GeneralDao {
                 }
             }
         }
-        builder.append(" ").append("FROM ").append(table).append(" ");
+        builder.append(" ").append("FROM \"").append(table).append("\" ");
 
         String clause = toClause(criteria, null);
 
