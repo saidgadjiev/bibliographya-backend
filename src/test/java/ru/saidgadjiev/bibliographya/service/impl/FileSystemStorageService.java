@@ -20,18 +20,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public String storeToCategoryRoot(int id, MultipartFile file) {
-        return null;
-    }
-
-    @Override
-    public Resource loadFromCategoryRootAsResource(String filePath) {
-        return null;
-    }
-
-    @Override
-    public void deleteCategoryResource(String filePath) {
-
+    public void store(String filePath, MultipartFile file) {
     }
 
     @Override
@@ -45,7 +34,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void deleteResource(String path) {
+    public void deleteResource(String filePath) {
 
     }
 }

@@ -11,8 +11,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.utils.TableUtils;
+import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
 import java.sql.PreparedStatement;
 import java.util.*;
@@ -35,6 +37,70 @@ class GeneralDaoTest {
     @AfterEach
     void after() {
         TableUtils.deleteTableUser(jdbcTemplate);
+    }
+
+    @Test
+    void update() {
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
+        );
+        jdbcTemplate.update(
+                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                preparedStatement -> {
+                    preparedStatement.setString(1, "Test");
+                    preparedStatement.setString(2, "Test");
+                }
+        );
+
+        List<UpdateValue> updateValues = new ArrayList<>();
+
+        updateValues.add(
+                new UpdateValue<>(
+                        User.EMAIL,
+                        TestModelsUtils.TEST_EMAIL,
+                        PreparedStatement::setString
+                )
+        );
+
+        Collection<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName(User.ID)
+                        .filterValue(TestModelsUtils.TEST_USER_ID)
+                        .filterOperation(FilterOperation.EQ)
+                        .needPreparedSet(true)
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
+        );
+
+        int updated = generalDao.update(User.TABLE, updateValues, criteria);
+
+        Assertions.assertEquals(1, updated);
+
+        User actual = jdbcTemplate.query(
+                "SELECT u.* FROM \"user\" u WHERE u.id = " + TestModelsUtils.TEST_USER_ID,
+                resultSet -> {
+                    if (resultSet.next()) {
+                        User user = new User();
+
+                        user.setId(resultSet.getInt("id"));
+                        user.setEmail(resultSet.getString("email"));
+                        user.setEmailVerified(resultSet.getBoolean("email_verified"));
+                        user.setPassword(resultSet.getString("password"));
+
+                        return user;
+                    }
+
+                    return null;
+                }
+        );
+
+        Assertions.assertEquals(TestModelsUtils.TEST_EMAIL, actual.getEmail());
     }
 
     @Test

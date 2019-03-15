@@ -9,23 +9,11 @@ public class BiographyCategoryRequest {
     @Size(min = 1)
     private String name;
 
-    @NotNull
-    @Size(min = 1)
-    private String imagePath;
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getImagePath() {
-        return imagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
     }
 }

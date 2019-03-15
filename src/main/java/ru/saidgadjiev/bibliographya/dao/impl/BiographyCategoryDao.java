@@ -61,57 +61,12 @@ public class BiographyCategoryDao {
         );
     }
 
-    public BiographyCategory create(BiographyCategory category) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(
-                connection -> {
-                    PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO biography_category(\"name\", image_path) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
-
-                    preparedStatement.setString(1, category.getName());
-                    preparedStatement.setString(2, category.getImagePath());
-
-                    return preparedStatement;
-                },
-                keyHolder
-        );
-
-        Map<String, Object> keys = keyHolder.getKeys();
-
-        if (keys != null && keys.containsKey("id")) {
-            category.setId(((Number) keys.get("id")).intValue());
-        }
-
-        return category;
-    }
-
     public int deleteById(int id) {
         return jdbcTemplate.update(
                 "DELETE\n" +
                         "FROM biography_category\n" +
                         "WHERE \"id\" = ?",
                 preparedStatement -> preparedStatement.setInt(1, id)
-        );
-    }
-
-    public int update(BiographyCategory biographyCategory) {
-        return jdbcTemplate.update(
-                "UPDATE biography_category SET \"name\" = ?, image_path = ? WHERE id = ?",
-                preparedStatement -> {
-                    preparedStatement.setString(1, biographyCategory.getName());
-                    preparedStatement.setString(2, biographyCategory.getImagePath());
-                    preparedStatement.setInt(3, biographyCategory.getId());
-                }
-        );
-    }
-
-    public int updatePath(int id, String newPath) {
-        return jdbcTemplate.update(
-                "UPDATE biography_category SET image_path = ? WHERE id = ?",
-                preparedStatement -> {
-                    preparedStatement.setString(1, newPath);
-                    preparedStatement.setInt(2, id);
-                }
         );
     }
 

@@ -5,6 +5,14 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class BiographyCategory {
 
+    public static final String TABLE = "biography_category";
+
+    public static final String ID = "id";
+
+    public static final String NAME = "name";
+
+    public static final String IMAGE_PATH = "image_path";
+
     private int id;
 
     private String name;

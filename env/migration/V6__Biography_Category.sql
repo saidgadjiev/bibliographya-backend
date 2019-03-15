@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS biography_category (
   id SERIAL PRIMARY KEY,
   name VARCHAR(128) NOT NULL UNIQUE,
-  image_path VARCHAR(128) NOT NULL
+  image_path VARCHAR(128)
 );
 
 CREATE TABLE IF NOT EXISTS biography_category_biography (

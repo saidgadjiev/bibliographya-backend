@@ -1,13 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.impl.storage;
 
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import java.io.IOException;
@@ -15,70 +10,32 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-@Service
-@Profile({ "dev", "prod" })
-public class FileSystemStorageService implements StorageService {
+public abstract class FileSystemStorageService implements StorageService {
 
-    private final Path rootLocation;
+    private final Path path;
 
-    private final Path categoryRootLocation;
-
-    @Autowired
-    public FileSystemStorageService(StorageProperties storageProperties) {
-        this.rootLocation = Paths.get(storageProperties.getRoot());
-        this.categoryRootLocation = rootLocation.resolve(storageProperties.getCategoryRoot());
+    public FileSystemStorageService(Path path) {
+        this.path = path;
     }
 
     @Override
-    public String storeToCategoryRoot(int id, MultipartFile file) {
-        String name = String.valueOf(id);
-        String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-        String fileName = name + "." + ext;
-
+    public void store(String filePath, MultipartFile file) {
         try {
             if (file.isEmpty()) {
-                throw new StorageException("Failed to storeToCategoryRoot empty file " + fileName);
+                throw new StorageException("Failed to storeToCategoryRoot empty file " + filePath);
             }
-            if (fileName.contains("..")) {
+            if (filePath.contains("..")) {
                 throw new StorageException(
                         "Cannot storeToCategoryRoot file with relative path outside current directory "
-                                + fileName);
+                                + filePath);
             }
             try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, categoryRootLocation.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-
-                return fileName;
+                Files.copy(inputStream, path.resolve(filePath), StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            throw new StorageException("Failed to storeToCategoryRoot file " + fileName, e);
-        }
-    }
-
-    @Override
-    public Resource loadFromCategoryRootAsResource(String filePath) {
-        try {
-            Path file = categoryRootLocation.resolve(filePath);
-            Resource resource = new UrlResource(file.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            } else {
-                throw new StorageFileNotFoundException("Could not read file: " + filePath);
-            }
-        } catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filePath, e);
-        }
-    }
-
-    @Override
-    public void deleteCategoryResource(String filePath) {
-        try {
-            Files.delete(categoryRootLocation.resolve(filePath));
-        } catch (IOException e) {
-            throw new StorageException(e.getMessage(), e);
+            throw new StorageException("Failed to storeToCategoryRoot file " + filePath, e);
         }
     }
 
@@ -100,13 +57,13 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public Path load(String filePath) {
-        return rootLocation.resolve(filePath);
+        return path.resolve(filePath);
     }
 
     @Override
-    public void deleteResource(String path) {
+    public void deleteResource(String filePath) {
         try {
-            Files.delete(rootLocation.resolve(path));
+            Files.deleteIfExists(path.resolve(filePath));
         } catch (IOException e) {
             throw new StorageException(e.getMessage(), e);
         }
@@ -115,8 +72,7 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void init() {
         try {
-            Files.createDirectories(rootLocation);
-            Files.createDirectories(categoryRootLocation);
+            Files.createDirectories(path);
         } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }

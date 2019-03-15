@@ -35,41 +35,6 @@ public class UserDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public int update(List<UpdateValue> values, Collection<FilterCriteria> criteria) {
-        String clause = FilterUtils.toClause(criteria, null);
-        StringBuilder sql = new StringBuilder();
-
-        sql.append("UPDATE \"user\" SET ");
-
-        for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
-            sql.append(iterator.next().getName()).append(" = ?");
-
-            if (iterator.hasNext()) {
-                sql.append(", ");
-            }
-        }
-
-        if (StringUtils.isNotBlank(clause)) {
-            sql.append(" WHERE ").append(clause);
-        }
-
-        return jdbcTemplate.update(
-                sql.toString(),
-                ps -> {
-                    int i = 0;
-
-                    for (UpdateValue updateValue : values) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
-                    }
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
-                    }
-                }
-        );
-    }
-
     public User save(User user) {
         KeyHolder keyHolderUser = new GeneratedKeyHolder();
 
