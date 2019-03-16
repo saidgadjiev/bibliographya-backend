@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.EmailVerificationResult;
 import ru.saidgadjiev.bibliographya.model.SessionState;
+import ru.saidgadjiev.bibliographya.service.api.EmailService;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import javax.mail.MessagingException;
