@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,7 +32,7 @@ public class BibliographyApplication implements CommandLineRunner {
 	}
 
 	@Autowired
-	public void setStorageService(@Qualifier("fileSystemStorageService") StorageService storageService) {
+	public void setStorageService(StorageService storageService) {
 		this.storageService = storageService;
 	}
 

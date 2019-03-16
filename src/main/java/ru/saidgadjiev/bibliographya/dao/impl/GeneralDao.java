@@ -8,11 +8,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
@@ -72,7 +70,7 @@ public class GeneralDao {
     }
 
     public int update(String table, Collection<UpdateValue> values, Collection<FilterCriteria> criteria) {
-        String clause = FilterUtils.toClause(criteria, null);
+        String clause = toClause(criteria, null);
         StringBuilder sql = new StringBuilder();
 
         sql.append("UPDATE ").append(table).append(" SET ");

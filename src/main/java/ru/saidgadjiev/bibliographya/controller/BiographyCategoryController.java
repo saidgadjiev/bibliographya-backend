@@ -17,15 +17,10 @@ import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyResponse;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliographya.service.api.StorageService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Valid;
-import javax.validation.Validator;
 import java.io.IOException;
-import java.util.Set;
 import java.util.TimeZone;
 
 /**

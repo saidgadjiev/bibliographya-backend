@@ -6,8 +6,6 @@ public class UserResponse {
 
     private Integer id;
 
-    private String providerId;
-
     private BiographyResponse biography;
 
     private Collection<String> roles;
@@ -18,14 +16,6 @@ public class UserResponse {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
     }
 
     public BiographyResponse getBiography() {

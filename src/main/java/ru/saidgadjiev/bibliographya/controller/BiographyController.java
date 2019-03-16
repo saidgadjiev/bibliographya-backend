@@ -59,7 +59,13 @@ public class BiographyController {
 
     @GetMapping("/{id:[\\d]+}")
     public ResponseEntity<BiographyResponse> getBiographyById(TimeZone timeZone, @PathVariable("id") int id) {
-        return ResponseEntity.ok(modelMapper.convertToBiographyResponse(biographyService.getBiographyById(timeZone, id)));
+        Biography biography = biographyService.getBiographyById(timeZone, id);
+
+        if (biography == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(modelMapper.convertToBiographyResponse(biography));
     }
 
     @GetMapping(value = "")

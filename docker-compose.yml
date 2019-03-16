@@ -1,15 +1,16 @@
 version: '3'
 services:
- nginx:
-   container_name: some-nginx
-   image: nginx:stable-alpine
-   restart: always
-   ports:
-   - 8000:8000
-   volumes:
-   - ./nginx/conf.d:/etc/nginx/conf.d
-   depends_on:
-   - app
+  nginx:
+    container_name: app-nginx
+    image: nginx:stable-alpine
+    restart: always
+    ports:
+    - 8000:8000
+    volumes:
+    - ./nginx/conf.d:/etc/nginx/conf.d
+    - ./upload:/usr/share/nginx/html/upload
+    depends_on:
+    - app
   app:
     container_name: app
     restart: always
@@ -20,11 +21,8 @@ services:
     expose:
     - "8080"
     ports:
-    - "${PORT}:${PORT}"
     - "5005:5005"
-    command: mvn clean spring-boot:run
     environment:
-    - PORT=${PORT}
     - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
     - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
     - FACEBOOK_APP_TOKEN=${FACEBOOK_APP_TOKEN}
