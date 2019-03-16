@@ -106,7 +106,7 @@ public class BiographyCategoryController {
                                     BindingResult result) throws IOException {
         BiographyCategoryRequest categoryRequest = objectMapper.readValue(data, BiographyCategoryRequest.class);
 
-        validator.validate(categoryRequest, result, BiographyCategoryRequest.class);
+        validator.validate(categoryRequest, result);
 
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().build();
@@ -142,7 +142,7 @@ public class BiographyCategoryController {
         if (StringUtils.isNotBlank(data)) {
             categoryRequest = objectMapper.readValue(data, BiographyCategoryRequest.class);
 
-            validator.validate(categoryRequest, bindingResult, BiographyCategoryRequest.class);
+            validator.validate(categoryRequest, bindingResult);
 
             if (bindingResult.hasErrors()) {
                 return ResponseEntity.badRequest().build();
