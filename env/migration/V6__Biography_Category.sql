@@ -10,27 +10,3 @@ CREATE TABLE IF NOT EXISTS biography_category_biography (
   biography_id INTEGER NOT NULL REFERENCES biography(id) ON DELETE CASCADE,
   UNIQUE (category_id, biography_id)
 );
-
-INSERT INTO biography_category(name, image_path)
-VALUES
-  ('Поэты', '1.jpg');
-
-INSERT INTO biography_category(name, image_path)
-VALUES
-  ('Композиторы', '2.jpg');
-
-INSERT INTO biography_category(name, image_path)
-VALUES
-  ('Актеры', '3.jpg');
-
-INSERT INTO biography_category(name, image_path)
-VALUES
-  ('Художники', '4.jpg');
-
-INSERT INTO biography_category(name, image_path)
-VALUES
-  ('Спортсмены', '5.jpg');
-
-INSERT INTO biography_category(name, image_path)
-VALUES
-  ('Правители', '6.jpg');
