@@ -6,11 +6,22 @@ services:
     restart: always
     ports:
     - 8000:8000
+    - 8433:8433
     volumes:
     - ./nginx/conf.d:/etc/nginx/conf.d
-    - ./upload:/usr/share/nginx/html/upload
+    - ./upload:/var/www/upload
+    - ./certbot/conf:/etc/letsencrypt
+    - ./certbot/www:/var/www/certbot
     depends_on:
     - app
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  certbot:
+    image: certbot/certbot
+    container_name: certboot
+    volumes:
+    - ./certbot/conf:/etc/letsencrypt
+    - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
   app:
     container_name: app
     restart: always
