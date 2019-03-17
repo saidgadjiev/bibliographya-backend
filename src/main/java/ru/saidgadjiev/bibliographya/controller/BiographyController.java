@@ -319,7 +319,7 @@ public class BiographyController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(modelMapper.convertToBiographyModerationResponse(updated.getObject()));
+        return ResponseEntity.ok(modelMapper.convertToMyBiographyResponse(updated.getObject()));
     }
 
     @PreAuthorize("hasRole('ROLE_MODERATOR')")

@@ -29,7 +29,7 @@ public class GeneralDao {
     public KeyHolder create(String table, Collection<UpdateValue> values) {
         StringBuilder sql = new StringBuilder();
 
-        sql.append("INSERT INTO ").append(table).append("(");
+        sql.append("INSERT INTO \"").append(table).append("\"(");
 
         StringBuilder valuesBuilder = new StringBuilder();
 
@@ -73,7 +73,7 @@ public class GeneralDao {
         String clause = toClause(criteria, null);
         StringBuilder sql = new StringBuilder();
 
-        sql.append("UPDATE ").append(table).append(" SET ");
+        sql.append("UPDATE \"").append(table).append("\" SET ");
 
         for (Iterator<UpdateValue> iterator = values.iterator(); iterator.hasNext(); ) {
             sql.append(iterator.next().getName()).append(" = ?");

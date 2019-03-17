@@ -7,7 +7,13 @@ import java.sql.Timestamp;
  */
 public class BiographyComment {
 
-    public static final String TYPE = "biography_comment";
+    public static final String TABLE = "biography_comment";
+
+    public static final String ID = "id";
+
+    public static final String PARENT_USER_ID = "parent_user_id";
+
+    public static final String USER_ID = "user_id";
 
     private int id;
 
@@ -21,9 +27,13 @@ public class BiographyComment {
 
     private Integer parentId;
 
-    private BiographyComment parent;
+    private Integer parentUserId;
 
     private Biography user;
+
+    private Biography parentUser;
+
+    private boolean parentDeleted;
 
     public int getId() {
         return id;
@@ -81,11 +91,27 @@ public class BiographyComment {
         this.user = user;
     }
 
-    public BiographyComment getParent() {
-        return parent;
+    public Integer getParentUserId() {
+        return parentUserId;
     }
 
-    public void setParent(BiographyComment parent) {
-        this.parent = parent;
+    public void setParentUserId(Integer parentUserId) {
+        this.parentUserId = parentUserId;
+    }
+
+    public Biography getParentUser() {
+        return parentUser;
+    }
+
+    public void setParentUser(Biography parentUser) {
+        this.parentUser = parentUser;
+    }
+
+    public boolean isParentDeleted() {
+        return parentDeleted;
+    }
+
+    public void setParentDeleted(boolean parentDeleted) {
+        this.parentDeleted = parentDeleted;
     }
 }

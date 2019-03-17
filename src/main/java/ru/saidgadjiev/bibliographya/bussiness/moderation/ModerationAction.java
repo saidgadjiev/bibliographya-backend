@@ -49,6 +49,10 @@ public class ModerationAction {
         return new ModerationAction("Pending", "На модерацию", Handler.Signal.PENDING.getDesc());
     }
 
+    public static ModerationAction userPending() {
+        return new ModerationAction("UserPending", "На модерацию", Handler.Signal.USER_PENDING.getDesc());
+    }
+
     public static ModerationAction resend() {
         return new ModerationAction("Resend", "Отправить повторно", Handler.Signal.PENDING.getDesc());
     }

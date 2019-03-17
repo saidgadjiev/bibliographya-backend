@@ -59,9 +59,7 @@ public class BiographyCategoryBiographyDao {
         );
     }
 
-    public void addCategories(Collection<Integer> categories, Integer biographyId) {
-        Iterator<Integer> iterator = categories.iterator();
-
+    public void addCategories(List<Integer> categories, Integer biographyId) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO " +
                         "biography_category_biography(category_id, biography_id) " +
@@ -69,7 +67,7 @@ public class BiographyCategoryBiographyDao {
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, iterator.next());
+                        ps.setInt(1, categories.get(i));
                     }
 
                     @Override
@@ -80,15 +78,13 @@ public class BiographyCategoryBiographyDao {
         );
     }
 
-    public void deleteCategories(Collection<Integer> categories, Integer biographyId) {
-        Iterator<Integer> iterator = categories.iterator();
-
+    public void deleteCategories(List<Integer> categories, Integer biographyId) {
         jdbcTemplate.batchUpdate(
                 "DELETE FROM biography_category_biography WHERE biography_id = " + biographyId + " AND category_id = ?",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, iterator.next());
+                        ps.setInt(1, categories.get(i));
                     }
 
                     @Override

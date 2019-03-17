@@ -24,6 +24,7 @@ public interface Handler {
 
         ASSIGN_ME("assign-me"),
         PENDING("pending"),
+        USER_PENDING("user-pending"),
         APPROVE("approve"),
         RELEASE("release"),
         REJECT("reject");

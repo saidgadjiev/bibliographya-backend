@@ -7,6 +7,7 @@ import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,11 +31,11 @@ public class BiographyCategoryBiographyService {
         return dao.getBiographiesCategories(Collections.singletonList(biographyId)).get(biographyId);
     }
 
-    public void addCategoriesToBiography(Collection<Integer> categoriesIds, Integer biographyId) {
+    public void addCategoriesToBiography(List<Integer> categoriesIds, Integer biographyId) {
         dao.addCategories(categoriesIds, biographyId);
     }
 
-    public void deleteCategoriesFromBiography(Collection<Integer> categoriesIds, Integer biographyId) {
+    public void deleteCategoriesFromBiography(List<Integer> categoriesIds, Integer biographyId) {
         dao.deleteCategories(categoriesIds, biographyId);
     }
 }

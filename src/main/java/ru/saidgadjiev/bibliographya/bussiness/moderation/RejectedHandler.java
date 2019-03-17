@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.bussiness.moderation;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.operation.ApproveOperation;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.operation.PendingOperation;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.operation.ReleaseOperation;
+import ru.saidgadjiev.bibliographya.bussiness.moderation.operation.UserPendingOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyModerationDao;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -33,6 +34,8 @@ public class RejectedHandler implements Handler {
                 return new PendingOperation(biographyModerationDao).execute(args);
             case RELEASE:
                 return new ReleaseOperation(biographyModerationDao).execute(args);
+            case USER_PENDING:
+                return new UserPendingOperation(biographyModerationDao).execute(args);
             default:
                 return null;
         }
@@ -57,7 +60,7 @@ public class RejectedHandler implements Handler {
     @Override
     public Collection<ModerationAction> getUserActions(Map<String, Object> args) {
         return new ArrayList<ModerationAction>() {{
-            add(ModerationAction.pending());
+            add(ModerationAction.userPending());
         }};
     }
 }

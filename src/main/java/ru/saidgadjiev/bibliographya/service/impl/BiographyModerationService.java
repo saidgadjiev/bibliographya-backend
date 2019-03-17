@@ -81,19 +81,6 @@ public class BiographyModerationService {
 
     @Transactional
     public CompleteResult<Biography> complete(int biographyId, CompleteRequest completeRequest) throws SQLException {
-        Biography updated = doComplete(biographyId, completeRequest);
-
-        return new CompleteResult<>(updated == null ? 0 : 1, updated);
-    }
-
-    @Transactional
-    public CompleteResult<Biography> userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
-        Biography updated = doComplete(biographyId, completeRequest);
-
-        return new CompleteResult<>(updated == null ? 0 : 1, updated);
-    }
-
-    private Biography doComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
         User userDetails = (User) securityService.findLoggedInUser();
 
         Map<String, Object> processValues = new HashMap<>();
@@ -109,14 +96,37 @@ public class BiographyModerationService {
         Biography updated = handler.handle(Handler.Signal.fromDesc(completeRequest.getSignal()), processValues);
 
         if (updated == null) {
-            return null;
+            return new CompleteResult<>(0, null);
         }
 
         if (updated.getModeratorId() != null) {
             updated.setModerator(userDetails.getBiography());
         }
 
-        return updated;
+        return new CompleteResult<>(1, updated);
+    }
+
+    @Transactional
+    public CompleteResult<Biography> userComplete(int biographyId, CompleteRequest completeRequest) throws SQLException {
+        User userDetails = (User) securityService.findLoggedInUser();
+
+        Map<String, Object> processValues = new HashMap<>();
+
+        processValues.put("biographyId", biographyId);
+        processValues.put("creatorId", userDetails.getId());
+        processValues.put("rejectText", completeRequest.getInfo());
+
+        Handler handler = handlerMap.get(
+                Biography.ModerationStatus.fromCode(completeRequest.getStatus())
+        );
+
+        Biography updated = handler.handle(Handler.Signal.fromDesc(completeRequest.getSignal()), processValues);
+
+        if (updated == null) {
+            return new CompleteResult<>(0, null);
+        }
+
+        return new CompleteResult<>(1, updated);
     }
 
     public Collection<ModerationAction> getActions(@NotNull Biography biography) {

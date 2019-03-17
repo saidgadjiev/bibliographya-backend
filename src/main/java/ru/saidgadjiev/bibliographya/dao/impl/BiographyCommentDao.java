@@ -32,8 +32,8 @@ public class BiographyCommentDao {
         jdbcTemplate.update(
                 connection -> {
                     PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
-                            "(content, biography_id, user_id, parent_id) " +
-                            "VALUES(?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                            "(content, biography_id, user_id, parent_id, parent_user_id) " +
+                            "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setString(1, biographyComment.getContent());
                     ps.setInt(2, biographyComment.getBiographyId());
@@ -41,8 +41,10 @@ public class BiographyCommentDao {
 
                     if (biographyComment.getParentId() != null) {
                         ps.setInt(4, biographyComment.getParentId());
+                        ps.setInt(5, biographyComment.getParentUserId());
                     } else {
                         ps.setNull(4, Types.INTEGER);
+                        ps.setNull(5, Types.INTEGER);
                     }
 
                     return ps;
@@ -70,9 +72,9 @@ public class BiographyCommentDao {
 
         return jdbcTemplate.query(
                 "SELECT " + selectList(timeZone) +
-                        " FROM biography_comment bcm LEFT JOIN biography_comment bcpm ON bcm.parent_id = bcpm.id\n" +
+                        " FROM biography_comment bcm LEFT JOIN biography_comment bcmp ON bcm.parent_id = bcmp.id\n" +
                         "  LEFT JOIN biography ba ON bcm.user_id = ba.user_id\n" +
-                        "  LEFT JOIN biography br ON bcpm.user_id = br.user_id\n" +
+                        "  LEFT JOIN biography br ON bcm.parent_user_id = br.user_id\n" +
                         " WHERE bcm.biography_id = ?\n" +
                         (StringUtils.isNotBlank(sortClause) ? " ORDER BY " + sortClause : "") +
                         " LIMIT ? " +
@@ -151,9 +153,9 @@ public class BiographyCommentDao {
     public BiographyComment getById(TimeZone timeZone, int id) {
         return jdbcTemplate.query(
                 "SELECT " + selectList(timeZone) + " " +
-                        "FROM biography_comment bcm LEFT JOIN biography_comment bcpm ON bcm.parent_id = bcpm.id\n" +
+                        "FROM biography_comment bcm LEFT JOIN biography_comment bcmp ON bcm.parent_id = bcmp.id\n" +
                         "  LEFT JOIN biography ba ON bcm.user_id = ba.user_id\n" +
-                        "  LEFT JOIN biography br ON bcpm.user_id = br.user_id\n" +
+                        "  LEFT JOIN biography br ON bcm.parent_user_id = br.user_id\n" +
                         "WHERE bcm.id = ?",
                 ps -> {
                     ps.setInt(1, id);
@@ -190,18 +192,22 @@ public class BiographyCommentDao {
         if (!rs.wasNull()) {
             biographyComment.setParentId(parentId);
 
-            BiographyComment parent = new BiographyComment();
+            rs.getInt("bcmp_id");
 
-            parent.setId(parentId);
+            if (rs.wasNull()) {
+                biographyComment.setParentDeleted(true);
+            }
+        }
+        int parentUserId = rs.getInt("bcm_parent_user_id");
+
+        if (!rs.wasNull()) {
+            biographyComment.setParentUserId(parentUserId);
 
             Biography replyTo = new Biography();
             replyTo.setId(rs.getInt("br_id"));
             replyTo.setFirstName(rs.getString("br_first_name"));
 
-            parent.setUser(replyTo);
-            parent.setBiographyId(replyTo.getId());
-
-            biographyComment.setParent(parent);
+            biographyComment.setParentUser(replyTo);
         }
 
         return biographyComment;
@@ -227,6 +233,8 @@ public class BiographyCommentDao {
                 .append("bcm.biography_id as bcm_biography_id,")
                 .append("bcm.user_id as bcm_user_id,")
                 .append("bcm.parent_id as bcm_parent_id,")
+                .append("bcm.parent_user_id as bcm_parent_user_id,")
+                .append("bcmp.id as bcmp_id,")
                 .append("ba.id as ba_id,")
                 .append("ba.first_name as ba_first_name,")
                 .append("ba.last_name as ba_last_name,")

@@ -59,6 +59,25 @@ public class BiographyCommentService {
 
         if (commentRequest.getParentId() != null) {
             biographyComment.setParentId(commentRequest.getParentId());
+            Collection<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<Integer>()
+                        .propertyName(BiographyComment.ID)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(commentRequest.getParentId())
+                        .needPreparedSet(true)
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
+            );
+
+            List<Map<String, Object>> parentCommentValues = generalDao.getFields(
+                    BiographyComment.TABLE,
+                    Collections.singletonList(BiographyComment.USER_ID),
+                    criteria
+            );
+
+            biographyComment.setParentUserId((Integer) parentCommentValues.get(0).get(BiographyComment.USER_ID));
         }
 
         biographyCommentDao.create(biographyComment);
@@ -99,7 +118,7 @@ public class BiographyCommentService {
 
     public boolean isIAuthor(int commentId) {
         List<Map<String, Object>> result = generalDao.getFields(
-                BiographyComment.TYPE,
+                BiographyComment.TABLE,
                 Collections.singletonList("user_id"),
                 Collections.singletonList(
                 new FilterCriteria.Builder<Integer>()

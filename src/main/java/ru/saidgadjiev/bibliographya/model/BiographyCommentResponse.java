@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
-import ru.saidgadjiev.bibliographya.domain.BiographyComment;
 
 import java.sql.Timestamp;
 
@@ -26,7 +25,9 @@ public class BiographyCommentResponse {
 
     private ShortBiographyResponse user;
 
-    private BiographyComment parent;
+    private ShortBiographyResponse parentUser;
+
+    private boolean parentDeleted;
 
     public String getContent() {
         return content;
@@ -84,11 +85,19 @@ public class BiographyCommentResponse {
         this.user = user;
     }
 
-    public BiographyComment getParent() {
-        return parent;
+    public ShortBiographyResponse getParentUser() {
+        return parentUser;
     }
 
-    public void setParent(BiographyComment parent) {
-        this.parent = parent;
+    public void setParentUser(ShortBiographyResponse parentUser) {
+        this.parentUser = parentUser;
+    }
+
+    public boolean isParentDeleted() {
+        return parentDeleted;
+    }
+
+    public void setParentDeleted(boolean parentDeleted) {
+        this.parentDeleted = parentDeleted;
     }
 }

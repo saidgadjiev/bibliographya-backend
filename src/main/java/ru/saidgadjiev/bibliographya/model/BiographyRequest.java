@@ -6,7 +6,7 @@ import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by said on 18.11.2018.
@@ -30,9 +30,9 @@ public class BiographyRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp updatedAt;
 
-    private Collection<Integer> addCategories;
+    private List<Integer> addCategories;
 
-    private Collection<Integer> deleteCategories;
+    private List<Integer> deleteCategories;
 
     public String getFirstName() {
         return firstName;
@@ -82,19 +82,19 @@ public class BiographyRequest {
         this.updatedAt = updatedAt;
     }
 
-    public Collection<Integer> getAddCategories() {
+    public List<Integer> getAddCategories() {
         return addCategories;
     }
 
-    public void setAddCategories(Collection<Integer> addCategories) {
+    public void setAddCategories(List<Integer> addCategories) {
         this.addCategories = addCategories;
     }
 
-    public Collection<Integer> getDeleteCategories() {
+    public List<Integer> getDeleteCategories() {
         return deleteCategories;
     }
 
-    public void setDeleteCategories(Collection<Integer> deleteCategories) {
+    public void setDeleteCategories(List<Integer> deleteCategories) {
         this.deleteCategories = deleteCategories;
     }
 }

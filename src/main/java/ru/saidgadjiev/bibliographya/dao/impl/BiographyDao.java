@@ -103,6 +103,7 @@ public class BiographyDao {
                                               long offset,
                                               Integer categoryId,
                                               Collection<FilterCriteria> biographyCriteria,
+                                              Collection<String> fields,
                                               Sort sort
     ) {
         StringBuilder clause = new StringBuilder();
@@ -126,10 +127,13 @@ public class BiographyDao {
 
         sql
                 .append("SELECT ")
-                .append(getFullSelectList(timeZone))
+                .append(getFullSelectList(timeZone, fields))
                 .append(" FROM biography b")
-                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
-                .append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
+                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
+
+        if (fields.contains(Biography.CREATOR_ID)) {
+            sql.append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
+        }
 
         if (clause.length() > 0) {
             sql.append("WHERE ").append(clause.toString()).append(" ");
@@ -161,7 +165,7 @@ public class BiographyDao {
                         criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                     }
                 },
-                (resultSet, i) -> mapFull(resultSet, true, true)
+                (resultSet, i) -> mapFull(resultSet, fields)
         );
     }
 
@@ -175,15 +179,24 @@ public class BiographyDao {
         });
     }
 
-    public Biography getById(TimeZone timeZone, int id) {
+    public Biography getById(TimeZone timeZone, int id, Collection<String> fields) {
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ").append(getFullSelectList(timeZone, fields)).append(" FROM biography b ")
+                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
+
+        if (fields.contains(Biography.CREATOR_ID)) {
+            sql.append("LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
+        }
+
+        sql.append("WHERE b.id = ").append(id);
+
         return jdbcTemplate.query(
-                "SELECT " + getFullSelectList(timeZone) + " FROM biography b \n" +
-                        "  LEFT JOIN biography bm ON b.moderator_id = bm.user_id\n" +
-                        "  LEFT JOIN biography cb ON b.creator_id = cb.user_id\n" +
-                        "WHERE b.id = " + id + "",
+                sql.toString(),
                 rs -> {
                     if (rs.next()) {
-                        return mapFull(rs, true, true);
+                        return mapFull(rs, fields);
                     }
 
                     return null;
@@ -249,7 +262,7 @@ public class BiographyDao {
         );
     }
 
-    private String getFullSelectList(TimeZone timeZone) {
+    private String getFullSelectList(TimeZone timeZone, Collection<String> fields) {
         StringBuilder selectList = new StringBuilder();
 
         selectList.append("b.first_name,");
@@ -267,15 +280,18 @@ public class BiographyDao {
         selectList.append("b.publish_status,");
         selectList.append("bm.first_name as m_first_name,");
         selectList.append("bm.last_name as m_last_name,");
-        selectList.append("bm.id as m_id,");
-        selectList.append("cb.id as cb_id,");
-        selectList.append("cb.first_name as cb_first_name,");
-        selectList.append("cb.last_name as cb_last_name");
+        selectList.append("bm.id as m_id");
+
+        if (fields.contains(Biography.CREATOR_ID)) {
+            selectList.append(",cb.id as cb_id,");
+            selectList.append("cb.first_name as cb_first_name,");
+            selectList.append("cb.last_name as cb_last_name");
+        }
 
         return selectList.toString();
     }
 
-    private Biography mapFull(ResultSet rs, boolean mapCreator, boolean mapModerator) throws SQLException {
+    private Biography mapFull(ResultSet rs, Collection<String> fields) throws SQLException {
         Biography biography = new Biography();
 
         biography.setId(rs.getInt("id"));
@@ -294,7 +310,7 @@ public class BiographyDao {
         biography.setModerationInfo(rs.getString("moderation_info"));
         biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
 
-        if (biography.getModeratorId() != null && mapModerator) {
+        if (biography.getModeratorId() != null) {
             Biography moderatorBiography = new Biography();
 
             moderatorBiography.setId(rs.getInt("m_id"));
@@ -305,7 +321,7 @@ public class BiographyDao {
             biography.setModerator(moderatorBiography);
         }
 
-        if (mapCreator) {
+        if (fields.contains(Biography.CREATOR_ID)) {
             Biography creator = new Biography();
 
             creator.setId(rs.getInt("cb_id"));

@@ -106,7 +106,7 @@ public class BiographyService {
     }
 
     public Biography getBiographyById(TimeZone timeZone, int id) {
-        Biography biography = biographyDao.getById(timeZone, id);
+        Biography biography = biographyDao.getById(timeZone, id, Arrays.asList(Biography.CREATOR_ID));
 
         if (biography == null) {
             return null;
@@ -159,6 +159,7 @@ public class BiographyService {
                 pageRequest.getOffset(),
                 categoryId,
                 criteria,
+                Arrays.asList(Biography.CREATOR_ID),
                 pageRequest.getSort()
         );
 
@@ -199,6 +200,7 @@ public class BiographyService {
                 pageRequest.getOffset(),
                 null,
                 criteria,
+                Arrays.asList(Biography.CREATOR_ID),
                 null
         );
 
