@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
@@ -84,6 +86,15 @@ public class BibliographyaConfiguration {
                         .expireAfterWrite(1, TimeUnit.MINUTES)
                         .build()
         );
+    }
+
+    @Bean
+    public MultipartResolver multipartResolver() {
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+
+        multipartResolver.setMaxUploadSize(5242880); //5MB
+
+        return multipartResolver;
     }
 
     @Bean
