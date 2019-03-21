@@ -101,7 +101,7 @@ public class BiographyCategoryController {
 
     @PostMapping("")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> create(@RequestPart(value = "file") MultipartFile file,
+    public ResponseEntity<?> create(@RequestPart("file") MultipartFile file,
                                     @RequestPart("data") String data,
                                     BindingResult result) throws IOException {
         BiographyCategoryRequest categoryRequest = objectMapper.readValue(data, BiographyCategoryRequest.class);
