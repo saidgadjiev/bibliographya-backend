@@ -21,6 +21,7 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
+import javax.script.ScriptException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -55,7 +56,10 @@ public class BiographyModerationService {
         handlerMap.put(Biography.ModerationStatus.REJECTED, new RejectedHandler(biographyModerationDao));
     }
 
-    public Page<Biography> getBiographies(TimeZone timeZone, OffsetLimitPageRequest pageRequest, String query) {
+    public Page<Biography> getBiographies(TimeZone timeZone,
+                                          OffsetLimitPageRequest pageRequest,
+                                          String query,
+                                          Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         Collection<FilterCriteria> criteria = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
@@ -76,7 +80,7 @@ public class BiographyModerationService {
                         .build()
         );
 
-        return biographyService.getBiographies(timeZone, pageRequest, criteria, null);
+        return biographyService.getBiographies(timeZone, pageRequest, criteria, null, biographyClampSize);
     }
 
     @Transactional

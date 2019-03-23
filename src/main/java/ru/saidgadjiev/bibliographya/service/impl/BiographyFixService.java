@@ -17,14 +17,15 @@ import ru.saidgadjiev.bibliographya.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
-import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyFixSuggestRequest;
 import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
+import javax.script.ScriptException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,22 +40,24 @@ public class BiographyFixService {
 
     private final SecurityService securityService;
 
-    private final BiographyCategoryBiographyService biographyCategoryBiographyService;
+    private BiographyBuilder biographyBuilder;
 
     private Map<BiographyFix.FixStatus, Handler> handlerMap = new HashMap<>();
 
     @Autowired
     public BiographyFixService(BiographyFixDao biographyFixDao,
                                SecurityService securityService,
-                               BiographyCategoryBiographyService biographyCategoryBiographyService) {
+                               BiographyBuilder biographyBuilder) {
         this.biographyFixDao = biographyFixDao;
         this.securityService = securityService;
-        this.biographyCategoryBiographyService = biographyCategoryBiographyService;
+        this.biographyBuilder = biographyBuilder;
 
         initHandlers();
     }
 
-    public Page<BiographyFix> getFixesList(OffsetLimitPageRequest pageRequest, String query) {
+    public Page<BiographyFix> getFixesList(OffsetLimitPageRequest pageRequest,
+                                           String query,
+                                           Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         List<FilterCriteria> criteria = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
@@ -79,13 +82,10 @@ public class BiographyFixService {
             return new PageImpl<>(biographyFixes, pageRequest, 0);
         }
         long total = biographyFixDao.countOff();
-        Collection<Integer> ids = biographyFixes.stream().map(BiographyFix::getBiographyId).collect(Collectors.toList());
 
-        Map<Integer, BiographyCategoryBiography> categories = biographyCategoryBiographyService.getBiographiesCategories(ids);
-
-        for (BiographyFix fix: biographyFixes) {
-            fix.getBiography().setCategories(categories.get(fix.getBiographyId()).getCategories());
-        }
+        biographyBuilder.builder(biographyFixes.stream().map(BiographyFix::getBiography).collect(Collectors.toList()))
+                .buildSocialPart()
+                .truncateBiography(biographyClampSize);
 
         return new PageImpl<>(biographyFixes, pageRequest, total);
     }

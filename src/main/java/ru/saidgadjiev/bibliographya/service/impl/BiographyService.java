@@ -11,10 +11,15 @@ import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.domain.BiographiesStats;
+import ru.saidgadjiev.bibliographya.domain.Biography;
+import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
+import javax.script.ScriptException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -22,7 +27,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by said on 22.10.2018.
@@ -34,33 +38,22 @@ public class BiographyService {
 
     private final GeneralDao generalDao;
 
+    private BiographyBuilder biographyBuilder;
+
     private SecurityService securityService;
-
-    private BiographyCommentService biographyCommentService;
-
-    private BiographyLikeService biographyLikeService;
 
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(BiographyDao biographyDao, GeneralDao generalDao) {
+    public BiographyService(BiographyDao biographyDao, GeneralDao generalDao, BiographyBuilder biographyBuilder) {
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
+        this.biographyBuilder = biographyBuilder;
     }
 
     @Autowired
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    @Autowired
-    public void setBiographyCommentService(BiographyCommentService biographyCommentService) {
-        this.biographyCommentService = biographyCommentService;
-    }
-
-    @Autowired
-    public void setBiographyLikeService(BiographyLikeService biographyLikeService) {
-        this.biographyLikeService = biographyLikeService;
     }
 
     @Autowired
@@ -106,21 +99,20 @@ public class BiographyService {
     }
 
     public Biography getBiographyById(TimeZone timeZone, int id) {
-        Biography biography = biographyDao.getById(timeZone, id, Arrays.asList(Biography.CREATOR_ID));
+        Biography biography = biographyDao.getById(timeZone, id, Collections.singletonList(Biography.CREATOR_ID));
 
         if (biography == null) {
             return null;
         }
 
-        postProcess(biography);
-
-        return biography;
+        return biographyBuilder.builder(biography).buildSocialPart().build();
     }
 
     public Page<Biography> getBiographies(TimeZone timeZone,
                                           OffsetLimitPageRequest pageRequest,
                                           Integer categoryId,
-                                          Boolean autobiographies) {
+                                          Boolean autobiographies,
+                                          Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         List<FilterCriteria> criteria = new ArrayList<>();
 
         if (autobiographies != null) {
@@ -144,15 +136,15 @@ public class BiographyService {
                         .build()
         );
 
-        return getBiographies(timeZone, pageRequest, criteria, categoryId);
+        return getBiographies(timeZone, pageRequest, criteria, categoryId, biographyClampSize);
     }
 
 
     public Page<Biography> getBiographies(TimeZone timeZone,
                                           OffsetLimitPageRequest pageRequest,
                                           Collection<FilterCriteria> criteria,
-                                          Integer categoryId
-    ) {
+                                          Integer categoryId,
+                                          Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         List<Biography> biographies = biographyDao.getBiographiesList(
                 timeZone,
                 pageRequest.getPageSize(),
@@ -167,13 +159,16 @@ public class BiographyService {
             return new PageImpl<>(biographies, pageRequest, 0);
         }
 
-        postProcess(biographies);
+        biographies = biographyBuilder.builder(biographies)
+                .buildSocialPart()
+                .truncateBiography(biographyClampSize)
+                .build();
 
         return new PageImpl<>(biographies, pageRequest, biographies.size());
     }
 
 
-    public Page<Biography> getMyBiographies(TimeZone timeZone, OffsetLimitPageRequest pageRequest) {
+    public Page<Biography> getMyBiographies(TimeZone timeZone, OffsetLimitPageRequest pageRequest, Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         User user = (User) securityService.findLoggedInUser();
         List<FilterCriteria> criteria = new ArrayList<>();
 
@@ -200,7 +195,7 @@ public class BiographyService {
                 pageRequest.getOffset(),
                 null,
                 criteria,
-                Arrays.asList(Biography.CREATOR_ID),
+                Collections.singletonList(Biography.CREATOR_ID),
                 null
         );
 
@@ -208,7 +203,10 @@ public class BiographyService {
             return new PageImpl<>(biographies, pageRequest, 0);
         }
 
-        postProcess(biographies);
+        biographies = biographyBuilder.builder(biographies)
+                .buildSocialPart()
+                .truncateBiography(biographyClampSize)
+                .build();
 
         long total = biographyDao.countOff();
 
@@ -324,13 +322,13 @@ public class BiographyService {
                 Biography.TABLE,
                 Collections.singletonList(Biography.CREATOR_ID),
                 Collections.singletonList(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setInt)
-                        .filterValue(biographyId)
-                        .build()
-        ));
+                        new FilterCriteria.Builder<Integer>()
+                                .propertyName(Biography.ID)
+                                .filterOperation(FilterOperation.EQ)
+                                .valueSetter(PreparedStatement::setInt)
+                                .filterValue(biographyId)
+                                .build()
+                ));
 
         if (result.isEmpty()) {
             return false;
@@ -403,27 +401,5 @@ public class BiographyService {
         }
 
         return biographyDao.updateValues(timeZone, updateValues, criteria).getUpdated();
-    }
-
-    private void postProcess(Biography biography) {
-        biography.setLikesCount(biographyLikeService.getBiographyLikesCount(biography.getId()));
-        biography.setCommentsCount(biographyCommentService.getBiographyCommentsCount(biography.getId()));
-        biography.setLiked(biographyLikeService.getBiographyIsLiked(biography.getId()));
-        biography.setCategories(biographyCategoryBiographyService.getBiographyCategories(biography.getId()).getCategories());
-    }
-
-    private void postProcess(Collection<Biography> biographies) {
-        Collection<Integer> ids = biographies.stream().map(Biography::getId).collect(Collectors.toList());
-        Map<Integer, Integer> biographiesLikesCount = biographyLikeService.getBiographiesLikesCount(ids);
-        Map<Integer, Boolean> biographiesIsLiked = biographyLikeService.getBiographiesIsLiked(ids);
-        Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
-        Map<Integer, BiographyCategoryBiography> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
-
-        for (Biography biography : biographies) {
-            biography.setLikesCount(biographiesLikesCount.get(biography.getId()));
-            biography.setLiked(biographiesIsLiked.get(biography.getId()));
-            biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
-            biography.setCategories(biographiesCategories.get(biography.getId()).getCategories());
-        }
     }
 }
