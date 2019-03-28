@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.bussiness.fix.EmptyHandler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliographya.bussiness.fix.Handler;
@@ -17,7 +16,9 @@ import ru.saidgadjiev.bibliographya.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
+import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
@@ -26,6 +27,7 @@ import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
 import javax.script.ScriptException;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -70,11 +72,25 @@ public class BiographyFixService {
                 put("status", FilterCriteriaVisitor.Type.INTEGER);
             }}));
         }
+        User user = (User) securityService.findLoggedInUser();
+
+        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+
+        isLikedCriteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName(BiographyLike.USER_ID)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(user.getId())
+                        .valueSetter(PreparedStatement::setInt)
+                        .needPreparedSet(true)
+                        .build()
+        );
 
         List<BiographyFix> biographyFixes = biographyFixDao.getFixesList(
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 criteria,
+                isLikedCriteria,
                 pageRequest.getSort()
         );
 
@@ -84,7 +100,7 @@ public class BiographyFixService {
         long total = biographyFixDao.countOff();
 
         biographyBuilder.builder(biographyFixes.stream().map(BiographyFix::getBiography).collect(Collectors.toList()))
-                .buildSocialPart()
+                .buildCategories()
                 .truncateBiography(biographyClampSize);
 
         return new PageImpl<>(biographyFixes, pageRequest, total);
@@ -102,9 +118,29 @@ public class BiographyFixService {
     }
 
     public CompleteResult<BiographyFix> complete(int fixId, CompleteRequest completeRequest) throws SQLException {
-        BiographyFix fix = doComplete(fixId, completeRequest);
+        User userDetails = (User) securityService.findLoggedInUser();
 
-        return new CompleteResult<>(fix == null ? 0 : 1, fix);
+        Map<String, Object> processValues = new HashMap<>();
+
+        processValues.put("fixId", fixId);
+        processValues.put("fixerId", userDetails.getId());
+        processValues.put("info", completeRequest.getInfo());
+
+        Handler handler = handlerMap.get(
+                BiographyFix.FixStatus.fromCode(completeRequest.getStatus())
+        );
+
+        BiographyFix fix = handler.handle(Handler.Signal.fromDesc(completeRequest.getSignal()), processValues);
+
+        if (fix == null) {
+            return new CompleteResult<>(1, null);
+        }
+
+        if (fix.getFixerId() != null) {
+            fix.setFixer(userDetails.getBiography());
+        }
+
+        return new CompleteResult<>(1, fix);
     }
 
     public Collection<FixAction> getActions(BiographyFix fix) {
@@ -127,32 +163,5 @@ public class BiographyFixService {
         handlerMap.put(BiographyFix.FixStatus.CLOSED, new EmptyHandler());
         handlerMap.put(BiographyFix.FixStatus.PENDING, new PendingHandler(biographyFixDao));
         handlerMap.put(BiographyFix.FixStatus.IGNORED, new EmptyHandler());
-    }
-
-    @Transactional
-    private BiographyFix doComplete(int fixId, CompleteRequest completeRequest) throws SQLException {
-        User userDetails = (User) securityService.findLoggedInUser();
-
-        Map<String, Object> processValues = new HashMap<>();
-
-        processValues.put("fixId", fixId);
-        processValues.put("fixerId", userDetails.getId());
-        processValues.put("info", completeRequest.getInfo());
-
-        Handler handler = handlerMap.get(
-                BiographyFix.FixStatus.fromCode(completeRequest.getStatus())
-        );
-
-        BiographyFix updated = handler.handle(Handler.Signal.fromDesc(completeRequest.getSignal()), processValues);
-
-        if (updated == null) {
-            return null;
-        }
-
-        if (updated.getFixerId() != null) {
-            updated.setFixer(userDetails.getBiography());
-        }
-
-        return updated;
     }
 }

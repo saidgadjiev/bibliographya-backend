@@ -28,18 +28,10 @@ import java.util.stream.Collectors;
 @Service
 public class BiographyBuilder {
 
-    private BiographyCommentService biographyCommentService;
-
-    private BiographyLikeService biographyLikeService;
-
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyBuilder(BiographyCommentService biographyCommentService,
-                            BiographyLikeService biographyLikeService,
-                            BiographyCategoryBiographyService biographyCategoryBiographyService) {
-        this.biographyCommentService = biographyCommentService;
-        this.biographyLikeService = biographyLikeService;
+    public BiographyBuilder(BiographyCategoryBiographyService biographyCategoryBiographyService) {
         this.biographyCategoryBiographyService = biographyCategoryBiographyService;
     }
 
@@ -82,10 +74,7 @@ public class BiographyBuilder {
             this.biography = biography;
         }
 
-        public SingleBuilder buildSocialPart() {
-            biography.setLikesCount(biographyLikeService.getBiographyLikesCount(biography.getId()));
-            biography.setCommentsCount(biographyCommentService.getBiographyCommentsCount(biography.getId()));
-            biography.setLiked(biographyLikeService.getBiographyIsLiked(biography.getId()));
+        public SingleBuilder buildCategories() {
             biography.setCategories(biographyCategoryBiographyService.getBiographyCategories(biography.getId()).getCategories());
 
             return this;
@@ -112,17 +101,11 @@ public class BiographyBuilder {
             this.biographies = biographies;
         }
 
-        public MultipleBuilder buildSocialPart() {
+        public MultipleBuilder buildCategories() {
             Collection<Integer> ids = biographies.stream().map(Biography::getId).collect(Collectors.toList());
-            Map<Integer, Integer> biographiesLikesCount = biographyLikeService.getBiographiesLikesCount(ids);
-            Map<Integer, Boolean> biographiesIsLiked = biographyLikeService.getBiographiesIsLiked(ids);
-            Map<Integer, Long> biographiesCommentsCount = biographyCommentService.getBiographiesCommentsCount(ids);
             Map<Integer, BiographyCategoryBiography> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
 
             for (Biography biography : biographies) {
-                biography.setLikesCount(biographiesLikesCount.get(biography.getId()));
-                biography.setLiked(biographiesIsLiked.get(biography.getId()));
-                biography.setCommentsCount(biographiesCommentsCount.get(biography.getId()));
                 biography.setCategories(biographiesCategories.get(biography.getId()).getCategories());
             }
 

@@ -11,10 +11,7 @@ import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.domain.BiographiesStats;
-import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
@@ -99,13 +96,23 @@ public class BiographyService {
     }
 
     public Biography getBiographyById(TimeZone timeZone, int id) {
-        Biography biography = biographyDao.getById(timeZone, id, Collections.singletonList(Biography.CREATOR_ID));
+        User user = (User) securityService.findLoggedInUser();
+        Collection<String> fields = Arrays.asList(Biography.CREATOR_ID);
+        Collection<FilterCriteria> criteria = new ArrayList<>();
+
+        if (user != null) {
+            fields.add(Biography.USER_ID);
+
+            criteria.addAll(isLikedCriteria());
+        }
+
+        Biography biography = biographyDao.getById(timeZone, id, criteria, fields);
 
         if (biography == null) {
             return null;
         }
 
-        return biographyBuilder.builder(biography).buildSocialPart().build();
+        return biographyBuilder.builder(biography).buildCategories().build();
     }
 
     public Page<Biography> getBiographies(TimeZone timeZone,
@@ -145,13 +152,26 @@ public class BiographyService {
                                           Collection<FilterCriteria> criteria,
                                           Integer categoryId,
                                           Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
+        Collection<String> fields = new ArrayList<>();
+
+        fields.add(Biography.CREATOR_ID);
+        User userDetails = (User) securityService.findLoggedInUser();
+        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+
+        if (userDetails != null) {
+            fields.add(Biography.IS_LIKED);
+
+            isLikedCriteria.addAll(isLikedCriteria());
+        }
+
         List<Biography> biographies = biographyDao.getBiographiesList(
                 timeZone,
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 categoryId,
                 criteria,
-                Arrays.asList(Biography.CREATOR_ID),
+                isLikedCriteria,
+                fields,
                 pageRequest.getSort()
         );
 
@@ -160,7 +180,7 @@ public class BiographyService {
         }
 
         biographies = biographyBuilder.builder(biographies)
-                .buildSocialPart()
+                .buildCategories()
                 .truncateBiography(biographyClampSize)
                 .build();
 
@@ -195,7 +215,8 @@ public class BiographyService {
                 pageRequest.getOffset(),
                 null,
                 criteria,
-                Collections.singletonList(Biography.CREATOR_ID),
+                isLikedCriteria(),
+                Arrays.asList(Biography.CREATOR_ID, Biography.IS_LIKED),
                 null
         );
 
@@ -204,7 +225,7 @@ public class BiographyService {
         }
 
         biographies = biographyBuilder.builder(biographies)
-                .buildSocialPart()
+                .buildCategories()
                 .truncateBiography(biographyClampSize)
                 .build();
 
@@ -401,5 +422,23 @@ public class BiographyService {
         }
 
         return biographyDao.updateValues(timeZone, updateValues, criteria).getUpdated();
+    }
+
+    private Collection<FilterCriteria> isLikedCriteria() {
+        User user = (User) securityService.findLoggedInUser();
+
+        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+
+        isLikedCriteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .propertyName(BiographyLike.USER_ID)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(user.getId())
+                        .valueSetter(PreparedStatement::setInt)
+                        .needPreparedSet(true)
+                        .build()
+        );
+
+        return isLikedCriteria;
     }
 }

@@ -16,6 +16,8 @@ public class Biography {
 
     public static final String ID = "id";
 
+    public static final String IS_LIKED = "is_liked";
+
     public static final String CREATOR_ID = "creator_id";
 
     public static final String USER_ID = "user_id";

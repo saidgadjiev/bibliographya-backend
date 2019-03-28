@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -35,18 +36,45 @@ public class BiographyFixDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<BiographyFix> getFixesList(int limit, long offset, Collection<FilterCriteria> criteria, Sort sort) {
+    public List<BiographyFix> getFixesList(int limit,
+                                           long offset,
+                                           Collection<FilterCriteria> criteria,
+                                           Collection<FilterCriteria> isLikedCriteria,
+                                           Sort sort) {
         String clause = toClause(criteria, "bf");
         String sortClause = SortUtils.toSql(sort, "b");
 
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ").append(selectList()).append(" FROM biography_fix bf INNER JOIN biography b ON bf.biography_id = b.id ")
+                .append(" INNER JOIN biography cb ON bf.creator_id = cb.user_id ")
+                .append(" LEFT JOIN biography fb ON bf.fixer_id = fb.user_id ")
+                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ");
+
+        String isLikedClause = FilterUtils.toClause(isLikedCriteria, "bisl");
+
+        sql
+                .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");
+
+        if (StringUtils.isNotBlank(isLikedClause)) {
+            sql.append(isLikedClause);
+        }
+
+        sql.append(") bisl ON b.id = bisl.biography_id ");
+
+        if (StringUtils.isNotBlank(clause)) {
+            sql.append("WHERE ").append(clause).append(" ");
+        }
+        if (StringUtils.isNotBlank(sortClause)) {
+            sql.append("ORDER BY ").append(sortClause).append(" ");
+        }
+        sql.append("LIMIT ").append(limit).append(" OFFSET ").append(offset);
+
         return jdbcTemplate.query(
-                "SELECT " + selectList() +
-                        " FROM biography_fix bf INNER JOIN biography b ON bf.biography_id = b.id\n" +
-                        "  INNER JOIN biography cb ON bf.creator_id = cb.user_id\n" +
-                        "  LEFT JOIN biography fb ON bf.fixer_id = fb.user_id " + (clause.length() > 0 ? " WHERE " + clause : "") +
-                        (StringUtils.isNotBlank(sortClause) ? " ORDER BY " + sortClause : "") +
-                        " LIMIT " + limit + "\n" +
-                        " OFFSET " + offset,
+                sql.toString(),
                 ps -> {
                     int i = 0;
 
@@ -178,6 +206,13 @@ public class BiographyFixDao {
             fix.setFixer(mapFixerBiography(rs));
         }
 
+        rs.getInt("bisl_biography_id");
+
+        biography.setLiked(!rs.wasNull());
+
+        biography.setLikesCount(rs.getInt("l_cnt"));
+        biography.setCommentsCount(rs.getInt("bc_cnt"));
+
         return fix;
     }
 
@@ -246,7 +281,10 @@ public class BiographyFixDao {
                 .append("fb.first_name as fb_first_name,")
                 .append("fb.user_id as fb_user_id,")
                 .append("fb.last_name as fb_last_name,")
-                .append("fb.middle_name as fb_middle_name");
+                .append("fb.middle_name as fb_middle_name,")
+                .append("l.cnt as l_cnt,")
+                .append("bc.cnt as bc_cnt,")
+                .append(",bisl.biography_id as bisl_biography_id");
 
         return builder.toString();
     }

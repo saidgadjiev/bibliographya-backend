@@ -71,13 +71,13 @@ public class BiographyCommentService {
                         .build()
             );
 
-            List<Map<String, Object>> parentCommentValues = generalDao.getFields(
+            Map<String, Object> parentCommentValue = generalDao.uniqueValue(
                     BiographyComment.TABLE,
                     Collections.singletonList(BiographyComment.USER_ID),
                     criteria
             );
 
-            biographyComment.setParentUserId((Integer) parentCommentValues.get(0).get(BiographyComment.USER_ID));
+            biographyComment.setParentUserId((Integer) parentCommentValue.get(BiographyComment.USER_ID));
         }
 
         biographyCommentDao.create(biographyComment);

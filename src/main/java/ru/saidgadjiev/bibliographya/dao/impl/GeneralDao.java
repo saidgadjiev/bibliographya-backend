@@ -157,4 +157,10 @@ public class GeneralDao {
                 }
         );
     }
+
+    public Map<String, Object> uniqueValue(String table, Collection<String> fields, Collection<FilterCriteria> criteria) {
+        List<Map<String, Object>> values = getFields(table, fields, criteria);
+
+        return values.isEmpty() ? null : values.iterator().next();
+    }
 }

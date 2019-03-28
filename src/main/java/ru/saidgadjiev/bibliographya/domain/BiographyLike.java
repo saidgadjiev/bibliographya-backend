@@ -5,6 +5,8 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class BiographyLike {
 
+    public static final String USER_ID = "user_id";
+
     private Integer userId;
 
     private Biography user;

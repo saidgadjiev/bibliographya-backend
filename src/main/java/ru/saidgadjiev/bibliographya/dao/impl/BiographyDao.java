@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -103,6 +104,7 @@ public class BiographyDao {
                                               long offset,
                                               Integer categoryId,
                                               Collection<FilterCriteria> biographyCriteria,
+                                              Collection<FilterCriteria> isLikedCriteria,
                                               Collection<String> fields,
                                               Sort sort
     ) {
@@ -128,12 +130,9 @@ public class BiographyDao {
         sql
                 .append("SELECT ")
                 .append(getFullSelectList(timeZone, fields))
-                .append(" FROM biography b")
-                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
+                .append(" FROM biography b");
 
-        if (fields.contains(Biography.CREATOR_ID)) {
-            sql.append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
-        }
+        appendJoins(sql, fields, isLikedCriteria);
 
         if (clause.length() > 0) {
             sql.append("WHERE ").append(clause.toString()).append(" ");
@@ -164,6 +163,15 @@ public class BiographyDao {
                             ) {
                         criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                     }
+
+                    for (FilterCriteria criterion
+                            : isLikedCriteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())
+                            ) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
                 },
                 (resultSet, i) -> mapFull(resultSet, fields)
         );
@@ -179,21 +187,30 @@ public class BiographyDao {
         });
     }
 
-    public Biography getById(TimeZone timeZone, int id, Collection<String> fields) {
+    public Biography getById(TimeZone timeZone, int id, Collection<FilterCriteria> isLikedCriteria, Collection<String> fields) {
         StringBuilder sql = new StringBuilder();
 
         sql
-                .append("SELECT ").append(getFullSelectList(timeZone, fields)).append(" FROM biography b ")
-                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ");
+                .append("SELECT ").append(getFullSelectList(timeZone, fields)).append(" FROM biography b ");
 
-        if (fields.contains(Biography.CREATOR_ID)) {
-            sql.append("LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
-        }
+        appendJoins(sql, fields, isLikedCriteria);
 
         sql.append("WHERE b.id = ").append(id);
 
         return jdbcTemplate.query(
                 sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (FilterCriteria criterion
+                            : isLikedCriteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())
+                            ) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
+                },
                 rs -> {
                     if (rs.next()) {
                         return mapFull(rs, fields);
@@ -265,22 +282,28 @@ public class BiographyDao {
     private String getFullSelectList(TimeZone timeZone, Collection<String> fields) {
         StringBuilder selectList = new StringBuilder();
 
-        selectList.append("b.first_name,");
-        selectList.append("b.last_name,");
-        selectList.append("b.middle_name,");
-        selectList.append("b.id,");
-        selectList.append("b.creator_id,");
-        selectList.append("b.user_id,");
-        selectList.append("b.updated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as updated_at, ");
-        selectList.append("b.moderation_status,");
-        selectList.append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ");
-        selectList.append("b.moderator_id,");
-        selectList.append("b.moderation_info,");
-        selectList.append("b.biography,");
-        selectList.append("b.publish_status,");
-        selectList.append("bm.first_name as m_first_name,");
-        selectList.append("bm.last_name as m_last_name,");
-        selectList.append("bm.id as m_id");
+        selectList
+                .append("b.first_name,")
+                .append("b.last_name,")
+                .append("b.middle_name,")
+                .append("b.id,")
+                .append("b.creator_id,")
+                .append("b.user_id,")
+                .append("b.updated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as updated_at, ")
+                .append("b.moderation_status,")
+                .append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ")
+                .append("b.moderator_id,")
+                .append("b.moderation_info,")
+                .append("b.biography,")
+                .append("b.publish_status,")
+                .append("bm.first_name as m_first_name,")
+                .append("bm.last_name as m_last_name,").append("bm.id as m_id,")
+                .append("l.cnt as l_cnt,")
+                .append("bc.cnt as bc_cnt");
+
+        if (fields.contains(Biography.IS_LIKED)) {
+            selectList.append(",bisl.biography_id as bisl_biography_id");
+        }
 
         if (fields.contains(Biography.CREATOR_ID)) {
             selectList.append(",cb.id as cb_id,");
@@ -331,6 +354,38 @@ public class BiographyDao {
             biography.setCreator(creator);
         }
 
+        if (fields.contains(Biography.IS_LIKED)) {
+            rs.getInt("bisl_biography_id");
+
+            biography.setLiked(!rs.wasNull());
+        }
+
+        biography.setLikesCount(rs.getInt("l_cnt"));
+        biography.setCommentsCount(rs.getInt("bc_cnt"));
+
         return biography;
+    }
+
+    private void appendJoins(StringBuilder sql, Collection<String> fields, Collection<FilterCriteria> isLikedCriteria) {
+        sql.append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ");
+
+        if (fields.contains(Biography.IS_LIKED)) {
+            String isLikedClause = FilterUtils.toClause(isLikedCriteria, "bisl");
+
+            sql
+                    .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");
+
+            if (StringUtils.isNotBlank(isLikedClause)) {
+                sql.append(isLikedClause);
+            }
+
+            sql.append(") bisl ON b.id = bisl.biography_id ");
+        }
+
+        if (fields.contains(Biography.CREATOR_ID)) {
+            sql.append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
+        }
     }
 }
