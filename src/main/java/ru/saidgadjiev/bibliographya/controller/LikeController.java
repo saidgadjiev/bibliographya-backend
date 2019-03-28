@@ -48,7 +48,7 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<?> likes(@PathVariable("biographyId") int biographyId, OffsetLimitPageRequest pageRequest) {
         Page<BiographyLike> page = likeService.getBiographyLikes(biographyId, pageRequest);
 
