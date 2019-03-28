@@ -95,7 +95,8 @@ public class BiographyLikeService {
 
     public Page<BiographyLike> getBiographyLikes(int biographyId, OffsetLimitPageRequest pageRequest) {
         List<BiographyLike> likeList = biographyLikeDao.getLikes(biographyId, pageRequest.getPageSize(), pageRequest.getOffset());
+        long count = biographyLikeDao.getLikesCount(biographyId);
 
-        return new PageImpl<>(likeList, pageRequest, likeList.size());
+        return new PageImpl<>(likeList, pageRequest, count);
     }
 }

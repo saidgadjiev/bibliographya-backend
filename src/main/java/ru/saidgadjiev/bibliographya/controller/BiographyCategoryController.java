@@ -20,6 +20,7 @@ import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.TimeZone;
 
@@ -82,9 +83,10 @@ public class BiographyCategoryController {
             TimeZone timeZone,
             @PathVariable("id") Integer id,
             OffsetLimitPageRequest pageRequest,
-            @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
-    ) {
-        Page<Biography> page = biographyService.getBiographies(timeZone, pageRequest, id, autobiographies);
+            @RequestParam(value = "autobiographies", required = false) Boolean autobiographies,
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
+    ) throws ScriptException, NoSuchMethodException {
+        Page<Biography> page = biographyService.getBiographies(timeZone, pageRequest, id, autobiographies, biographyClampSize);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -101,7 +103,7 @@ public class BiographyCategoryController {
 
     @PostMapping("")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> create(@RequestPart(value = "file") MultipartFile file,
+    public ResponseEntity<?> create(@RequestPart("file") MultipartFile file,
                                     @RequestPart("data") String data,
                                     BindingResult result) throws IOException {
         BiographyCategoryRequest categoryRequest = objectMapper.readValue(data, BiographyCategoryRequest.class);

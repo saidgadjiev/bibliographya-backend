@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.domain;
 
+import ru.saidgadjiev.bibliographya.html.Header;
+
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Objects;
@@ -77,6 +79,8 @@ public class Biography {
     private String moderationInfo;
 
     private PublishStatus publishStatus;
+
+    private Collection<Header> headers;
 
     public Integer getId() {
         return id;
@@ -260,6 +264,14 @@ public class Biography {
 
     public void setCreator(Biography creator) {
         this.creator = creator;
+    }
+
+    public Collection<Header> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Collection<Header> headers) {
+        this.headers = headers;
     }
 
     /**

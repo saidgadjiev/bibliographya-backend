@@ -156,7 +156,7 @@ public class BiographyLikeDao {
         sql
                 .append("SELECT ")
                 .append(selectList())
-                .append(" FROM biography_like bl INNER JOIN biography b ON bl.user_id = b.user_id WHERE bl.biography_id = ? LIMIT ? OFFSET ?");
+                .append(" FROM biography_like bl INNER JOIN biography b ON bl.user_id = b.user_id WHERE bl.biography_id = ? ORDER BY bl.created_at ASC LIMIT ? OFFSET ?");
 
         return jdbcTemplate.query(
                 sql.toString(),

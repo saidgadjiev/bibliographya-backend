@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+import ru.saidgadjiev.bibliographya.html.Header;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -37,6 +38,8 @@ public class BiographyBaseResponse {
     private Collection<BiographyCategory> categories;
 
     private Integer publishStatus;
+
+    private Collection<Header> headers;
 
     public Integer getId() {
         return id;
@@ -148,5 +151,13 @@ public class BiographyBaseResponse {
 
     public void setPublishStatus(Integer publishStatus) {
         this.publishStatus = publishStatus;
+    }
+
+    public Collection<Header> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Collection<Header> headers) {
+        this.headers = headers;
     }
 }

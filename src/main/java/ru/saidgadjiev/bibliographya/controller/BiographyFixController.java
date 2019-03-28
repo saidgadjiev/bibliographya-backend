@@ -16,6 +16,7 @@ import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
 
+import javax.script.ScriptException;
 import java.sql.SQLException;
 
 /**
@@ -39,9 +40,10 @@ public class BiographyFixController {
     @GetMapping("")
     public ResponseEntity<?> getFixes(
             OffsetLimitPageRequest pageRequest,
-            @RequestParam(value = "q", required = false) String query
-    ) {
-        Page<BiographyFix> page = fixService.getFixesList(pageRequest, query);
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
+    ) throws ScriptException, NoSuchMethodException {
+        Page<BiographyFix> page = fixService.getFixesList(pageRequest, query, biographyClampSize);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();

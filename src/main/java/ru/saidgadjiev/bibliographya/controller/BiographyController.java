@@ -21,6 +21,7 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyModerationService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
+import javax.script.ScriptException;
 import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.TimeZone;
@@ -72,9 +73,16 @@ public class BiographyController {
     public ResponseEntity<Page<BiographyResponse>> getBiographies(
             TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
-            @RequestParam(value = "autobiographies", required = false) Boolean autobiographies
-    ) {
-        Page<Biography> page = biographyService.getBiographies(timeZone, pageRequest, null, autobiographies);
+            @RequestParam(value = "autobiographies", required = false) Boolean autobiographies,
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
+    ) throws ScriptException, NoSuchMethodException {
+        Page<Biography> page = biographyService.getBiographies(
+                timeZone,
+                pageRequest,
+                null,
+                autobiographies,
+                biographyClampSize
+        );
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -93,9 +101,10 @@ public class BiographyController {
     @GetMapping(value = "/my")
     public ResponseEntity<Page<MyBiographyResponse>> getMyBiographies(
             TimeZone timeZone,
-            OffsetLimitPageRequest pageRequest
-    ) {
-        Page<Biography> page = biographyService.getMyBiographies(timeZone, pageRequest);
+            OffsetLimitPageRequest pageRequest,
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
+    ) throws ScriptException, NoSuchMethodException {
+        Page<Biography> page = biographyService.getMyBiographies(timeZone, pageRequest, biographyClampSize);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -328,8 +337,8 @@ public class BiographyController {
             TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "q", required = false) String query
-    ) {
-        Page<Biography> page = biographyModerationService.getBiographies(timeZone, pageRequest, query);
+    ) throws ScriptException, NoSuchMethodException {
+        Page<Biography> page = biographyModerationService.getBiographies(timeZone, pageRequest, query, null);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
