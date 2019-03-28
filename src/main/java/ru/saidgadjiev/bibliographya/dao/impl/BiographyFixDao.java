@@ -51,8 +51,8 @@ public class BiographyFixDao {
                 .append(" INNER JOIN biography cb ON bf.creator_id = cb.user_id ")
                 .append(" LEFT JOIN biography fb ON bf.fixer_id = fb.user_id ")
                 .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
-                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
-                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ");
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON bf.biography_id = l.biography_id ")
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ");
 
         String isLikedClause = FilterUtils.toClause(isLikedCriteria, "bisl");
 
