@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
+import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.auth.social.vk.OAuthVKTemplate;
 import ru.saidgadjiev.bibliographya.auth.social.vk.UserProfileOperations;
@@ -27,8 +28,8 @@ public class VKService implements SocialService {
     }
 
     @Override
-    public String createOAuth2Url(String redirectUri) {
-        return oAuthTemplate.buildOAuthUrl(redirectUri, null);
+    public String createOAuth2Url(String redirectUri, ResponseType responseType) {
+        return oAuthTemplate.buildOAuthUrl(redirectUri, responseType, null);
     }
 
     @Override

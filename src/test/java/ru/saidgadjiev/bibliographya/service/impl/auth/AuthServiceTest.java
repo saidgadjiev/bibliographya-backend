@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
@@ -70,16 +71,16 @@ class AuthServiceTest {
 
     @Test
     void getFacebookOauthUrl() {
-        Mockito.when(facebookService.createOAuth2Url(eq("test"))).thenReturn("oauth:test:facebook");
+        Mockito.when(facebookService.createOAuth2Url(eq("test"), ResponseType.AUTHORIZATION_CODE)).thenReturn("oauth:test:facebook");
 
-        Assertions.assertEquals("oauth:test:facebook", authService.getOauthUrl(ProviderType.FACEBOOK, "test"));
+        Assertions.assertEquals("oauth:test:facebook", authService.getOauthUrl(ProviderType.FACEBOOK, "test", null));
     }
 
     @Test
     void getVkOauthUrl() {
-        Mockito.when(vkService.createOAuth2Url(eq("test"))).thenReturn("oauth:test:vk");
+        Mockito.when(vkService.createOAuth2Url(eq("test"), ResponseType.AUTHORIZATION_CODE)).thenReturn("oauth:test:vk");
 
-        Assertions.assertEquals("oauth:test:vk", authService.getOauthUrl(ProviderType.VK, "test"));
+        Assertions.assertEquals("oauth:test:vk", authService.getOauthUrl(ProviderType.VK, "test", null));
     }
 
 

@@ -33,14 +33,14 @@ public class OAuthTemplate {
         this.accessTokenUrl = accessTokenUrl;
     }
 
-    public String buildOAuthUrl(String redirectUri, MultiValueMap<String, String> parameters) {
+    public String buildOAuthUrl(String redirectUri, ResponseType responseType, MultiValueMap<String, String> parameters) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
         if (parameters != null) {
             params.addAll(parameters);
         }
 
-        params.set("response_type", ResponseType.AUTHORIZATION_CODE.getDesc());
+        params.set("response_type", responseType.getDesc());
         params.set("client_id", formEncode(clientId));
         params.set("redirect_uri", redirectUri);
 

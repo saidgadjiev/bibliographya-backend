@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
+import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
@@ -66,14 +67,14 @@ public class AuthService {
         this.jwtProperties = jwtProperties;
     }
 
-    public String getOauthUrl(ProviderType providerType, String redirectUri) {
+    public String getOauthUrl(ProviderType providerType, String redirectUri, ResponseType responseType) {
         SocialService socialService = socialServiceFactory.getService(providerType);
 
         if (socialService == null) {
             return null;
         }
 
-        return socialService.createOAuth2Url(redirectUri);
+        return socialService.createOAuth2Url(redirectUri, responseType);
     }
 
     public HttpStatus signUp(AuthContext authContext, String redirectUri) {

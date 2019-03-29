@@ -15,7 +15,7 @@ public enum ResponseType {
      * IMPLICIT_GRANT denotes the client-side authorization flow and is associated with
      * the response_type=token parameter value
      */
-    IMPLICIT_GRANT("implicit");
+    IMPLICIT_GRANT("token");
 
     private final String desc;
 
@@ -25,4 +25,15 @@ public enum ResponseType {
 
     public String getDesc() {
         return desc;
-    }}
+    }
+
+    public static ResponseType fromDesc(String desc) {
+        for (ResponseType value: values()) {
+            if (value.desc.equals(desc)) {
+                return value;
+            }
+        }
+
+        return null;
+    }
+}

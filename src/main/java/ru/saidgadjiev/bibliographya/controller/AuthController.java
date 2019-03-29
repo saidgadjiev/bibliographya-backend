@@ -8,6 +8,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
@@ -36,10 +37,17 @@ public class AuthController {
 
     @PostMapping("/oauth/{providerId}")
     public ResponseEntity<String> oauth(@PathVariable("providerId") String providerId,
-                                        @RequestParam("redirectUri") String redirectUri) {
+                                        @RequestParam("redirectUri") String redirectUri,
+                                        @RequestParam("responseType") String responseTypeValue) {
         ProviderType providerType = ProviderType.fromId(providerId);
 
         if (providerType == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        ResponseType responseType = ResponseType.fromDesc(responseTypeValue);
+
+        if (responseType == null) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -47,7 +55,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(authService.getOauthUrl(providerType, redirectUri));
+        return ResponseEntity.ok(authService.getOauthUrl(providerType, redirectUri, responseType));
     }
 
     @PostMapping("/signUp/confirm-finish")
