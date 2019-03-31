@@ -7,8 +7,8 @@ services:
     ports:
     - 8000:8000
     volumes:
-    - ./nginx/conf.d/dev:/etc/nginx/conf.d
-    - ./upload:/var/www/upload
+    - ../../../nginx/conf.d/dev:/etc/nginx/conf.d
+    - ../../../upload:/var/www/upload
     depends_on:
     - app
   app:
@@ -16,8 +16,8 @@ services:
     restart: always
     build: ../../../
     volumes:
-    - ./logs:/app/logs
-    - ./upload:/app/upload
+    - ../../../logs:/app/logs
+    - ../../../upload:/app/upload
     expose:
     - "8080"
     ports:
@@ -31,7 +31,7 @@ services:
     image: postgres:10
     restart: always
     volumes:
-    - ./postgres-data:/var/lib/postgresql/data
+    - ../../../postgres-data:/var/lib/postgresql/data
     ports:
     - "5432:5432"
     env_file:
