@@ -169,7 +169,7 @@ class AuthServiceTest {
         }).when(userDetailsService).save(any(User.class));
 
         Mockito.when(uiProperties.getName()).thenReturn(TestModelsUtils.TEST_SERVER_NAME);
-        Mockito.when(jwtProperties.cookieName()).thenReturn(TestModelsUtils.TEST_TOKEN_COOKIE.getName());
+        Mockito.when(jwtProperties.tokenName()).thenReturn(TestModelsUtils.TEST_TOKEN_COOKIE.getName());
         Mockito.when(tokenService.createToken(any())).thenReturn(TestModelsUtils.TEST_JWT_TOKEN);
 
         List<Cookie> cookies = new ArrayList<>();

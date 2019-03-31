@@ -156,16 +156,15 @@ public class BiographyDao {
                     int i = 0;
 
                     for (FilterCriteria criterion
-                            : biographyCriteria
+                            : isLikedCriteria
                             .stream()
                             .filter(FilterCriteria::isNeedPreparedSet)
                             .collect(Collectors.toList())
                             ) {
                         criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                     }
-
                     for (FilterCriteria criterion
-                            : isLikedCriteria
+                            : biographyCriteria
                             .stream()
                             .filter(FilterCriteria::isNeedPreparedSet)
                             .collect(Collectors.toList())
@@ -294,7 +293,7 @@ public class BiographyDao {
                 .append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ")
                 .append("b.moderator_id,")
                 .append("b.moderation_info,")
-                .append("b.biography,")
+                .append("b.").append(Biography.BIO).append(",")
                 .append("b.publish_status,")
                 .append("bm.first_name as m_first_name,")
                 .append("bm.last_name as m_last_name,").append("bm.id as m_id,")
@@ -329,7 +328,7 @@ public class BiographyDao {
         biography.setModeratedAt(rs.getTimestamp("moderated_at"));
 
         biography.setModeratorId(ResultSetUtils.intOrNull(rs, "moderator_id"));
-        biography.setBiography(rs.getString("biography"));
+        biography.setBiography(rs.getString(Biography.BIO));
         biography.setModerationInfo(rs.getString("moderation_info"));
         biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
 
@@ -372,13 +371,13 @@ public class BiographyDao {
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ");
 
         if (fields.contains(Biography.IS_LIKED)) {
-            String isLikedClause = FilterUtils.toClause(isLikedCriteria, "bisl");
+            String isLikedClause = FilterUtils.toClause(isLikedCriteria, null);
 
             sql
                     .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");
 
             if (StringUtils.isNotBlank(isLikedClause)) {
-                sql.append(isLikedClause);
+                sql.append("WHERE ").append(isLikedClause);
             }
 
             sql.append(") bisl ON b.id = bisl.biography_id ");

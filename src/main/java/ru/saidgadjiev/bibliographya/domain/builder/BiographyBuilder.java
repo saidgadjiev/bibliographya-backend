@@ -1,6 +1,8 @@
 package ru.saidgadjiev.bibliographya.domain.builder;
 
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
+import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -115,7 +117,9 @@ public class BiographyBuilder {
         public MultipleBuilder truncateBiography(Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
             if (biographyClampSize != null) {
                 for (Biography biography : biographies) {
-                   BiographyBuilder.this.truncateBiography(biography, biographyClampSize);
+                    if (StringUtils.isNotBlank(biography.getBiography())) {
+                        BiographyBuilder.this.truncateBiography(biography, biographyClampSize);
+                    }
                 }
             }
 

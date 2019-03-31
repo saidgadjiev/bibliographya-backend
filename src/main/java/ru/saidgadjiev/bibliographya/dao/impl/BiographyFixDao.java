@@ -79,6 +79,14 @@ public class BiographyFixDao {
                     int i = 0;
 
                     for (FilterCriteria criterion
+                            : isLikedCriteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
+
+                    for (FilterCriteria criterion
                             : criteria
                             .stream()
                             .filter(FilterCriteria::isNeedPreparedSet)
@@ -189,7 +197,7 @@ public class BiographyFixDao {
         biography.setFirstName(rs.getString("b_first_name"));
         biography.setLastName(rs.getString("b_last_name"));
         biography.setMiddleName(rs.getString("b_middle_name"));
-        biography.setBiography(rs.getString("b_biography"));
+        biography.setBiography(rs.getString("b_bio"));
 
         fix.setBiography(biography);
 
@@ -272,7 +280,7 @@ public class BiographyFixDao {
                 .append("b.first_name as b_first_name,")
                 .append("b.last_name as b_last_name,")
                 .append("b.middle_name as b_middle_name,")
-                .append("b.biography as b_biography,")
+                .append("b.").append(Biography.BIO).append(" as b_bio,")
                 .append("cb.id as cb_id,")
                 .append("cb.first_name as cb_first_name,")
                 .append("cb.last_name as cb_last_name,")

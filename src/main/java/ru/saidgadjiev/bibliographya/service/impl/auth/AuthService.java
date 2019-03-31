@@ -144,7 +144,12 @@ public class AuthService {
                 CookieUtils.addCookie(
                         authContext.getResponse(),
                         uiProperties.getName(),
-                        jwtProperties.cookieName(),
+                        jwtProperties.tokenName(),
+                        token
+                );
+
+                authContext.getResponse().addHeader(
+                        jwtProperties.tokenName(),
                         token
                 );
 

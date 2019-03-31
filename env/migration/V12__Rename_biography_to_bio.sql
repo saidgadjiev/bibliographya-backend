@@ -1,0 +1,1 @@
+ALTER TABLE biography RENAME COLUMN biography TO bio;

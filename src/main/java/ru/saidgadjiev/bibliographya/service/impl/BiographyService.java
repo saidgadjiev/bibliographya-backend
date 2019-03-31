@@ -97,11 +97,13 @@ public class BiographyService {
 
     public Biography getBiographyById(TimeZone timeZone, int id) {
         User user = (User) securityService.findLoggedInUser();
-        Collection<String> fields = Arrays.asList(Biography.CREATOR_ID);
+        Collection<String> fields = new ArrayList<>();
+
+        fields.add(Biography.CREATOR_ID);
         Collection<FilterCriteria> criteria = new ArrayList<>();
 
         if (user != null) {
-            fields.add(Biography.USER_ID);
+            fields.add(Biography.IS_LIKED);
 
             criteria.addAll(isLikedCriteria());
         }
@@ -263,7 +265,7 @@ public class BiographyService {
         );
         updateValues.add(
                 new UpdateValue<>(
-                        Biography.BIOGRAPHY,
+                        Biography.BIO,
                         updateBiographyRequest.getBiography(),
                         PreparedStatement::setString
                 )
@@ -404,14 +406,14 @@ public class BiographyService {
             if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {
                 criteria.add(
                         new FilterCriteria.Builder<String>()
-                                .propertyName(Biography.BIOGRAPHY)
+                                .propertyName(Biography.BIO)
                                 .filterOperation(FilterOperation.IS_NOT_NULL)
                                 .needPreparedSet(false)
                                 .build()
                 );
                 criteria.add(
                         new FilterCriteria.Builder<String>()
-                                .propertyName(Biography.BIOGRAPHY)
+                                .propertyName(Biography.BIO)
                                 .filterOperation(FilterOperation.NOT_EQ)
                                 .filterValue("")
                                 .needPreparedSet(true)

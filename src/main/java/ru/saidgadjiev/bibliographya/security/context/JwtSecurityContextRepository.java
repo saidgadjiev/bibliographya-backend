@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.security.context;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,17 +50,17 @@ public class JwtSecurityContextRepository implements SecurityContextRepository {
         }
 
         if (!CorsUtils.isPreFlightRequest(requestResponseHolder.getRequest())) {
-            Cookie tokenCookie = CookieUtils.getCookie(requestResponseHolder.getRequest(), jwtProperties.cookieName());
+            Cookie tokenCookie = CookieUtils.getCookie(requestResponseHolder.getRequest(), jwtProperties.tokenName());
 
+            //Пробуем по cookie
             if (tokenCookie != null) {
-                Map<String, Object> claims = tokenService.validate(tokenCookie.getValue());
+                auth(tokenCookie.getValue(), context);
+            } else {
+                //Пробуем по header-у
+                String token = requestResponseHolder.getRequest().getHeader(jwtProperties.tokenName());
 
-                try {
-                    Authentication authentication = authenticationManager.authenticate(new JwtAuthenticationToken(claims));
-
-                    context.setAuthentication(authentication);
-                } catch (BadCredentialsException ex) {
-                    context.setAuthentication(null);
+                if (StringUtils.isNotBlank(token) && !"null".equals(token)) {
+                    auth(token, context);
                 }
             }
         }
@@ -74,5 +75,17 @@ public class JwtSecurityContextRepository implements SecurityContextRepository {
     @Override
     public boolean containsContext(HttpServletRequest request) {
         return false;
+    }
+
+    private void auth(String token, SecurityContext context) {
+        Map<String, Object> claims = tokenService.validate(token);
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(new JwtAuthenticationToken(claims));
+
+            context.setAuthentication(authentication);
+        } catch (BadCredentialsException ex) {
+            context.setAuthentication(null);
+        }
     }
 }

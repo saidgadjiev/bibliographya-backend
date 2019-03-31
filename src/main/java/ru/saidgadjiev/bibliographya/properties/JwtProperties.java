@@ -23,7 +23,7 @@ public class JwtProperties {
         return SignatureAlgorithm.HS512;
     }
 
-    public String cookieName() {
+    public String tokenName() {
         return "X-TOKEN";
     }
 }

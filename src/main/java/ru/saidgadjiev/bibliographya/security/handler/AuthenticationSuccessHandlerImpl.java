@@ -55,7 +55,11 @@ public class AuthenticationSuccessHandlerImpl extends SimpleUrlAuthenticationSuc
 
         String token = tokenService.createToken(user);
 
-        CookieUtils.addCookie(response, uiProperties.getName(), jwtProperties.cookieName(), token);
+        CookieUtils.addCookie(response, uiProperties.getName(), jwtProperties.tokenName(), token);
+        response.addHeader(
+                jwtProperties.tokenName(),
+                token
+        );
 
         String body = objectMapper.writeValueAsString(user);
 

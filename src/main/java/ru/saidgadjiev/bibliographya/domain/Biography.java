@@ -32,7 +32,7 @@ public class Biography {
 
     public static final String PUBLISH_STATUS = "publish_status";
 
-    public static final String BIOGRAPHY = "biography";
+    public static final String BIO = "bio";
 
     public static final String UPDATED_AT = "updated_at";
 
