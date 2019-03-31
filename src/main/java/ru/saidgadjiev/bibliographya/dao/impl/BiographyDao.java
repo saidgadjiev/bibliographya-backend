@@ -12,7 +12,6 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -371,7 +370,7 @@ public class BiographyDao {
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ");
 
         if (fields.contains(Biography.IS_LIKED)) {
-            String isLikedClause = FilterUtils.toClause(isLikedCriteria, null);
+            String isLikedClause = toClause(isLikedCriteria, null);
 
             sql
                     .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");

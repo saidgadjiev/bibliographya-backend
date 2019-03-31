@@ -10,7 +10,6 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -54,7 +53,7 @@ public class BiographyFixDao {
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON bf.biography_id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ");
 
-        String isLikedClause = FilterUtils.toClause(isLikedCriteria, "bisl");
+        String isLikedClause = toClause(isLikedCriteria, "bisl");
 
         sql
                 .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");

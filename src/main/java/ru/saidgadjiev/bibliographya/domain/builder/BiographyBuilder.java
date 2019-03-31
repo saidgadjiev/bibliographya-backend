@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.domain.builder;
 
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -13,8 +12,6 @@ import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 import ru.saidgadjiev.bibliographya.html.Header;
 import ru.saidgadjiev.bibliographya.html.truncate.HtmlTruncate;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryBiographyService;
-import ru.saidgadjiev.bibliographya.service.impl.BiographyCommentService;
-import ru.saidgadjiev.bibliographya.service.impl.BiographyLikeService;
 import ru.saidgadjiev.bibliographya.utils.NumberUtils;
 
 import javax.script.ScriptException;
