@@ -14,7 +14,7 @@ services:
   app:
     container_name: app
     restart: always
-    build: ../
+    build: ../../../
     volumes:
     - ./logs:/app/logs
     - ./upload:/app/upload
