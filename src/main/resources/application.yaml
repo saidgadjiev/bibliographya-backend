@@ -52,5 +52,3 @@ logging:
   file: logs/bibliographya.log
 ui:
   name: localhost
-server:
-  port: 8000
