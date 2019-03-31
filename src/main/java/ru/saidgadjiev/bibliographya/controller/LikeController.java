@@ -17,7 +17,6 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyLikeService;
  */
 @RestController
 @RequestMapping("api/biographies/{biographyId}/likes")
-@PreAuthorize("isAuthenticated()")
 public class LikeController {
 
     private BiographyLikeService likeService;
@@ -31,6 +30,7 @@ public class LikeController {
     }
 
     @PostMapping("")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> like(
             @PathVariable("biographyId") int biographyId
     ) {
@@ -40,6 +40,7 @@ public class LikeController {
     }
 
     @DeleteMapping("")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> unlike(
             @PathVariable("biographyId") int biographyId
     ) {
