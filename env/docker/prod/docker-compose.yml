@@ -18,7 +18,7 @@ services:
   app:
     container_name: app
     restart: always
-    build: .
+    build: ../
     volumes:
     - ./logs:/app/logs
     - ./upload:/app/upload
@@ -26,24 +26,8 @@ services:
     - "8080"
     ports:
     - "5005:5005"
-    environment:
-    - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
-    - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
-    - FACEBOOK_APP_TOKEN=${FACEBOOK_APP_TOKEN}
-    - JWT_SECRET=${JWT_SECRET}
-    - VK_APP_ID=${VK_APP_ID}
-    - VK_APP_TOKEN=${VK_APP_TOKEN}
-    - VK_APP_SECRET=${VK_APP_SECRET}
-    - DB_DRIVER_CLASS_NAME=${DB_DRIVER_CLASS_NAME}
-    - DB_URL=${DB_URL}
-    - DB_USER_NAME=${DB_USER_NAME}
-    - DB_PASSWORD=${DB_PASSWORD}
-    - UPLOAD_DIR=${UPLOAD_DIR}
-    - UPLOAD_CATEGORY_DIR=${UPLOAD_CATEGORY_DIR}
-    - MAIL_HOST=${MAIL_HOST}
-    - MAIL_PORT=${MAIL_PORT}
-    - MAIL_USERNAME=${MAIL_USERNAME}
-    - MAIL_PASSWORD=${MAIL_PASSWORD}
+    env_file:
+    - app.env
     depends_on:
     - db
   db:
@@ -54,7 +38,5 @@ services:
     - ./postgres-data:/var/lib/postgresql/data
     ports:
     - "5432:5432"
-    environment:
-    - POSTGRES_PASSWORD=${DB_USER_NAME}
-    - POSTGRES_USER=${DB_PASSWORD}
-    - POSTGRES_DB=${DB_NAME}
+    env_file:
+    - db.env
