@@ -53,13 +53,13 @@ public class BiographyFixDao {
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON bf.biography_id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ");
 
-        String isLikedClause = toClause(isLikedCriteria, "bisl");
+        String isLikedClause = toClause(isLikedCriteria, null);
 
         sql
                 .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");
 
         if (StringUtils.isNotBlank(isLikedClause)) {
-            sql.append(isLikedClause);
+            sql.append("WHERE ").append(isLikedClause);
         }
 
         sql.append(") bisl ON b.id = bisl.biography_id ");
@@ -291,7 +291,7 @@ public class BiographyFixDao {
                 .append("fb.middle_name as fb_middle_name,")
                 .append("l.cnt as l_cnt,")
                 .append("bc.cnt as bc_cnt,")
-                .append(",bisl.biography_id as bisl_biography_id");
+                .append("bisl.biography_id as bisl_biography_id");
 
         return builder.toString();
     }
