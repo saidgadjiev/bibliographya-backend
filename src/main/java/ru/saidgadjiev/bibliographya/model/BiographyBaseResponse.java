@@ -10,8 +10,6 @@ import java.util.Collection;
 
 public class BiographyBaseResponse {
 
-    public static final String ONLY_IN_CATEGORY = "onlyInCategory";
-
     public static final String DISABLE_COMMENTS = "disableComments";
 
     public static final String ANONYMOUS_CREATOR = "anonymousCreator";
@@ -46,8 +44,6 @@ public class BiographyBaseResponse {
     private Integer publishStatus;
 
     private Collection<Header> headers;
-
-    private boolean onlyInCategory;
 
     private boolean disableComments;
 
@@ -171,14 +167,6 @@ public class BiographyBaseResponse {
 
     public void setHeaders(Collection<Header> headers) {
         this.headers = headers;
-    }
-
-    public boolean isOnlyInCategory() {
-        return onlyInCategory;
-    }
-
-    public void setOnlyInCategory(boolean onlyInCategory) {
-        this.onlyInCategory = onlyInCategory;
     }
 
     public boolean isDisableComments() {

@@ -292,7 +292,6 @@ public class BiographyDao {
                 .append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ")
                 .append("b.moderator_id,")
                 .append("b.moderation_info,")
-                .append("b.only_in_category,")
                 .append("b.disable_comments,")
                 .append("b.anonymous_creator,")
                 .append("b.").append(Biography.BIO).append(",")
@@ -369,10 +368,6 @@ public class BiographyDao {
         boolean deleteComments = rs.getBoolean("disable_comments");
 
         biography.setDisableComments(deleteComments);
-
-        boolean onlyInCategory = rs.getBoolean("only_in_category");
-
-        biography.setOnlyInCategory(onlyInCategory);
 
         return biography;
     }

@@ -36,8 +36,6 @@ public class Biography {
 
     public static final String UPDATED_AT = "updated_at";
 
-    public static final String ONLY_IN_CATEGORY = "only_in_category";
-
     public static final String ANONYMOUS_CREATOR = "anonymous_creator";
 
     public static final String DISABLE_COMMENTS = "disable_comments";
@@ -89,8 +87,6 @@ public class Biography {
     private PublishStatus publishStatus;
 
     private Collection<Header> headers;
-
-    private boolean onlyInCategory;
 
     private boolean disableComments;
 
@@ -286,14 +282,6 @@ public class Biography {
 
     public void setHeaders(Collection<Header> headers) {
         this.headers = headers;
-    }
-
-    public boolean isOnlyInCategory() {
-        return onlyInCategory;
-    }
-
-    public void setOnlyInCategory(boolean onlyInCategory) {
-        this.onlyInCategory = onlyInCategory;
     }
 
     public boolean isDisableComments() {

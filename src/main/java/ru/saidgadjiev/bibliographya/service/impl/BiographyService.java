@@ -4,28 +4,23 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliographya.model.UpdateRequest;
 
 import javax.script.ScriptException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -150,17 +145,6 @@ public class BiographyService {
                         .needPreparedSet(true)
                         .build()
         );
-        if (categoryId == null) {
-            criteria.add(
-                    new FilterCriteria.Builder<Boolean>()
-                            .propertyName(Biography.ONLY_IN_CATEGORY)
-                            .filterOperation(FilterOperation.EQ)
-                            .valueSetter(PreparedStatement::setBoolean)
-                            .filterValue(false)
-                            .needPreparedSet(true)
-                            .build()
-            );
-        }
 
         return getBiographies(timeZone, pageRequest, criteria, categoryId, biographyClampSize);
     }
@@ -419,21 +403,6 @@ public class BiographyService {
                         .needPreparedSet(true)
                         .build()
         );
-
-        if (values.containsKey(BiographyBaseResponse.ONLY_IN_CATEGORY)) {
-            updateValues.add(
-                    new UpdateValue<>(BiographyBaseResponse.ONLY_IN_CATEGORY, (boolean) values.get(BiographyBaseResponse.ONLY_IN_CATEGORY), PreparedStatement::setBoolean)
-            );
-
-            criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                            .propertyName(Biography.USER_ID)
-                            .filterOperation(FilterOperation.IS_NULL)
-                            .needPreparedSet(true)
-                            .valueSetter((preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER))
-                            .build()
-            );
-        }
 
         if (values.containsKey(BiographyBaseResponse.DISABLE_COMMENTS)) {
             updateValues.add(
