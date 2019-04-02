@@ -24,6 +24,7 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 import javax.script.ScriptException;
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -196,7 +197,7 @@ public class BiographyController {
         );
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and @biography.isCommentsEnabled(biographyId)")
     @PostMapping("/{biographyId}/comments")
     public ResponseEntity<BiographyCommentResponse> addComment(
             TimeZone timeZone,
@@ -356,6 +357,18 @@ public class BiographyController {
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @RequestMapping(value = "/{biographyId}", method = RequestMethod.HEAD)
     public ResponseEntity<?> canEdit(@PathVariable("biographyId") int biographyId) {
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PatchMapping("/{biographyId}")
+    public ResponseEntity<?> update(@PathVariable("biographyId") int biographyId, @RequestBody Map<String, Object> values) {
+        int updated = biographyService.partialUpdate(biographyId, values);
+
+        if (updated == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.ok().build();
     }
 }

@@ -1,0 +1,3 @@
+ALTER TABLE biography ADD COLUMN only_in_category BOOLEAN DEFAULT FALSE;
+ALTER TABLE biography ADD COLUMN disable_comments BOOLEAN DEFAULT FALSE;
+ALTER TABLE biography ADD COLUMN anonymous_creator BOOLEAN DEFAULT FALSE;

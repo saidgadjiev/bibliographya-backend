@@ -292,6 +292,9 @@ public class BiographyDao {
                 .append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ")
                 .append("b.moderator_id,")
                 .append("b.moderation_info,")
+                .append("b.only_in_category,")
+                .append("b.disable_comments,")
+                .append("b.anonymous_creator,")
                 .append("b.").append(Biography.BIO).append(",")
                 .append("b.publish_status,")
                 .append("bm.first_name as m_first_name,")
@@ -342,7 +345,18 @@ public class BiographyDao {
             biography.setModerator(moderatorBiography);
         }
 
-        if (fields.contains(Biography.CREATOR_ID)) {
+        if (fields.contains(Biography.IS_LIKED)) {
+            rs.getInt("bisl_biography_id");
+
+            biography.setLiked(!rs.wasNull());
+        }
+
+        biography.setLikesCount(rs.getInt("l_cnt"));
+        biography.setCommentsCount(rs.getInt("bc_cnt"));
+
+        boolean anonymous = rs.getBoolean("anonymous_creator");
+
+        if (!anonymous && fields.contains(Biography.CREATOR_ID)) {
             Biography creator = new Biography();
 
             creator.setId(rs.getInt("cb_id"));
@@ -352,14 +366,13 @@ public class BiographyDao {
             biography.setCreator(creator);
         }
 
-        if (fields.contains(Biography.IS_LIKED)) {
-            rs.getInt("bisl_biography_id");
+        boolean deleteComments = rs.getBoolean("disable_comments");
 
-            biography.setLiked(!rs.wasNull());
-        }
+        biography.setDisableComments(deleteComments);
 
-        biography.setLikesCount(rs.getInt("l_cnt"));
-        biography.setCommentsCount(rs.getInt("bc_cnt"));
+        boolean onlyInCategory = rs.getBoolean("only_in_category");
+
+        biography.setOnlyInCategory(onlyInCategory);
 
         return biography;
     }
