@@ -1,9 +1,11 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyDao;
@@ -390,9 +392,10 @@ public class BiographyService {
     }
 
 
-    public int partialUpdate(int biographyId, Map<String, Object> values) {
+    public RequestResult<Biography> partialUpdate(int biographyId, ObjectNode updateJson) {
         List<UpdateValue> updateValues = new ArrayList<>();
         Collection<FilterCriteria> criteria = new ArrayList<>();
+        Map<String, Object> returnValues = new HashMap<>();
 
         criteria.add(
                 new FilterCriteria.Builder<Integer>()
@@ -404,25 +407,34 @@ public class BiographyService {
                         .build()
         );
 
-        if (values.containsKey(BiographyBaseResponse.DISABLE_COMMENTS)) {
+        if (updateJson.has(BiographyBaseResponse.DISABLE_COMMENTS)) {
             updateValues.add(
-                    new UpdateValue<>(Biography.DISABLE_COMMENTS, (boolean) values.get(BiographyBaseResponse.DISABLE_COMMENTS), PreparedStatement::setBoolean)
+                    new UpdateValue<>(Biography.DISABLE_COMMENTS, updateJson.get(BiographyBaseResponse.DISABLE_COMMENTS).asBoolean(), PreparedStatement::setBoolean)
             );
         }
 
-        if (values.containsKey(BiographyBaseResponse.ANONYMOUS_CREATOR)) {
+        if (updateJson.has(BiographyBaseResponse.ANONYMOUS_CREATOR)) {
+            returnValues.put(Biography.CREATOR_ID, null);
             updateValues.add(
-                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, (boolean) values.get(BiographyBaseResponse.ANONYMOUS_CREATOR), PreparedStatement::setBoolean)
+                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, updateJson.get(BiographyBaseResponse.ANONYMOUS_CREATOR).asBoolean(), PreparedStatement::setBoolean)
             );
         }
 
-        return generalDao.update(
+        int update = generalDao.update(
                 Biography.TABLE,
                 updateValues,
-                criteria
+                criteria,
+                returnValues
         );
-    }
 
+        Biography biography = null;
+
+        if (updateJson.has(BiographyBaseResponse.ANONYMOUS_CREATOR)) {
+            biography = biographyDao.getShortBiographyById((Integer) returnValues.get(Biography.ANONYMOUS_CREATOR));
+        }
+
+        return new RequestResult<Biography>().setStatus(update == 1 ? HttpStatus.OK : HttpStatus.NOT_FOUND).setBody(biography);
+    }
 
     private int publishUpdate(TimeZone timeZone, int biographyId, Biography.PublishStatus publishStatus) {
         List<UpdateValue> updateValues = new ArrayList<>();

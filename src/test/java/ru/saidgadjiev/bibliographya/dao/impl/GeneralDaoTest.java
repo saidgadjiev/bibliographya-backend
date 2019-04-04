@@ -78,7 +78,7 @@ class GeneralDaoTest {
                         .build()
         );
 
-        int updated = generalDao.update(User.TABLE, updateValues, criteria);
+        int updated = generalDao.update(User.TABLE, updateValues, criteria, null);
 
         Assertions.assertEquals(1, updated);
 

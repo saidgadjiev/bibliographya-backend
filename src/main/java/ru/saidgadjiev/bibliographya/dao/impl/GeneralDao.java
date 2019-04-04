@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
@@ -69,7 +70,7 @@ public class GeneralDao {
         return keyHolder;
     }
 
-    public int update(String table, Collection<UpdateValue> values, Collection<FilterCriteria> criteria) {
+    public int update(String table, Collection<UpdateValue> values, Collection<FilterCriteria> criteria, Map<String, Object> returnValues) {
         String clause = toClause(criteria, null);
         StringBuilder sql = new StringBuilder();
 
@@ -84,12 +85,21 @@ public class GeneralDao {
         }
 
         if (StringUtils.isNotBlank(clause)) {
-            sql.append(" WHERE ").append(clause);
+            sql.append(" WHERE ").append(clause).append(" ");
         }
 
-        return jdbcTemplate.update(
-                sql.toString(),
-                ps -> {
+        if (returnValues != null && !returnValues.isEmpty()) {
+            String returning = returnValues.keySet().stream().collect(Collectors.joining(", "));
+
+            sql.append("RETURNING ").append(returning);
+        }
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        int update = jdbcTemplate.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(sql.toString());
+
                     int i = 0;
 
                     for (UpdateValue updateValue : values) {
@@ -100,8 +110,17 @@ public class GeneralDao {
                             criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
                         }
                     }
-                }
+
+                    return ps;
+                },
+                keyHolder
         );
+
+        if (returnValues != null && !returnValues.isEmpty()) {
+            returnValues.putAll(keyHolder.getKeys());
+        }
+
+        return update;
     }
 
     public List<Map<String, Object>> getFields(String table, Collection<String> fields, Collection<FilterCriteria> criteria) {

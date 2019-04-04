@@ -185,6 +185,26 @@ public class BiographyDao {
         });
     }
 
+    public Biography getShortBiographyById(int id) {
+        return jdbcTemplate.query(
+                "SELECT id, first_name, last_name, middle_name FROM biography WHERE id =" + id,
+                rs -> {
+                    if (rs.next()) {
+                        Biography biography = new Biography();
+
+                        biography.setId(rs.getInt("id"));
+                        biography.setFirstName(rs.getString(Biography.FIRST_NAME));
+                        biography.setLastName(rs.getString(Biography.LAST_NAME));
+                        biography.setMiddleName(rs.getString(Biography.MIDDLE_NAME));
+
+                        return biography;
+                    }
+
+                    return null;
+                }
+        );
+    }
+
     public Biography getById(TimeZone timeZone, int id, Collection<FilterCriteria> isLikedCriteria, Collection<String> fields) {
         StringBuilder sql = new StringBuilder();
 
@@ -355,6 +375,7 @@ public class BiographyDao {
 
         boolean anonymous = rs.getBoolean("anonymous_creator");
 
+        biography.setAnonymousCreator(anonymous);
         if (!anonymous && fields.contains(Biography.CREATOR_ID)) {
             Biography creator = new Biography();
 

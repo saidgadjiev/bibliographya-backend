@@ -93,7 +93,7 @@ public class BiographyCategoryService {
                         .build()
         );
 
-        generalDao.update(BiographyCategory.TABLE, filePathUpdateValues, criteria);
+        generalDao.update(BiographyCategory.TABLE, filePathUpdateValues, criteria, null);
 
         BiographyCategory category = new BiographyCategory();
 
@@ -160,7 +160,7 @@ public class BiographyCategoryService {
                         .build()
         );
 
-        generalDao.update(BiographyCategory.TABLE, values, criteria);
+        generalDao.update(BiographyCategory.TABLE, values, criteria, null);
 
         return actual;
     }

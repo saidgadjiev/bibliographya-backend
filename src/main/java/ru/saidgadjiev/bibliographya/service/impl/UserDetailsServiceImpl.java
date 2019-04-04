@@ -198,7 +198,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .build()
             );
 
-            generalDao.update(User.TABLE, values, criteria);
+            generalDao.update(User.TABLE, values, criteria, null);
 
             return HttpStatus.OK;
         }
@@ -279,7 +279,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .build()
             );
 
-            int updated = generalDao.update(User.TABLE, values, criteria);
+            int updated = generalDao.update(User.TABLE, values, criteria, null);
 
             if (updated == 0) {
                 return HttpStatus.NOT_FOUND;
@@ -338,7 +338,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .build()
             );
 
-            generalDao.update(User.TABLE, values, criteria);
+            generalDao.update(User.TABLE, values, criteria, null);
 
             httpSessionManager.removeState(request);
 
@@ -402,7 +402,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .build()
         );
 
-        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification);
+        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification, null);
 
         eventPublisher.publishEvent(new UnverifyEmailsEvent(email));
     }

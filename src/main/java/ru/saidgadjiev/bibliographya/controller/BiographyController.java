@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.controller;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,10 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.Handler;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
-import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.BiographyComment;
-import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.domain.CompleteResult;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.*;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCommentService;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
@@ -362,13 +360,9 @@ public class BiographyController {
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PatchMapping("/{biographyId}")
-    public ResponseEntity<?> update(@PathVariable("biographyId") int biographyId, @RequestBody Map<String, Object> values) {
-        int updated = biographyService.partialUpdate(biographyId, values);
+    public ResponseEntity<?> update(@PathVariable("biographyId") int biographyId, @RequestBody ObjectNode objectNode) {
+        RequestResult<Biography> requestResult = biographyService.partialUpdate(biographyId, objectNode);
 
-        if (updated == 0) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
     }
 }
