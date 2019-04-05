@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
@@ -35,7 +36,8 @@ public class BiographyFixDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<BiographyFix> getFixesList(int limit,
+    public List<BiographyFix> getFixesList(TimeZone timeZone,
+                                           int limit,
                                            long offset,
                                            Collection<FilterCriteria> criteria,
                                            Collection<FilterCriteria> isLikedCriteria,
@@ -46,10 +48,10 @@ public class BiographyFixDao {
         StringBuilder sql = new StringBuilder();
 
         sql
-                .append("SELECT ").append(selectList()).append(" FROM biography_fix bf INNER JOIN biography b ON bf.biography_id = b.id ")
+                .append("SELECT ").append(selectList(timeZone)).append(" FROM biography_fix bf INNER JOIN biography b ON bf.biography_id = b.id ")
                 .append(" INNER JOIN biography cb ON bf.creator_id = cb.user_id ")
                 .append(" LEFT JOIN biography fb ON bf.fixer_id = fb.user_id ")
-                .append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
+                .append(" LEFT JOIN biography cbb ON cbb.id = b.creator_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON bf.biography_id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ");
 
@@ -196,7 +198,7 @@ public class BiographyFixDao {
         biography.setFirstName(rs.getString("b_first_name"));
         biography.setLastName(rs.getString("b_last_name"));
         biography.setMiddleName(rs.getString("b_middle_name"));
-        biography.setBiography(rs.getString("b_bio"));
+        biography.setBio(rs.getString("b_bio"));
 
         fix.setBiography(biography);
 
@@ -219,6 +221,19 @@ public class BiographyFixDao {
 
         biography.setLikesCount(rs.getInt("l_cnt"));
         biography.setCommentsCount(rs.getInt("bc_cnt"));
+
+        Biography biographyCreator = new Biography();
+
+        biographyCreator.setId(rs.getInt("cbb_id"));
+        biographyCreator.setFirstName(rs.getString("cbb_first_name"));
+        biographyCreator.setLastName(rs.getString("cbb_last_name"));
+
+        biography.setCreatorId(biographyCreator.getId());
+        biography.setCreator(biographyCreator);
+        biography.setCreatedAt(rs.getTimestamp("b_created_at"));
+        biography.setUpdatedAt(rs.getTimestamp("b_updated_at"));
+
+        biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("b_moderation_status")));
 
         return fix;
     }
@@ -264,7 +279,7 @@ public class BiographyFixDao {
         );
     }
 
-    private String selectList() {
+    private String selectList(TimeZone timeZone) {
         StringBuilder builder = new StringBuilder();
 
         builder
@@ -276,6 +291,10 @@ public class BiographyFixDao {
                 .append("bf.creator_id,")
                 .append("bf.info,")
                 .append("b.id as b_id,")
+                .append("b.creator_id as b_creator_id,")
+                .append("b.created_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as b_created_at, ")
+                .append("b.updated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as b_updated_at, ")
+                .append("b.moderation_status as b_moderation_status,")
                 .append("b.first_name as b_first_name,")
                 .append("b.last_name as b_last_name,")
                 .append("b.middle_name as b_middle_name,")
@@ -291,7 +310,10 @@ public class BiographyFixDao {
                 .append("fb.middle_name as fb_middle_name,")
                 .append("l.cnt as l_cnt,")
                 .append("bc.cnt as bc_cnt,")
-                .append("bisl.biography_id as bisl_biography_id");
+                .append("bisl.biography_id as bisl_biography_id,")
+                .append("cbb.id as cbb_id,")
+                .append("cbb.first_name as cbb_first_name,")
+                .append("cbb.last_name as cbb_last_name");
 
         return builder.toString();
     }

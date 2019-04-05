@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -43,7 +44,7 @@ public class BiographyDao {
 
         valuesPart.append("VALUES(?, ?, ?, ?, ?, ?");
 
-        insertPart.append("INSERT INTO biography(first_name, last_name, middle_name, biography, creator_id, user_id");
+        insertPart.append("INSERT INTO biography(first_name, last_name, middle_name, bio, creator_id, user_id");
 
         if (biography.getModerationStatus() != null) {
             insertPart.append(",moderation_status");
@@ -68,10 +69,10 @@ public class BiographyDao {
                     } else {
                         ps.setString(3, biography.getMiddleName());
                     }
-                    if (StringUtils.isBlank(biography.getBiography())) {
+                    if (StringUtils.isBlank(biography.getBio())) {
                         ps.setNull(4, Types.VARCHAR);
                     } else {
-                        ps.setString(4, biography.getBiography());
+                        ps.setString(4, biography.getBio());
                     }
 
                     ps.setInt(5, biography.getCreatorId());
@@ -239,6 +240,91 @@ public class BiographyDao {
         );
     }
 
+    public Collection<Biography> getFields(TimeZone timeZone, Collection<String> fields, Collection<FilterCriteria> criteria) {
+        StringBuilder sql = new StringBuilder();
+        StringBuilder join = new StringBuilder();
+
+        sql.append("SELECT ");
+
+        if (fields.isEmpty()) {
+            sql.append("*");
+        } else {
+            Collection<String> timeFields = Arrays.asList(Biography.CREATED_AT, Biography.UPDATED_AT);
+
+            for (Iterator<String> fieldIterator = fields.iterator(); fieldIterator.hasNext(); ) {
+                String next = fieldIterator.next();
+
+                if (next.equals(Biography.CREATOR_ID)) {
+                    sql.append("cb.id as cb_id,");
+                    sql.append("cb.first_name as cb_first_name,");
+                    sql.append("cb.last_name as cb_last_name");
+                    join.append(" LEFT JOIN biography cb ON b.creator_id = cb.user_id ");
+                } else if (timeFields.contains(next)) {
+                    sql.append("b.").append(next).append("::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append(" as ").append(next);
+                } else {
+                    sql.append("b.").append(next);
+                }
+
+                if (fieldIterator.hasNext()) {
+                    sql.append(",");
+                }
+            }
+        }
+        sql.append(" ").append("FROM biography b ");
+
+        if (join.length() > 0) {
+            sql.append(join.toString()).append(" ");
+        }
+
+        String clause = FilterUtils.toClause(criteria, "b");
+
+        if (StringUtils.isNotBlank(clause)) {
+            sql.append("WHERE ").append(clause).append(" ");
+        }
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (FilterCriteria criterion
+                            : criteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())
+                            ) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
+                },
+                (rs, index) -> {
+                    Biography biography = new Biography();
+
+                    for (String field : fields) {
+                        switch (field) {
+                            case Biography.ID:
+                                biography.setId(rs.getInt(Biography.ID));
+                                break;
+                            case Biography.FIRST_NAME:
+                                biography.setFirstName(rs.getString(Biography.FIRST_NAME));
+                                break;
+                            case Biography.CREATOR_ID:
+                                Biography creator = new Biography();
+
+                                creator.setId(rs.getInt("cb_id"));
+                                creator.setFirstName(rs.getString("cb_first_name"));
+                                creator.setLastName(rs.getString("cb_last_name"));
+
+                                biography.setCreatorId(creator.getId());
+                                biography.setCreator(creator);
+                                break;
+                        }
+                    }
+
+                    return biography;
+                }
+        );
+    }
+
     public BiographyUpdateStatus updateValues(
             TimeZone timeZone,
             Collection<UpdateValue> updateValues,
@@ -308,6 +394,7 @@ public class BiographyDao {
                 .append("b.creator_id,")
                 .append("b.user_id,")
                 .append("b.updated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as updated_at, ")
+                .append("b.created_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as created_at, ")
                 .append("b.moderation_status,")
                 .append("b.moderated_at::TIMESTAMPTZ AT TIME ZONE '").append(timeZone.getID()).append("' as moderated_at, ")
                 .append("b.moderator_id,")
@@ -345,11 +432,12 @@ public class BiographyDao {
         biography.setCreatorId(ResultSetUtils.intOrNull(rs, "creator_id"));
         biography.setUserId(ResultSetUtils.intOrNull(rs, "user_id"));
         biography.setUpdatedAt(rs.getTimestamp("updated_at"));
+        biography.setCreatedAt(rs.getTimestamp("created_at"));
         biography.setModerationStatus(Biography.ModerationStatus.fromCode(rs.getInt("moderation_status")));
         biography.setModeratedAt(rs.getTimestamp("moderated_at"));
 
         biography.setModeratorId(ResultSetUtils.intOrNull(rs, "moderator_id"));
-        biography.setBiography(rs.getString(Biography.BIO));
+        biography.setBio(rs.getString(Biography.BIO));
         biography.setModerationInfo(rs.getString("moderation_info"));
         biography.setPublishStatus(Biography.PublishStatus.fromCode(ResultSetUtils.intOrNull(rs, "publish_status")));
 

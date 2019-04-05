@@ -98,7 +98,7 @@ public class GeneralDao {
 
         int update = jdbcTemplate.update(
                 connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql.toString());
+                    PreparedStatement ps = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 
                     int i = 0;
 

@@ -14,6 +14,8 @@ public class BiographyBaseResponse {
 
     public static final String ANONYMOUS_CREATOR = "anonymousCreator";
 
+    public static final String CREATOR_ID = "creatorId";
+
     private Integer id;
 
     private String firstName;
@@ -22,7 +24,7 @@ public class BiographyBaseResponse {
 
     private String middleName;
 
-    private String biography;
+    private String bio;
 
     private Integer creatorId;
 
@@ -37,6 +39,9 @@ public class BiographyBaseResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp updatedAt;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
+    private Timestamp createdAt;
+
     private ShortBiographyResponse creator;
 
     private Collection<BiographyCategory> categories;
@@ -48,6 +53,8 @@ public class BiographyBaseResponse {
     private boolean disableComments;
 
     private boolean anonymousCreator;
+
+    private Integer moderationStatus;
 
     public Integer getId() {
         return id;
@@ -81,12 +88,12 @@ public class BiographyBaseResponse {
         this.middleName = middleName;
     }
 
-    public String getBiography() {
-        return biography;
+    public String getBio() {
+        return bio;
     }
 
-    public void setBiography(String biography) {
-        this.biography = biography;
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public Integer getCreatorId() {
@@ -183,5 +190,21 @@ public class BiographyBaseResponse {
 
     public void setAnonymousCreator(boolean anonymousCreator) {
         this.anonymousCreator = anonymousCreator;
+    }
+
+    public Integer getModerationStatus() {
+        return moderationStatus;
+    }
+
+    public void setModerationStatus(Integer moderationStatus) {
+        this.moderationStatus = moderationStatus;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 }

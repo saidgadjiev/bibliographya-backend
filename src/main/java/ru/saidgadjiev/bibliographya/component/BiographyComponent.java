@@ -20,8 +20,4 @@ public class BiographyComponent {
     public boolean isIAuthor(int biographyId) {
         return biographyService.isIAuthor(biographyId);
     }
-
-    public boolean isCommentsEnabled(int biographyId) {
-        return !biographyService.disableComments(biographyId);
-    }
 }

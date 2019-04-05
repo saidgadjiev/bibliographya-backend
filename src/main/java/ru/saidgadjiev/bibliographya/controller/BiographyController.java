@@ -195,7 +195,7 @@ public class BiographyController {
         );
     }
 
-    @PreAuthorize("isAuthenticated() and @biography.isCommentsEnabled(biographyId)")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{biographyId}/comments")
     public ResponseEntity<BiographyCommentResponse> addComment(
             TimeZone timeZone,
@@ -207,9 +207,13 @@ public class BiographyController {
             return ResponseEntity.badRequest().build();
         }
 
-        BiographyComment biographyComment = biographyCommentService.addComment(timeZone, biographyId, commentRequest);
+        RequestResult<BiographyComment> biographyComment = biographyCommentService.addComment(timeZone, biographyId, commentRequest);
 
-        return ResponseEntity.ok(modelMapper.convertToBiographyCommentResponse(biographyComment));
+        if (biographyComment.getStatus().equals(HttpStatus.OK)) {
+            return ResponseEntity.ok(modelMapper.convertToBiographyCommentResponse(biographyComment.getBody()));
+        }
+
+        return ResponseEntity.status(biographyComment.getStatus()).build();
     }
 
     @PreAuthorize("isAuthenticated() and (@comment.isIAuthor(#commentId) or @biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
@@ -335,9 +339,10 @@ public class BiographyController {
     public ResponseEntity<Page<BiographyModerationResponse>> getModeration(
             TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
-            @RequestParam(value = "q", required = false) String query
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
     ) throws ScriptException, NoSuchMethodException {
-        Page<Biography> page = biographyModerationService.getBiographies(timeZone, pageRequest, query, null);
+        Page<Biography> page = biographyModerationService.getBiographies(timeZone, pageRequest, query, biographyClampSize);
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();
@@ -358,10 +363,10 @@ public class BiographyController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
+    @PreAuthorize("isAuthenticated() and @biography.isIAuthor(#biographyId)")
     @PatchMapping("/{biographyId}")
-    public ResponseEntity<?> update(@PathVariable("biographyId") int biographyId, @RequestBody ObjectNode objectNode) {
-        RequestResult<Biography> requestResult = biographyService.partialUpdate(biographyId, objectNode);
+    public ResponseEntity<?> update(@PathVariable("biographyId") int biographyId, TimeZone timeZone, @RequestBody BiographyUpdateRequest updateRequest) {
+        RequestResult<Biography> requestResult = biographyService.partialUpdate(timeZone, biographyId, updateRequest);
 
         return ResponseEntity.status(requestResult.getStatus()).body(requestResult.getBody());
     }

@@ -57,7 +57,8 @@ public class BiographyFixService {
         initHandlers();
     }
 
-    public Page<BiographyFix> getFixesList(OffsetLimitPageRequest pageRequest,
+    public Page<BiographyFix> getFixesList(TimeZone timeZone,
+                                           OffsetLimitPageRequest pageRequest,
                                            String query,
                                            Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         List<FilterCriteria> criteria = new ArrayList<>();
@@ -87,6 +88,7 @@ public class BiographyFixService {
         );
 
         List<BiographyFix> biographyFixes = biographyFixDao.getFixesList(
+                timeZone,
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 criteria,

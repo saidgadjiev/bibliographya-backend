@@ -158,7 +158,7 @@ public class BiographyReportDao {
         biography.setCreatorId(ResultSetUtils.intOrNull(rs, "creator_id"));
         biography.setUserId(ResultSetUtils.intOrNull(rs, "user_id"));
 
-        biography.setBiography(rs.getString("biography"));
+        biography.setBio(rs.getString("bio"));
         biography.setNewComplaintsCount(rs.getInt("reportsCount"));
 
         return biography;

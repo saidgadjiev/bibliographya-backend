@@ -23,7 +23,7 @@ public class BiographyRequest {
 
     private String middleName;
 
-    private String biography;
+    private String bio;
 
     private Integer userId;
 
@@ -58,12 +58,12 @@ public class BiographyRequest {
         this.middleName = middleName;
     }
 
-    public String getBiography() {
-        return biography;
+    public String getBio() {
+        return bio;
     }
 
-    public void setBiography(String biography) {
-        this.biography = biography;
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public Integer getUserId() {

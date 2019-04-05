@@ -43,7 +43,7 @@ public class BiographyBuilder {
     }
 
     private void truncateBiography(Biography biography, Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
-        Document document = Jsoup.parse(biography.getBiography());
+        Document document = Jsoup.parse(biography.getBio());
 
         Collection<Header> headers = new ArrayList<>();
         Elements headings = document.select("h1, h2, h3, h4, h5, h6");
@@ -62,7 +62,7 @@ public class BiographyBuilder {
         }
 
         biography.setHeaders(headers);
-        biography.setBiography(HtmlTruncate.truncate(biography.getBiography(), biographyClampSize));
+        biography.setBio(HtmlTruncate.truncate(biography.getBio(), biographyClampSize));
     }
 
     public class SingleBuilder {
@@ -114,7 +114,7 @@ public class BiographyBuilder {
         public MultipleBuilder truncateBiography(Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
             if (biographyClampSize != null) {
                 for (Biography biography : biographies) {
-                    if (StringUtils.isNotBlank(biography.getBiography())) {
+                    if (StringUtils.isNotBlank(biography.getBio())) {
                         BiographyBuilder.this.truncateBiography(biography, biographyClampSize);
                     }
                 }

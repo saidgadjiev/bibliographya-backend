@@ -4,16 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCommentDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.domain.Biography;
-import ru.saidgadjiev.bibliographya.domain.BiographyComment;
-import ru.saidgadjiev.bibliographya.domain.CommentsStats;
-import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyCommentRequest;
 
 import java.sql.PreparedStatement;
@@ -41,7 +39,7 @@ public class BiographyCommentService {
     }
 
     @Transactional
-    public BiographyComment addComment(TimeZone timeZone, int biographyId, BiographyCommentRequest commentRequest) {
+    public RequestResult<BiographyComment> addComment(TimeZone timeZone, int biographyId, BiographyCommentRequest commentRequest) {
         User userDetails = (User) securityService.findLoggedInUser();
         BiographyComment biographyComment = new BiographyComment();
 
@@ -80,9 +78,15 @@ public class BiographyCommentService {
             biographyComment.setParentUserId((Integer) parentCommentValue.get(BiographyComment.USER_ID));
         }
 
-        biographyCommentDao.create(biographyComment);
+        int created = biographyCommentDao.create(biographyComment);
 
-        return biographyCommentDao.getById(timeZone, biographyComment.getId());
+        if (created == 0) {
+            return new RequestResult<BiographyComment>().setStatus(HttpStatus.FORBIDDEN);
+        }
+
+        BiographyComment result = biographyCommentDao.getById(timeZone, biographyComment.getId());
+
+        return new RequestResult<BiographyComment>().setStatus(HttpStatus.OK).setBody(result);
     }
 
     @Transactional

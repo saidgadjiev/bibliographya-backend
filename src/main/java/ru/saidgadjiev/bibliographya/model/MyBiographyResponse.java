@@ -9,19 +9,9 @@ import java.util.Collection;
  */
 public class MyBiographyResponse extends BiographyBaseResponse {
 
-    private Integer moderationStatus;
-
     private String moderationInfo;
 
     private Collection<ModerationAction> actions;
-
-    public Integer getModerationStatus() {
-        return moderationStatus;
-    }
-
-    public void setModerationStatus(Integer moderationStatus) {
-        this.moderationStatus = moderationStatus;
-    }
 
     public Collection<ModerationAction> getActions() {
         return actions;

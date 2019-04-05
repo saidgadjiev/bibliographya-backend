@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,6 +16,7 @@ import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
+import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
 import javax.script.ScriptException;
@@ -70,7 +70,7 @@ public class BiographyService {
         biography.setFirstName(biographyRequest.getFirstName());
         biography.setLastName(biographyRequest.getLastName());
         biography.setMiddleName(biographyRequest.getMiddleName());
-        biography.setBiography(biographyRequest.getBiography());
+        biography.setBio(biographyRequest.getBio());
         biography.setCreatorId(userDetails.getId());
 
         biographyDao.create(biography);
@@ -269,12 +269,12 @@ public class BiographyService {
         updateValues.add(
                 new UpdateValue<>(
                         Biography.BIO,
-                        updateBiographyRequest.getBiography(),
+                        updateBiographyRequest.getBio(),
                         PreparedStatement::setString
                 )
         );
 
-        if (StringUtils.isBlank(updateBiographyRequest.getBiography())) {
+        if (StringUtils.isBlank(updateBiographyRequest.getBio())) {
             updateValues.add(
                     new UpdateValue<>(
                             Biography.PUBLISH_STATUS,
@@ -365,24 +365,6 @@ public class BiographyService {
         return Objects.equals(creatorId, user.getId());
     }
 
-    public boolean disableComments(int biographyId) {
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(biographyId)
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .build()
-        );
-
-        Map<String, Object> values = generalDao.uniqueValue(Biography.TABLE, Collections.singletonList(Biography.DISABLE_COMMENTS), criteria);
-
-        return (boolean) values.get(Biography.DISABLE_COMMENTS);
-    }
-
     public BiographiesStats getStats() {
         BiographiesStats biographiesStats = new BiographiesStats();
 
@@ -392,10 +374,9 @@ public class BiographyService {
     }
 
 
-    public RequestResult<Biography> partialUpdate(int biographyId, ObjectNode updateJson) {
+    public RequestResult<Biography> partialUpdate(TimeZone timeZone, int biographyId, BiographyUpdateRequest updateRequest) {
         List<UpdateValue> updateValues = new ArrayList<>();
         Collection<FilterCriteria> criteria = new ArrayList<>();
-        Map<String, Object> returnValues = new HashMap<>();
 
         criteria.add(
                 new FilterCriteria.Builder<Integer>()
@@ -407,16 +388,15 @@ public class BiographyService {
                         .build()
         );
 
-        if (updateJson.has(BiographyBaseResponse.DISABLE_COMMENTS)) {
+        if (updateRequest.getAnonymousCreator() != null) {
             updateValues.add(
-                    new UpdateValue<>(Biography.DISABLE_COMMENTS, updateJson.get(BiographyBaseResponse.DISABLE_COMMENTS).asBoolean(), PreparedStatement::setBoolean)
+                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, updateRequest.getAnonymousCreator(), PreparedStatement::setBoolean)
             );
         }
 
-        if (updateJson.has(BiographyBaseResponse.ANONYMOUS_CREATOR)) {
-            returnValues.put(Biography.CREATOR_ID, null);
+        if (updateRequest.getDisableComments() != null) {
             updateValues.add(
-                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, updateJson.get(BiographyBaseResponse.ANONYMOUS_CREATOR).asBoolean(), PreparedStatement::setBoolean)
+                    new UpdateValue<>(Biography.DISABLE_COMMENTS, updateRequest.getDisableComments(), PreparedStatement::setBoolean)
             );
         }
 
@@ -424,13 +404,17 @@ public class BiographyService {
                 Biography.TABLE,
                 updateValues,
                 criteria,
-                returnValues
+                null
         );
 
         Biography biography = null;
 
-        if (updateJson.has(BiographyBaseResponse.ANONYMOUS_CREATOR)) {
-            biography = biographyDao.getShortBiographyById((Integer) returnValues.get(Biography.ANONYMOUS_CREATOR));
+        if (updateRequest.getReturnFields() != null && !updateRequest.getReturnFields().isEmpty()) {
+            Collection<Biography> biographies = biographyDao.getFields(timeZone, normalizeFields(updateRequest.getReturnFields()), criteria);
+
+            if (!biographies.isEmpty()) {
+                biography = biographies.iterator().next();
+            }
         }
 
         return new RequestResult<Biography>().setStatus(update == 1 ? HttpStatus.OK : HttpStatus.NOT_FOUND).setBody(biography);
@@ -508,5 +492,25 @@ public class BiographyService {
         );
 
         return isLikedCriteria;
+    }
+
+    private Collection<String> normalizeFields(Collection<String> fields) {
+        Collection<String> normalizedFields = new ArrayList<>();
+
+        for (String field: fields) {
+            switch (field) {
+                case BiographyBaseResponse.ANONYMOUS_CREATOR:
+                    normalizedFields.add(Biography.ANONYMOUS_CREATOR);
+                    break;
+                case BiographyBaseResponse.DISABLE_COMMENTS:
+                    normalizedFields.add(Biography.DISABLE_COMMENTS);
+                    break;
+                case BiographyBaseResponse.CREATOR_ID:
+                    normalizedFields.add(Biography.CREATOR_ID);
+                    break;
+            }
+        }
+
+        return normalizedFields;
     }
 }

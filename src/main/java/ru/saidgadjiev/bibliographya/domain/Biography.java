@@ -36,9 +36,13 @@ public class Biography {
 
     public static final String UPDATED_AT = "updated_at";
 
+    public static final String MODERATED_AT = "moderated_at";
+
     public static final String ANONYMOUS_CREATOR = "anonymous_creator";
 
     public static final String DISABLE_COMMENTS = "disable_comments";
+
+    public static final String CREATED_AT = "created_at";
 
     private Integer id;
 
@@ -48,7 +52,7 @@ public class Biography {
 
     private String middleName;
 
-    private String biography;
+    private String bio;
 
     private Integer creatorId;
 
@@ -59,6 +63,8 @@ public class Biography {
     private ModerationStatus moderationStatus;
 
     private Timestamp moderatedAt;
+
+    private Timestamp createdAt;
 
     private Integer moderatorId;
 
@@ -124,12 +130,12 @@ public class Biography {
         this.middleName = middleName;
     }
 
-    public String getBiography() {
-        return biography;
+    public String getBio() {
+        return bio;
     }
 
-    public void setBiography(String biography) {
-        this.biography = biography;
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public Integer getCreatorId() {
@@ -170,6 +176,14 @@ public class Biography {
 
     public void setModeratedAt(Timestamp moderatedAt) {
         this.moderatedAt = moderatedAt;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Integer getModeratorId() {

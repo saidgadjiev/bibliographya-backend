@@ -26,14 +26,14 @@ public class BiographyCommentDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void create(BiographyComment biographyComment) {
+    public int create(BiographyComment biographyComment) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        jdbcTemplate.update(
+        int created = jdbcTemplate.update(
                 connection -> {
                     PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
                             "(content, biography_id, user_id, parent_id, parent_user_id) " +
-                            "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                            "SELECT ?, ?, ?, ?, ? FROM biography WHERE disable_comments = FALSE AND id = ?", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setString(1, biographyComment.getContent());
                     ps.setInt(2, biographyComment.getBiographyId());
@@ -47,6 +47,8 @@ public class BiographyCommentDao {
                         ps.setNull(5, Types.INTEGER);
                     }
 
+                    ps.setInt(6, biographyComment.getBiographyId());
+
                     return ps;
                 },
                 keyHolder
@@ -54,10 +56,12 @@ public class BiographyCommentDao {
 
         Map<String, Object> keys = keyHolder.getKeys();
 
-        if (keys != null && keys.containsKey("id")) {
+        if (keys != null && !keys.isEmpty()) {
             biographyComment.setId(((Number) keys.get("id")).intValue());
+            biographyComment.setCreatedAt((Timestamp) keys.get("created_at"));
         }
-        biographyComment.setCreatedAt((Timestamp) keys.get("created_at"));
+
+        return created;
     }
 
     public int delete(int commentId) {

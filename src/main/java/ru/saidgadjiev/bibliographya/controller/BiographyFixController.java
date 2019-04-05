@@ -18,6 +18,7 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyFixService;
 
 import javax.script.ScriptException;
 import java.sql.SQLException;
+import java.util.TimeZone;
 
 /**
  * Created by said on 15.12.2018.
@@ -39,11 +40,12 @@ public class BiographyFixController {
 
     @GetMapping("")
     public ResponseEntity<?> getFixes(
+            TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "q", required = false) String query,
             @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
     ) throws ScriptException, NoSuchMethodException {
-        Page<BiographyFix> page = fixService.getFixesList(pageRequest, query, biographyClampSize);
+        Page<BiographyFix> page = fixService.getFixesList(timeZone, pageRequest, query, biographyClampSize);
 
         if (page.getContent().isEmpty()) {
             return ResponseEntity.noContent().build();

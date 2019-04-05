@@ -13,8 +13,6 @@ import java.util.Collection;
  */
 public class BiographyModerationResponse extends BiographyBaseResponse {
 
-    private Integer moderationStatus;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp moderatedAt;
 
@@ -25,14 +23,6 @@ public class BiographyModerationResponse extends BiographyBaseResponse {
     private Collection<ModerationAction> actions = new ArrayList<>();
 
     private String moderationInfo;
-
-    public Integer getModerationStatus() {
-        return moderationStatus;
-    }
-
-    public void setModerationStatus(Integer moderationStatus) {
-        this.moderationStatus = moderationStatus;
-    }
 
     public Timestamp getModeratedAt() {
         return moderatedAt;
