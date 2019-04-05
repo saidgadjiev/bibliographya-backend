@@ -33,6 +33,7 @@ public class TableUtils {
                         "  id SERIAL PRIMARY KEY,\n" +
                         "  biography_id INTEGER NOT NULL REFERENCES biography(id) ON DELETE CASCADE,\n" +
                         "  user_id INTEGER NOT NULL REFERENCES \"user\"(id),\n" +
+                        " created_at TIMESTAMP(3) NOT NULL DEFAULT now(),\n" +
                         "  UNIQUE (biography_id, user_id)\n" +
                         ")"
         );
@@ -78,7 +79,9 @@ public class TableUtils {
                         "  moderation_info   TEXT,\n" +
                         "  moderated_at      TIMESTAMP,\n" +
                         "  moderator_id      INTEGER REFERENCES \"user\" (id),\n" +
-                        "  publish_status    INTEGER      NOT NULL DEFAULT 0\n" +
+                        "  publish_status    INTEGER      NOT NULL DEFAULT 0,\n" +
+                        " disable_comments BOOLEAN DEFAULT FALSE,\n" +
+                        " anonymous_creator BOOLEAN DEFAULT FALSE\n" +
                         ")"
         );
     }
@@ -138,10 +141,11 @@ public class TableUtils {
                 "CREATE TABLE IF NOT EXISTS biography_comment (\n" +
                         "  id SERIAL PRIMARY KEY,\n" +
                         "  content TEXT NOT NULL,\n" +
-                        "  created_at TIMESTAMP NOT NULL DEFAULT NOW(),\n" +
+                        "  created_at TIMESTAMP(3) NOT NULL DEFAULT NOW(),\n" +
                         "  biography_id INTEGER NOT NULL REFERENCES biography(id) ON DELETE CASCADE,\n" +
                         "  user_id INTEGER NOT NULL REFERENCES \"user\"(id),\n" +
-                        "  parent_id INTEGER REFERENCES biography_comment(id)\n" +
+                        "  parent_id INTEGER,\n" +
+                        "  parent_user_id INTEGER REFERENCES \"user\"(id)\n" +
                         ")"
         );
     }

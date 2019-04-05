@@ -71,16 +71,16 @@ class AuthServiceTest {
 
     @Test
     void getFacebookOauthUrl() {
-        Mockito.when(facebookService.createOAuth2Url(eq("test"), ResponseType.AUTHORIZATION_CODE)).thenReturn("oauth:test:facebook");
+        Mockito.when(facebookService.createOAuth2Url(eq("test"), eq(ResponseType.AUTHORIZATION_CODE))).thenReturn("oauth:test:facebook");
 
-        Assertions.assertEquals("oauth:test:facebook", authService.getOauthUrl(ProviderType.FACEBOOK, "test", null));
+        Assertions.assertEquals("oauth:test:facebook", authService.getOauthUrl(ProviderType.FACEBOOK, "test", ResponseType.AUTHORIZATION_CODE));
     }
 
     @Test
     void getVkOauthUrl() {
-        Mockito.when(vkService.createOAuth2Url(eq("test"), ResponseType.AUTHORIZATION_CODE)).thenReturn("oauth:test:vk");
+        Mockito.when(vkService.createOAuth2Url(eq("test"), eq(ResponseType.AUTHORIZATION_CODE))).thenReturn("oauth:test:vk");
 
-        Assertions.assertEquals("oauth:test:vk", authService.getOauthUrl(ProviderType.VK, "test", null));
+        Assertions.assertEquals("oauth:test:vk", authService.getOauthUrl(ProviderType.VK, "test", ResponseType.AUTHORIZATION_CODE));
     }
 
 

@@ -15,6 +15,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCategoryDao;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,9 @@ class BiographyCategoryServiceTest {
 
     @Autowired
     private BiographyCategoryService biographyCategoryService;
+
+    @MockBean
+    private StorageService storageService;
 
     @Test
     void getCategories() {
@@ -112,8 +116,11 @@ class BiographyCategoryServiceTest {
             }
         }).when(biographyCategoryDao).deleteById(eq(1));
 
+        Mockito.when(biographyCategoryDao.getById(eq(1))).thenReturn(db.get(0));
+
         int deleted = biographyCategoryService.deleteById(1);
 
+        Mockito.verify(storageService, Mockito.times(1)).deleteResource("Test.jpg");
         Assertions.assertEquals(deleted, 1);
         Assertions.assertTrue(db.isEmpty());
     }
