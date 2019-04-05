@@ -339,7 +339,7 @@ public class BiographyService {
         return publishUpdate(timeZone, biographyId, Biography.PublishStatus.PUBLISHED);
     }
 
-    public int unpublish(TimeZone timeZone, Integer biographyId) {
+    public int unPublish(TimeZone timeZone, Integer biographyId) {
         return publishUpdate(timeZone, biographyId, Biography.PublishStatus.NOT_PUBLISHED);
     }
 

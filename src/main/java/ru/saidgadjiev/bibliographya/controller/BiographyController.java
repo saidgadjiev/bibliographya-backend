@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,6 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 import javax.script.ScriptException;
 import javax.validation.Valid;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -241,8 +239,8 @@ public class BiographyController {
 
     @PreAuthorize("isAuthenticated() and (@biography.isIAuthor(#biographyId) or hasRole('ROLE_MODERATOR'))")
     @PostMapping("/{biographyId}/unpublish")
-    public ResponseEntity<?> unpublish(TimeZone timeZone, @PathVariable("biographyId") Integer biographyId) {
-        int updated = biographyService.unpublish(timeZone, biographyId);
+    public ResponseEntity<?> unPublish(TimeZone timeZone, @PathVariable("biographyId") Integer biographyId) {
+        int updated = biographyService.unPublish(timeZone, biographyId);
 
         if (updated == 0) {
             return ResponseEntity.notFound().build();
