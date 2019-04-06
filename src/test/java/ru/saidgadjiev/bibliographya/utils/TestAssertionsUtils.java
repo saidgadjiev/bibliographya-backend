@@ -18,6 +18,7 @@ public class TestAssertionsUtils {
         Assertions.assertEquals(expected.getContent(), actual.getContent());
         Assertions.assertEquals(expected.getCreatedAt(), actual.getCreatedAt());
         Assertions.assertEquals(expected.getParentId(), actual.getParentId());
+        Assertions.assertEquals(expected.getParentUserId(), actual.getParentUserId());
         Assertions.assertEquals(expected.getUserId(), actual.getUserId());
     }
 

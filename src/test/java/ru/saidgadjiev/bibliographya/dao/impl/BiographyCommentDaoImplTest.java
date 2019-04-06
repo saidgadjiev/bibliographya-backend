@@ -76,6 +76,49 @@ class BiographyCommentDaoImplTest {
     }
 
     @Test
+    void createReply() {
+        jdbcTemplate.update(
+                "INSERT INTO biography_comment(content, biography_id, user_id) VALUES('Test', 1, 1)"
+        );
+        BiographyComment comment = new BiographyComment();
+
+        comment.setContent("TestReply");
+        comment.setBiographyId(1);
+        comment.setUserId(1);
+        comment.setParentId(1);
+
+        biographyCommentDao.create(comment);
+
+        Assertions.assertEquals(2, comment.getId());
+        Assertions.assertNotNull(comment.getCreatedAt());
+
+        BiographyComment actual = jdbcTemplate.query(
+                "SELECT * FROM biography_comment WHERE id = 2",
+                resultSet -> {
+                    if (resultSet.next()) {
+                        BiographyComment result = new BiographyComment();
+
+                        result.setId(resultSet.getInt("id"));
+                        result.setBiographyId(resultSet.getInt("biography_id"));
+                        result.setUserId(resultSet.getInt("user_id"));
+                        result.setContent(resultSet.getString("content"));
+                        result.setCreatedAt(resultSet.getTimestamp("created_at"));
+                        result.setParentId(resultSet.getInt("parent_id"));
+                        result.setParentUserId(resultSet.getInt("parent_user_id"));
+
+                        return result;
+                    }
+
+                    return null;
+                }
+        );
+        comment.setParentUserId(1);
+
+        Assertions.assertNotNull(actual);
+        TestAssertionsUtils.assertCommentsEquals(comment, actual);
+    }
+
+    @Test
     void delete() {
         jdbcTemplate.update(
                 "INSERT INTO biography_comment(content, biography_id, user_id) VALUES ('Test', 1, 1)"

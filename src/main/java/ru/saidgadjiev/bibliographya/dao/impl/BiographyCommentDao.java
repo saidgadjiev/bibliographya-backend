@@ -27,13 +27,28 @@ public class BiographyCommentDao {
     }
 
     public int create(BiographyComment biographyComment) {
+        StringBuilder insert = new StringBuilder();
+        String existsPart = "EXISTS(SELECT 1 FROM biography WHERE id = ? AND disable_comments = FALSE)";
+
+        insert
+                .append("INSERT INTO biography_comment(")
+                .append("content, biography_id, user_id, parent_id, parent_user_id")
+                .append(") SELECT ?, ?, ?, ? ");
+
+        if (biographyComment.getParentId() != null) {
+            insert
+                    .append(",user_id FROM biography_comment WHERE id = ? AND ")
+                    .append(existsPart);
+        } else {
+            insert
+                    .append(",NULL WHERE ").append(existsPart);
+        }
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         int created = jdbcTemplate.update(
                 connection -> {
-                    PreparedStatement ps = connection.prepareStatement("INSERT INTO biography_comment" +
-                            "(content, biography_id, user_id, parent_id, parent_user_id) " +
-                            "SELECT ?, ?, ?, ?, ? FROM biography WHERE disable_comments = FALSE AND id = ?", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = connection.prepareStatement(insert.toString(), Statement.RETURN_GENERATED_KEYS);
 
                     ps.setString(1, biographyComment.getContent());
                     ps.setInt(2, biographyComment.getBiographyId());
@@ -41,13 +56,16 @@ public class BiographyCommentDao {
 
                     if (biographyComment.getParentId() != null) {
                         ps.setInt(4, biographyComment.getParentId());
-                        ps.setInt(5, biographyComment.getParentUserId());
                     } else {
                         ps.setNull(4, Types.INTEGER);
-                        ps.setNull(5, Types.INTEGER);
                     }
 
-                    ps.setInt(6, biographyComment.getBiographyId());
+                    if (biographyComment.getParentId() != null) {
+                        ps.setInt(5, biographyComment.getParentId());
+                        ps.setInt(6, biographyComment.getBiographyId());
+                    } else {
+                        ps.setInt(5, biographyComment.getBiographyId());
+                    }
 
                     return ps;
                 },

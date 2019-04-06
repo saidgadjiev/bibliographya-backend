@@ -11,7 +11,10 @@ import ru.saidgadjiev.bibliographya.dao.impl.BiographyCommentDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.domain.*;
+import ru.saidgadjiev.bibliographya.domain.BiographyComment;
+import ru.saidgadjiev.bibliographya.domain.CommentsStats;
+import ru.saidgadjiev.bibliographya.domain.RequestResult;
+import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.BiographyCommentRequest;
 
 import java.sql.PreparedStatement;
@@ -46,37 +49,7 @@ public class BiographyCommentService {
         biographyComment.setContent(commentRequest.getContent());
         biographyComment.setBiographyId(biographyId);
         biographyComment.setUserId(userDetails.getId());
-
-        Biography biography = new Biography();
-
-        biography.setId(userDetails.getBiography().getId());
-        biography.setFirstName(userDetails.getBiography().getFirstName());
-        biography.setLastName(userDetails.getBiography().getLastName());
-
-        biographyComment.setUser(biography);
-
-        if (commentRequest.getParentId() != null) {
-            biographyComment.setParentId(commentRequest.getParentId());
-            Collection<FilterCriteria> criteria = new ArrayList<>();
-
-            criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                        .propertyName(BiographyComment.ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(commentRequest.getParentId())
-                        .needPreparedSet(true)
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-            );
-
-            Map<String, Object> parentCommentValue = generalDao.uniqueValue(
-                    BiographyComment.TABLE,
-                    Collections.singletonList(BiographyComment.USER_ID),
-                    criteria
-            );
-
-            biographyComment.setParentUserId((Integer) parentCommentValue.get(BiographyComment.USER_ID));
-        }
+        biographyComment.setParentId(commentRequest.getParentId());
 
         int created = biographyCommentDao.create(biographyComment);
 
