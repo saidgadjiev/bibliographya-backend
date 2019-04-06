@@ -12,7 +12,6 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -276,7 +275,7 @@ public class BiographyDao {
             sql.append(join.toString()).append(" ");
         }
 
-        String clause = FilterUtils.toClause(criteria, "b");
+        String clause = toClause(criteria, "b");
 
         if (StringUtils.isNotBlank(clause)) {
             sql.append("WHERE ").append(clause).append(" ");
