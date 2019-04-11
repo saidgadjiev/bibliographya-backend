@@ -20,6 +20,7 @@ services:
     restart: always
     build: .
     volumes:
+    - ./:/app/imgs
     - ./logs:/app/logs
     - ./upload:/app/upload
     expose:

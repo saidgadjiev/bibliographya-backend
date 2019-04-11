@@ -39,6 +39,7 @@ app:
   upload:
     root: ${UPLOAD_DIR}
     category-root: ${UPLOAD_CATEGORY_DIR}
+    share-root: ${UPLOAD_SHARE_DIR}
 management:
   endpoints:
     web:
