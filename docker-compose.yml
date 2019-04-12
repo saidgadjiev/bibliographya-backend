@@ -23,6 +23,7 @@ services:
     - ./:/app/imgs
     - ./logs:/app/logs
     - ./upload:/app/upload
+    - ./resources:/app/resources
     expose:
     - "8080"
     ports:
