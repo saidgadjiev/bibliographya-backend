@@ -46,6 +46,8 @@ public interface BibliographyaMapper {
 
     List<BugResponse> convertToBugResponse(List<Bug> bugs);
 
+    UserAccountResponse convertToAccountResponse(UserAccount userAccount);
+
     default ShortBiographyResponse convertToShortBiographyResponse(BiographyLike biographyLike) {
         if (biographyLike == null) {
             return null;

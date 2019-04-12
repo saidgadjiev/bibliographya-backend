@@ -120,6 +120,28 @@ public class BiographyService {
         return biographyBuilder.builder(biography).buildCategories().build();
     }
 
+    public Biography getBiographyByCriteria(TimeZone timeZone, Collection<FilterCriteria> criteria) {
+        User user = (User) securityService.findLoggedInUser();
+        Collection<String> fields = new ArrayList<>();
+
+        fields.add(Biography.CREATOR_ID);
+        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+
+        if (user != null) {
+            fields.add(Biography.IS_LIKED);
+
+            isLikedCriteria.addAll(isLikedCriteria());
+        }
+
+        Biography biography = biographyDao.getByCriteria(timeZone, criteria, isLikedCriteria, fields);
+
+        if (biography == null) {
+            return null;
+        }
+
+        return biographyBuilder.builder(biography).buildCategories().build();
+    }
+
     public Page<Biography> getBiographies(TimeZone timeZone,
                                           OffsetLimitPageRequest pageRequest,
                                           Integer categoryId,

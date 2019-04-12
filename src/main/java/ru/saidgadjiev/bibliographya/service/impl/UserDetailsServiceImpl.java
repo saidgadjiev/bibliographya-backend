@@ -364,6 +364,29 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         return HttpStatus.OK;
     }
 
+    @Override
+    public UserAccount getAccount(TimeZone timeZone, int userId) {
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria.Builder<Integer>()
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(userId)
+                        .needPreparedSet(true)
+                        .propertyName(Biography.USER_ID)
+                        .valueSetter(PreparedStatement::setInt)
+                        .build()
+        );
+
+        Biography biography = biographyService.getBiographyByCriteria(timeZone, criteria);
+
+        UserAccount userAccount = new UserAccount();
+
+        userAccount.setBiography(biography);
+
+        return userAccount;
+    }
+
     private void postSave(User user, String firstName, String lastName, String middleName) throws SQLException {
         userRoleDao.addRoles(user.getId(), user.getRoles());
 

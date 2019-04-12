@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -222,6 +223,53 @@ public class BiographyDao {
 
                     for (FilterCriteria criterion
                             : isLikedCriteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())
+                            ) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
+                },
+                rs -> {
+                    if (rs.next()) {
+                        return mapFull(rs, fields);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    public Biography getByCriteria(TimeZone timeZone,
+                         Collection<FilterCriteria> criteria,
+                         Collection<FilterCriteria> isLikedCriteria,
+                         Collection<String> fields) {
+        StringBuilder sql = new StringBuilder();
+
+        sql
+                .append("SELECT ").append(getFullSelectList(timeZone, fields)).append(" FROM biography b ");
+
+        appendJoins(sql, fields, isLikedCriteria);
+
+        String clause = FilterUtils.toClause(criteria, "b");
+
+        sql.append("WHERE ").append(clause);
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                ps -> {
+                    int i = 0;
+
+                    for (FilterCriteria criterion
+                            : isLikedCriteria
+                            .stream()
+                            .filter(FilterCriteria::isNeedPreparedSet)
+                            .collect(Collectors.toList())
+                            ) {
+                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    }
+                    for (FilterCriteria criterion
+                            : criteria
                             .stream()
                             .filter(FilterCriteria::isNeedPreparedSet)
                             .collect(Collectors.toList())

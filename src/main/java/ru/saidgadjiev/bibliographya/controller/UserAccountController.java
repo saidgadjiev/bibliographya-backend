@@ -2,13 +2,13 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
+import ru.saidgadjiev.bibliographya.domain.UserAccount;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import java.sql.SQLException;
+import java.util.TimeZone;
 
 /**
  * Created by said on 02.01.2019.
@@ -19,8 +19,12 @@ public class UserAccountController {
 
     private final BibliographyaUserDetailsService userAccountDetailsService;
 
-    public UserAccountController(BibliographyaUserDetailsService userAccountDetailsService) {
+    private BibliographyaMapper bibliographyaMapper;
+
+    public UserAccountController(BibliographyaUserDetailsService userAccountDetailsService,
+                                 BibliographyaMapper bibliographyaMapper) {
         this.userAccountDetailsService = userAccountDetailsService;
+        this.bibliographyaMapper = bibliographyaMapper;
     }
 
     @RequestMapping(value = "/{email}", method = RequestMethod.HEAD)
@@ -30,5 +34,16 @@ public class UserAccountController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id:[\\d]+}")
+    public ResponseEntity<?> getAccount(TimeZone timeZone, @PathVariable("id") int userId) {
+        UserAccount userAccount = userAccountDetailsService.getAccount(timeZone, userId);
+
+        if (userAccount == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(bibliographyaMapper.convertToAccountResponse(userAccount));
     }
 }
