@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,13 +15,16 @@ import ru.saidgadjiev.bibliographya.service.api.StorageService;
 		FacebookProperties.class,
 		VKProperties.class,
         StorageProperties.class,
-		UIProperties.class
+		UIProperties.class,
+		AppProperties.class
 })
 @EnableScheduling
 @SpringBootApplication
 public class BibliographyApplication implements CommandLineRunner {
 
-	private StorageService storageService;
+	private StorageService categoryStorage;
+
+	private StorageService magickStorage;
 
 	public static void main(String[] args) {
 		try {
@@ -32,12 +36,18 @@ public class BibliographyApplication implements CommandLineRunner {
 	}
 
 	@Autowired
-	public void setStorageService(StorageService storageService) {
-		this.storageService = storageService;
+	public void setCategoryStorage(@Qualifier("category") StorageService categoryStorage) {
+		this.categoryStorage = categoryStorage;
+	}
+
+	@Autowired
+	public void setMagickStorage(@Qualifier("magick") StorageService magickStorage) {
+		this.magickStorage = magickStorage;
 	}
 
 	@Override
 	public void run(String... strings) throws Exception {
-		storageService.init();
+		categoryStorage.init();
+		magickStorage.init();
 	}
 }

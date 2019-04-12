@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,7 @@ public class BiographyCategoryService {
     private GeneralDao generalDao;
 
     @Autowired
-    public BiographyCategoryService(StorageService storageService, BiographyCategoryDao dao, GeneralDao generalDao) {
+    public BiographyCategoryService(@Qualifier("category") StorageService storageService, BiographyCategoryDao dao, GeneralDao generalDao) {
         this.storageService = storageService;
         this.dao = dao;
         this.generalDao = generalDao;

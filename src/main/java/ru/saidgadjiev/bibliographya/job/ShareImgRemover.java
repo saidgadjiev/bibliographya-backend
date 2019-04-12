@@ -29,9 +29,14 @@ public class ShareImgRemover {
         this.storageProperties = storageProperties;
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 60000)
     public void removeShareImg() throws IOException {
-        try (Stream<Path> paths = Files.walk(Paths.get(storageProperties.getRoot()).resolve(storageProperties.getShareRoot()))) {
+        Path targetPath = Paths.get(storageProperties.getRoot()).resolve(storageProperties.getShareRoot());
+
+        if (Files.notExists(targetPath)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(targetPath)) {
             paths
                     .filter(Files::isRegularFile)
                     .forEach(path -> {

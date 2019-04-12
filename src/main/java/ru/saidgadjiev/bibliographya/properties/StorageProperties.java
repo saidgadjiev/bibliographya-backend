@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliographya.properties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "app.upload")
+@ConfigurationProperties(prefix = "app.storage.upload")
 public class StorageProperties {
 
     private String root;

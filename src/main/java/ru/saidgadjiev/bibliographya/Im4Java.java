@@ -12,15 +12,17 @@ public class Im4Java {
     public static void main(String[] args) throws Exception {
         ConvertCmd convertCmd = new ConvertCmd();
 
+        convertCmd.setSearchPath("C:\\Program Files\\ImageMagick-7.0.8-Q16");
+
         Operation operation = new Operation();
 
-        operation.addImage("/Users/said/Desktop/label.png");
+        operation.addImage("C:\\Users\\GadzhievSA\\Work\\SCM\\bibliographya-backend\\resources\\share.png");
         operation.addRawArgs("-pointsize", "70");
         operation.addRawArgs("-font", "Arial-Bold");
         operation.addRawArgs("-gravity", "Center");
         operation.addRawArgs("-annotate", "0");
         operation.addRawArgs("Джон Рокфеллер");
-        operation.addImage("/Users/said/Desktop/label.png");
+        operation.addImage("C:\\Users\\GadzhievSA\\Work\\SCM\\bibliographya-backend\\resources\\share0.png");
 
         convertCmd.run(operation);
     }

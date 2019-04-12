@@ -25,6 +25,7 @@ spring:
             enable: true
         timeout: 8000
 app:
+  resources: ${RESOURCES_DIR}
   social:
     facebook:
       appId: ${FACEBOOK_APP_ID}
@@ -36,10 +37,11 @@ app:
       appToken: ${VK_APP_TOKEN}
   jwt:
     secret: ${JWT_SECRET}
-  upload:
-    root: ${UPLOAD_DIR}
-    category-root: ${UPLOAD_CATEGORY_DIR}
-    share-root: ${UPLOAD_SHARE_DIR}
+  storage:
+    upload:
+      root: ${UPLOAD_DIR}
+      category-root: ${UPLOAD_CATEGORY_DIR}
+      share-root: ${SHARE_DIR}
 management:
   endpoints:
     web:
