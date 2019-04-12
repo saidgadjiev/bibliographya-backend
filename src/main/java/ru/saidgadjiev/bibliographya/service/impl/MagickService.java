@@ -30,7 +30,7 @@ public class MagickService {
 
         operation.addImage(appProperties.getResources() + File.separator + AppProperties.SHARE_PATH);
         operation.addRawArgs("-pointsize", "70");
-        operation.addRawArgs("-font", "Roboto-Bold");
+        operation.addRawArgs("-font", "Roboto-Black");
         operation.addRawArgs("-gravity", "Center");
         operation.addRawArgs("-annotate", "0");
         operation.addRawArgs(magickText);
