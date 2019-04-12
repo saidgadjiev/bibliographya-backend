@@ -177,6 +177,7 @@ public class BiographyLikeDao {
         biography.setId(resultSet.getInt("b_id"));
         biography.setFirstName(resultSet.getString("b_first_name"));
         biography.setLastName(resultSet.getString("b_last_name"));
+        biography.setUserId(resultSet.getInt("b_user_id"));
 
         like.setUser(biography);
 
@@ -189,7 +190,8 @@ public class BiographyLikeDao {
         selectList
                 .append("b.id as b_id,")
                 .append("b.first_name as b_first_name,")
-                .append("b.last_name as b_last_name");
+                .append("b.last_name as b_last_name,")
+                .append("b.user_id as b_user_id");
 
         return selectList.toString();
     }

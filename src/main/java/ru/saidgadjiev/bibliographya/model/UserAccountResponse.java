@@ -2,13 +2,13 @@ package ru.saidgadjiev.bibliographya.model;
 
 public class UserAccountResponse {
 
-    private BiographyResponse biographyResponse;
+    private BiographyResponse biography;
 
-    public BiographyResponse getBiographyResponse() {
-        return biographyResponse;
+    public BiographyResponse getBiography() {
+        return biography;
     }
 
-    public void setBiographyResponse(BiographyResponse biographyResponse) {
-        this.biographyResponse = biographyResponse;
+    public void setBiography(BiographyResponse biography) {
+        this.biography = biography;
     }
 }

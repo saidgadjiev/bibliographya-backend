@@ -12,7 +12,6 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -251,7 +250,7 @@ public class BiographyDao {
 
         appendJoins(sql, fields, isLikedCriteria);
 
-        String clause = FilterUtils.toClause(criteria, "b");
+        String clause = toClause(criteria, "b");
 
         sql.append("WHERE ").append(clause);
 
@@ -451,7 +450,9 @@ public class BiographyDao {
                 .append("b.").append(Biography.BIO).append(",")
                 .append("b.publish_status,")
                 .append("bm.first_name as m_first_name,")
-                .append("bm.last_name as m_last_name,").append("bm.id as m_id,")
+                .append("bm.last_name as m_last_name,")
+                .append("bm.id as m_id,")
+                .append("bm.user_id as bm_user_id,")
                 .append("l.cnt as l_cnt,")
                 .append("bc.cnt as bc_cnt");
 
@@ -462,7 +463,8 @@ public class BiographyDao {
         if (fields.contains(Biography.CREATOR_ID)) {
             selectList.append(",cb.id as cb_id,");
             selectList.append("cb.first_name as cb_first_name,");
-            selectList.append("cb.last_name as cb_last_name");
+            selectList.append("cb.last_name as cb_last_name,");
+            selectList.append("cb.user_id as cb_user_id");
         }
 
         return selectList.toString();
@@ -517,6 +519,7 @@ public class BiographyDao {
             creator.setId(rs.getInt("cb_id"));
             creator.setFirstName(rs.getString("cb_first_name"));
             creator.setLastName(rs.getString("cb_last_name"));
+            creator.setUserId(rs.getInt("cb_user_id"));
 
             biography.setCreator(creator);
         }

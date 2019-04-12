@@ -208,6 +208,7 @@ public class BiographyFixDao {
         creatorBiography.setFirstName(rs.getString("cb_first_name"));
         creatorBiography.setLastName(rs.getString("cb_last_name"));
         creatorBiography.setMiddleName(rs.getString("cb_middle_name"));
+        creatorBiography.setUserId(rs.getInt("cb_user_id"));
 
         fix.setCreator(creatorBiography);
 
@@ -227,6 +228,7 @@ public class BiographyFixDao {
         biographyCreator.setId(rs.getInt("cbb_id"));
         biographyCreator.setFirstName(rs.getString("cbb_first_name"));
         biographyCreator.setLastName(rs.getString("cbb_last_name"));
+        biographyCreator.setUserId(rs.getInt("cbb_user_id"));
 
         biography.setCreatorId(biographyCreator.getId());
         biography.setCreator(biographyCreator);
@@ -303,6 +305,7 @@ public class BiographyFixDao {
                 .append("cb.first_name as cb_first_name,")
                 .append("cb.last_name as cb_last_name,")
                 .append("cb.middle_name as cb_middle_name,")
+                .append("cb.user_id as cb_user_id,")
                 .append("fb.id as fb_id,")
                 .append("fb.first_name as fb_first_name,")
                 .append("fb.user_id as fb_user_id,")
@@ -313,7 +316,8 @@ public class BiographyFixDao {
                 .append("bisl.biography_id as bisl_biography_id,")
                 .append("cbb.id as cbb_id,")
                 .append("cbb.first_name as cbb_first_name,")
-                .append("cbb.last_name as cbb_last_name");
+                .append("cbb.last_name as cbb_last_name,")
+                .append("cbb.user_id as cbb_user_id");
 
         return builder.toString();
     }

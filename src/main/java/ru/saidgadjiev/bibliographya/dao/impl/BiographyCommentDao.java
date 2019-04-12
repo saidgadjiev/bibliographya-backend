@@ -206,6 +206,7 @@ public class BiographyCommentDao {
         biography.setId(rs.getInt("ba_id"));
         biography.setFirstName(rs.getString("ba_first_name"));
         biography.setLastName(rs.getString("ba_last_name"));
+        biography.setUserId(rs.getInt("ba_user_id"));
 
         biographyComment.setUser(biography);
 
@@ -228,6 +229,7 @@ public class BiographyCommentDao {
             Biography replyTo = new Biography();
             replyTo.setId(rs.getInt("br_id"));
             replyTo.setFirstName(rs.getString("br_first_name"));
+            replyTo.setUserId(rs.getInt("br_user_id"));
 
             biographyComment.setParentUser(replyTo);
         }
@@ -260,8 +262,10 @@ public class BiographyCommentDao {
                 .append("ba.id as ba_id,")
                 .append("ba.first_name as ba_first_name,")
                 .append("ba.last_name as ba_last_name,")
+                .append("ba.user_id as ba_user_id,")
                 .append("br.id as br_id,")
-                .append("br.first_name as br_first_name");
+                .append("br.first_name as br_first_name,")
+                .append("br.user_id as br_user_id");
 
         return builder.toString();
     }

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
-import sun.plugin2.util.SystemUtil;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

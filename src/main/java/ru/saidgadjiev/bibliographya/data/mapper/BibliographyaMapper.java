@@ -58,6 +58,7 @@ public interface BibliographyaMapper {
         shortBiographyResponse.setId(biographyLike.getUser().getId());
         shortBiographyResponse.setFirstName(biographyLike.getUser().getFirstName());
         shortBiographyResponse.setLastName(biographyLike.getUser().getLastName());
+        shortBiographyResponse.setUserId(biographyLike.getUser().getUserId());
 
         return shortBiographyResponse;
     }

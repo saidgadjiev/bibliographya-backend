@@ -40,7 +40,7 @@ public class UserAccountController {
     public ResponseEntity<?> getAccount(TimeZone timeZone, @PathVariable("id") int userId) {
         UserAccount userAccount = userAccountDetailsService.getAccount(timeZone, userId);
 
-        if (userAccount == null) {
+        if (userAccount.getBiography() == null) {
             return ResponseEntity.notFound().build();
         }
 
