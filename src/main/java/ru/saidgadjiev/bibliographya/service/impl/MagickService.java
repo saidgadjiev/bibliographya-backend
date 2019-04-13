@@ -24,13 +24,17 @@ public class MagickService {
         this.appProperties = appProperties;
     }
 
-    public String createShareImg(String magickText, String magickSize) throws Exception {
+    public String createShareImg(String providerId, String magickText, String magickPointSize, String magickSize) throws Exception {
         ConvertCmd convertCmd = new ConvertCmd();
 
         Operation operation = new Operation();
 
-        operation.addImage(appProperties.getResources() + File.separator + AppProperties.SHARE_PATH);
-        operation.addRawArgs("-pointsize", "70");
+        operation.addImage(appProperties.getResources() + File.separator + providerId + "-" + AppProperties.SHARE_PATH);
+        if (StringUtils.isNotBlank(magickPointSize)) {
+            operation.addRawArgs("-pointsize", magickPointSize);
+        } else {
+            operation.addRawArgs("-pointsize", "70");
+        }
         if (StringUtils.isNotBlank(magickSize)) {
             operation.addRawArgs("-resize", magickSize);
         }
