@@ -29,7 +29,7 @@ public class ShareImgRemover {
         this.storageProperties = storageProperties;
     }
 
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 600000)
     public void removeShareImg() throws IOException {
         Path targetPath = Paths.get(storageProperties.getRoot()).resolve(storageProperties.getShareRoot());
 
@@ -44,7 +44,7 @@ public class ShareImgRemover {
 
                         long diff = new Date().getTime() - file.lastModified();
 
-                        if (TimeUnit.MILLISECONDS.toSeconds(diff) > 30) {
+                        if (TimeUnit.MILLISECONDS.toMinutes(diff) > 10) {
                             boolean delete = file.delete();
 
                             if (!delete) {

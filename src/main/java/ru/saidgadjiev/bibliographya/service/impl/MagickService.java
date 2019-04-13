@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.Operation;
 import org.springframework.stereotype.Service;
@@ -23,13 +24,16 @@ public class MagickService {
         this.appProperties = appProperties;
     }
 
-    public String createShareImg(String magickText) throws Exception {
+    public String createShareImg(String magickText, String magickSize) throws Exception {
         ConvertCmd convertCmd = new ConvertCmd();
 
         Operation operation = new Operation();
 
         operation.addImage(appProperties.getResources() + File.separator + AppProperties.SHARE_PATH);
         operation.addRawArgs("-pointsize", "70");
+        if (StringUtils.isNotBlank(magickSize)) {
+            operation.addRawArgs("-resize", magickSize);
+        }
         operation.addRawArgs("-font", "Roboto-Black");
         operation.addRawArgs("-gravity", "Center");
         operation.addRawArgs("-annotate", "0");
