@@ -24,10 +24,12 @@ public class MagickController {
         this.magickService = magickService;
     }
 
-    @GetMapping("")
-    public ResponseEntity<?> magickShare(@RequestParam("magickText") String magickText,
+    @GetMapping("/{providerId}")
+    public ResponseEntity<?> magickShare(@PathVariable("providerId") String providerId,
+                                         @RequestParam("magickText") String magickText,
+                                         @RequestParam(value = "magickPointSize", required = false) String magickPointSize,
                                          @RequestParam(value = "magickSize", required = false) String magickSize) throws Exception {
-        String shareImg = magickService.createShareImg(magickText, magickSize);
+        String shareImg = magickService.createShareImg(providerId, magickText, magickPointSize, magickSize);
 
         ObjectNode objectNode = objectMapper.createObjectNode();
 
