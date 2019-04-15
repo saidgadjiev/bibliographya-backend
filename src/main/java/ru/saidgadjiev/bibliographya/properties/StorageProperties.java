@@ -14,6 +14,9 @@ public class StorageProperties {
     @Value("share-root")
     private String shareRoot;
 
+    @Value("biography-root")
+    private String biographyRoot;
+
     public String getRoot() {
         return root;
     }
@@ -36,5 +39,13 @@ public class StorageProperties {
 
     public void setShareRoot(String shareRoot) {
         this.shareRoot = shareRoot;
+    }
+
+    public String getBiographyRoot() {
+        return biographyRoot;
+    }
+
+    public void setBiographyRoot(String biographyRoot) {
+        this.biographyRoot = biographyRoot;
     }
 }

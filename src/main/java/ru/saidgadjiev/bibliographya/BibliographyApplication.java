@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya;
 
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
@@ -26,6 +27,8 @@ public class BibliographyApplication implements CommandLineRunner {
 
 	private StorageService magickStorage;
 
+	private StorageService biographyStorage;
+
 	public static void main(String[] args) {
 		try {
 			SpringApplication.run(BibliographyApplication.class, args);
@@ -45,9 +48,15 @@ public class BibliographyApplication implements CommandLineRunner {
 		this.magickStorage = magickStorage;
 	}
 
+	@Autowired
+	public void setBiographyStorage(@Qualifier("biography") StorageService biographyStorage) {
+		this.biographyStorage = biographyStorage;
+	}
+
 	@Override
 	public void run(String... strings) throws Exception {
 		categoryStorage.init();
 		magickStorage.init();
+		biographyStorage.init();
 	}
 }
