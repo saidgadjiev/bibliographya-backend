@@ -8,6 +8,7 @@ import ru.saidgadjiev.bibliographya.properties.AppProperties;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -43,7 +44,9 @@ public class MagickService {
         operation.addRawArgs("-annotate", "0");
         operation.addRawArgs(magickText);
 
-        Path resultPath = Paths.get(storageProperties.getRoot()).resolve(storageProperties.getShareRoot());
+        Path resultPath = Paths.get(storageProperties.getRoot()).resolve(StorageProperties.TEMP_ROOT);
+
+        Files.createDirectories(resultPath);
 
         File file = File.createTempFile("share.", ".png", resultPath.toFile());
 
@@ -51,6 +54,6 @@ public class MagickService {
 
         convertCmd.run(operation);
 
-        return file.getName();
+        return StorageProperties.TEMP_ROOT + File.separator + file.getName();
     }
 }

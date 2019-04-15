@@ -14,7 +14,7 @@ import java.nio.file.StandardCopyOption;
 
 public abstract class FileSystemStorageService implements StorageService {
 
-    private final Path path;
+    protected final Path path;
 
     public FileSystemStorageService(Path path) {
         this.path = path;
@@ -31,8 +31,12 @@ public abstract class FileSystemStorageService implements StorageService {
                         "Cannot storeToCategoryRoot file with relative path outside current directory "
                                 + filePath);
             }
+            Path fullPath = path.resolve(filePath);
+
+            Files.createDirectories(fullPath);
+
             try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, path.resolve(filePath), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(inputStream, fullPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             throw new StorageException("Failed to storeToCategoryRoot file " + filePath, e);

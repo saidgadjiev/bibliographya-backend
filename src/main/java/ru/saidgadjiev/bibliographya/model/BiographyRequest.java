@@ -6,6 +6,7 @@ import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -33,6 +34,8 @@ public class BiographyRequest {
     private List<Integer> addCategories;
 
     private List<Integer> deleteCategories;
+
+    private Collection<String> deleteImagePaths;
 
     public String getFirstName() {
         return firstName;
@@ -96,5 +99,13 @@ public class BiographyRequest {
 
     public void setDeleteCategories(List<Integer> deleteCategories) {
         this.deleteCategories = deleteCategories;
+    }
+
+    public Collection<String> getDeleteImagePaths() {
+        return deleteImagePaths;
+    }
+
+    public void setDeleteImagePaths(Collection<String> deleteImagePaths) {
+        this.deleteImagePaths = deleteImagePaths;
     }
 }

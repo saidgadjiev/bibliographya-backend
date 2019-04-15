@@ -18,6 +18,7 @@ import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import javax.script.ScriptException;
 import java.sql.PreparedStatement;
@@ -34,6 +35,8 @@ import java.util.*;
 @Service
 public class BiographyService {
 
+    private StorageService storageService;
+
     private final BiographyDao biographyDao;
 
     private final GeneralDao generalDao;
@@ -45,7 +48,11 @@ public class BiographyService {
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(BiographyDao biographyDao, GeneralDao generalDao, BiographyBuilder biographyBuilder) {
+    public BiographyService(StorageService storageService,
+                            BiographyDao biographyDao,
+                            GeneralDao generalDao,
+                            BiographyBuilder biographyBuilder) {
+        this.storageService = storageService;
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
         this.biographyBuilder = biographyBuilder;
@@ -80,6 +87,11 @@ public class BiographyService {
                     biographyRequest.getAddCategories(),
                     biography.getId()
             );
+        }
+        if (biographyRequest.getDeleteImagePaths() != null) {
+            for (String path: biographyRequest.getDeleteImagePaths()) {
+                storageService.deleteResource(path);
+            }
         }
     }
 
@@ -346,6 +358,11 @@ public class BiographyService {
                         updateBiographyRequest.getDeleteCategories(),
                         id
                 );
+            }
+        }
+        if (updateBiographyRequest.getDeleteImagePaths() != null) {
+            for (String path: updateBiographyRequest.getDeleteImagePaths()) {
+                storageService.deleteResource(path);
             }
         }
 

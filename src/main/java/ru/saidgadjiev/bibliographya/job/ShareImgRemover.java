@@ -31,7 +31,7 @@ public class ShareImgRemover {
 
     @Scheduled(fixedDelay = 600000)
     public void removeShareImg() throws IOException {
-        Path targetPath = Paths.get(storageProperties.getRoot()).resolve(storageProperties.getShareRoot());
+        Path targetPath = Paths.get(storageProperties.getRoot()).resolve(StorageProperties.BIOGRAPHY_ROOT);
 
         if (Files.notExists(targetPath)) {
             return;

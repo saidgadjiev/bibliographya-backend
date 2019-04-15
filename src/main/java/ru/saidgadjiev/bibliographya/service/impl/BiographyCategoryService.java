@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +36,7 @@ public class BiographyCategoryService {
     private GeneralDao generalDao;
 
     @Autowired
-    public BiographyCategoryService(@Qualifier("category") StorageService storageService, BiographyCategoryDao dao, GeneralDao generalDao) {
+    public BiographyCategoryService(StorageService storageService, BiographyCategoryDao dao, GeneralDao generalDao) {
         this.storageService = storageService;
         this.dao = dao;
         this.generalDao = generalDao;
@@ -68,7 +67,7 @@ public class BiographyCategoryService {
         KeyHolder keyHolder = generalDao.create(BiographyCategory.TABLE, values);
         int id = (int) keyHolder.getKeys().get(BiographyCategory.ID);
 
-        String filePath = FileNameUtils.categoryImagePath(id, file);
+        String filePath = FileNameUtils.categoryUploadPath(id, file);
 
         storageService.store(filePath, file);
 
@@ -134,7 +133,7 @@ public class BiographyCategoryService {
 
         if (file != null) {
             storageService.deleteResource(actual.getImagePath());
-            String filePath = FileNameUtils.categoryImagePath(id, file);
+            String filePath = FileNameUtils.categoryUploadPath(id, file);
 
             storageService.store(filePath, file);
 

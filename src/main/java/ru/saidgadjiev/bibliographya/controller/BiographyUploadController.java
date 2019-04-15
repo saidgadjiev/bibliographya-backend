@@ -2,14 +2,13 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
+import ru.saidgadjiev.bibliographya.utils.FileNameUtils;
 
 @RestController
 @RequestMapping("api/biographies/media")
@@ -20,19 +19,21 @@ public class BiographyUploadController {
     private ObjectMapper objectMapper;
 
     @Autowired
-    public BiographyUploadController(@Qualifier("biography") StorageService storageService,
+    public BiographyUploadController(StorageService storageService,
                                      ObjectMapper objectMapper) {
         this.storageService = storageService;
         this.objectMapper = objectMapper;
     }
 
-    @PostMapping("")
+    @PutMapping("")
     public ResponseEntity<?> upload(@RequestPart("file") MultipartFile file) {
-        storageService.store(file.getOriginalFilename(), file);
+        String filePath = FileNameUtils.biographyUploadPath(file);
+
+        storageService.store(filePath, file);
 
         ObjectNode objectNode = objectMapper.createObjectNode();
 
-        objectNode.put("location", file.getOriginalFilename());
+        objectNode.put("location", filePath);
 
         return ResponseEntity.ok(objectNode);
     }
