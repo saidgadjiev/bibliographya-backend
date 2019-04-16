@@ -1,8 +1,11 @@
 package ru.saidgadjiev.bibliographya.service.impl.storage;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import java.io.IOException;
@@ -10,14 +13,17 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-public abstract class FileSystemStorageService implements StorageService {
+@Service
+@Profile({"dev", "prod"})
+public class FileSystemStorageService implements StorageService {
 
-    protected final Path path;
+    private final Path path;
 
-    public FileSystemStorageService(Path path) {
-        this.path = path;
+    public FileSystemStorageService(StorageProperties storageProperties) {
+        this.path = Paths.get(storageProperties.getRoot());
     }
 
     @Override

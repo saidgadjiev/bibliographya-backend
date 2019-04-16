@@ -88,8 +88,8 @@ public class BiographyService {
                     biography.getId()
             );
         }
-        if (biographyRequest.getDeleteImagePaths() != null) {
-            for (String path: biographyRequest.getDeleteImagePaths()) {
+        if (biographyRequest.getDeleteUploads() != null) {
+            for (String path: biographyRequest.getDeleteUploads()) {
                 storageService.deleteResource(path);
             }
         }
@@ -360,8 +360,8 @@ public class BiographyService {
                 );
             }
         }
-        if (updateBiographyRequest.getDeleteImagePaths() != null) {
-            for (String path: updateBiographyRequest.getDeleteImagePaths()) {
+        if (updateBiographyRequest.getDeleteUploads() != null) {
+            for (String path: updateBiographyRequest.getDeleteUploads()) {
                 storageService.deleteResource(path);
             }
         }

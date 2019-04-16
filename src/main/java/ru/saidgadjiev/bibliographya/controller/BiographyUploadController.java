@@ -11,7 +11,7 @@ import ru.saidgadjiev.bibliographya.service.api.StorageService;
 import ru.saidgadjiev.bibliographya.utils.FileNameUtils;
 
 @RestController
-@RequestMapping("api/biographies/media")
+@RequestMapping("api/media/biographies")
 public class BiographyUploadController {
 
     private StorageService storageService;
@@ -38,8 +38,8 @@ public class BiographyUploadController {
         return ResponseEntity.ok(objectNode);
     }
 
-    @GetMapping("/{file}")
-    public Resource serve(@PathVariable("file") String file) {
-        return storageService.loadAsResource(file);
+    @GetMapping("")
+    public Resource serve(@RequestParam("filePath") String filePath) {
+        return storageService.loadAsResource(filePath);
     }
 }

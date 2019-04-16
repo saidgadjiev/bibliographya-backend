@@ -35,7 +35,7 @@ public class BiographyRequest {
 
     private List<Integer> deleteCategories;
 
-    private Collection<String> deleteImagePaths;
+    private Collection<String> deleteUploads;
 
     public String getFirstName() {
         return firstName;
@@ -101,11 +101,11 @@ public class BiographyRequest {
         this.deleteCategories = deleteCategories;
     }
 
-    public Collection<String> getDeleteImagePaths() {
-        return deleteImagePaths;
+    public Collection<String> getDeleteUploads() {
+        return deleteUploads;
     }
 
-    public void setDeleteImagePaths(Collection<String> deleteImagePaths) {
-        this.deleteImagePaths = deleteImagePaths;
+    public void setDeleteUploads(Collection<String> deleteUploads) {
+        this.deleteUploads = deleteUploads;
     }
 }
