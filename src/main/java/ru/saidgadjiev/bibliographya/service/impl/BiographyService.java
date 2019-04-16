@@ -505,9 +505,9 @@ public class BiographyService {
 
     //https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
     private String getRelativeSrc(String srcQuery) {
-        int uploadRootIndexOf = srcQuery.indexOf(storageProperties.getRoot() + "/" + StorageProperties.TEMP_ROOT + "/");
+        int uploadRootIndexOf = srcQuery.indexOf(storageProperties.getRoot() + "/");
 
-        return srcQuery.substring(uploadRootIndexOf + storageProperties.getRoot().length() + StorageProperties.TEMP_ROOT.length() + 2);
+        return srcQuery.substring(uploadRootIndexOf + storageProperties.getRoot().length() + 1);
     }
 
     private int publishUpdate(TimeZone timeZone, int biographyId, Biography.PublishStatus publishStatus) {
@@ -611,6 +611,8 @@ public class BiographyService {
         Document document = Jsoup.parse(bio);
 
         Elements imgs = document.getElementsByTag("img");
+        List<MediaLink> currentLinks = mediaService.getLinks(id);
+
         List<String> currentSrc = new ArrayList<>();
 
         for (Element img : imgs) {
@@ -622,12 +624,21 @@ public class BiographyService {
             //1. Получаем относительный путь к файлу https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
             String relativeSrc = getRelativeSrc(src.getQuery());
 
+            if (!relativeSrc.startsWith(StorageProperties.TEMP_ROOT)) {
+                currentSrc.add(relativeSrc);
+                continue;
+            }
+
             String newRelativeSrc = storageService.move(relativeSrc);
 
             //2. Новый путь к файлу http
             String newSrc = src.getProtocol() + "://" + src.getHost() + "/" + storageProperties.getRoot() + "/" + newRelativeSrc;
 
             img.attr("src", newSrc + "/" + relativeSrc);
+
+            mediaService.createLink(id, mediaService.create(newRelativeSrc));
+
+            currentSrc.add(newRelativeSrc);
 
             stashImageService.remove(relativeSrc);
         }

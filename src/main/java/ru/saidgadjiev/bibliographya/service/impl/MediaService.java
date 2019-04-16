@@ -42,4 +42,8 @@ public class MediaService {
     public List<Media> getNonLinkedMedias() {
         return mediaDao.getNonLinked();
     }
+
+    public List<MediaLink> getLinks(int objectId) {
+
+    }
 }

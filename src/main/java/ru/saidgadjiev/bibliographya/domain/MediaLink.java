@@ -11,6 +11,8 @@ public class MediaLink {
 
     private int mediaId;
 
+    private Media media;
+
     public int getId() {
         return id;
     }
