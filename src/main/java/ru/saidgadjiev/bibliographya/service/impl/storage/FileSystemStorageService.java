@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl.storage;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -8,17 +9,22 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @Service
 @Profile({"dev", "prod"})
 public class FileSystemStorageService implements StorageService {
+
+    private static final int DEFAULT_BLOCK_SIZE = 64 * 1024;
+
+    private static final int DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;
 
     private final Path path;
 
@@ -46,6 +52,45 @@ public class FileSystemStorageService implements StorageService {
             }
         } catch (IOException e) {
             throw new StorageException("Failed to storeToCategoryRoot file " + filePath, e);
+        }
+    }
+
+    @Override
+    public String store(File file) {
+        File temp = null;
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            String ext = FilenameUtils.getExtension(file.getName());
+
+            temp = File.createTempFile("upload.", "." + ext);
+            try (OutputStream output = new BufferedOutputStream(new FileOutputStream(temp));
+                InputStream input = file.getInputStream()
+            ) {
+                byte[] bytes = new byte[DEFAULT_BLOCK_SIZE];
+                int read;
+                while ((read = input.read(bytes)) != -1) {
+                    digest.update(bytes, 0, read);
+                    output.write(bytes, 0, read);
+                }
+            }
+            byte[] digestBytes = digest.digest();
+            String hash = hashToString(digestBytes);
+            String filePath = getFilePath(hash, ext);
+
+            Path fullPath = path.resolve(filePath);
+
+            Files.createDirectories(fullPath);
+
+            try (InputStream inputStream = new FileInputStream(temp)) {
+                Files.copy(inputStream, fullPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new StorageException("Failed to store file", e);
+        } finally {
+            if (temp != null) {
+                FileUtils.deleteQuietly(temp);
+            }
         }
     }
 
@@ -86,5 +131,29 @@ public class FileSystemStorageService implements StorageService {
         } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }
+    }
+
+    private static String hashToString(byte[] bytes) {
+        StringBuilder out = new StringBuilder();
+        for (byte b : bytes) {
+            out.append(Integer.toHexString(b & 0xff));
+        }
+        return out.toString();
+    }
+
+    private String getFilePath(String hash, String ext) {
+        StringBuilder builder = new StringBuilder();
+
+        int index = 0;
+        for (char c : hash.toCharArray()) {
+            if (index % 2 == 0) {
+                builder.append(File.separatorChar);
+            }
+            builder.append(c);
+            index++;
+        }
+        builder.append(".").append(ext);
+
+        return builder.toString();
     }
 }

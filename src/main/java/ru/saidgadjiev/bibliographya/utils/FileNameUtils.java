@@ -23,7 +23,7 @@ public class FileNameUtils {
         String ext = FilenameUtils.getExtension(file.getOriginalFilename());
 
         return new SimpleDateFormat(
-                "'" + StorageProperties.BIOGRAPHY_ROOT + File.separator + "upload_'yyyyMMddHHmmSSSSS'." + ext + "'"
+                "'" + StorageProperties.BIOGRAPHY_ROOT + "/upload_'yyyyMMddHHmmSSSSS'." + ext + "'"
         ).format(new Date());
     }
 }

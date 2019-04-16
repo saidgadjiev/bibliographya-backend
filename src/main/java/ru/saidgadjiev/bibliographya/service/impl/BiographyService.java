@@ -1,6 +1,10 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,9 +22,13 @@ import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import javax.script.ScriptException;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -34,6 +42,12 @@ import java.util.*;
  */
 @Service
 public class BiographyService {
+
+    private ImageService imageService;
+
+    private StashImageService stashImageService;
+
+    private StorageProperties storageProperties;
 
     private StorageService storageService;
 
@@ -276,7 +290,7 @@ public class BiographyService {
     @Transactional
     public BiographyUpdateStatus update(TimeZone timeZone,
                                         Integer id,
-                                        BiographyRequest updateBiographyRequest) throws SQLException {
+                                        BiographyRequest updateBiographyRequest) throws SQLException, MalformedURLException {
         List<UpdateValue> updateValues = new ArrayList<>();
 
         updateValues.add(
@@ -360,10 +374,24 @@ public class BiographyService {
                 );
             }
         }
-        if (updateBiographyRequest.getDeleteUploads() != null) {
-            for (String path: updateBiographyRequest.getDeleteUploads()) {
-                storageService.deleteResource(path);
-            }
+        Document document = Jsoup.parse(updateBiographyRequest.getBio());
+
+        Elements imgs = document.getElementsByTag("img");
+        Map<String, String> fromToMap = new HashMap<>();
+
+        for (Element img : imgs) {
+            URL src = new URL(img.attr("src"));
+            String relativeSrc = getRelativeSrc(src.getQuery());
+            String newSrc = src.getProtocol() + "://" + src.getHost() + "/" + storageProperties.getRoot() + "/" + StorageProperties.BIOGRAPHY_ROOT + "/" + relativeSrc;
+
+            img.attr("src", newSrc + "/" + relativeSrc);
+            fromToMap.put(StorageProperties.TEMP_ROOT + "/" + relativeSrc, StorageProperties.BIOGRAPHY_ROOT + "/" + relativeSrc);
+        }
+
+        for (Map.Entry<String, String> entry: fromToMap.entrySet()) {
+            storageService.move(entry.getKey(), entry.getValue());
+            imageService.create(entry.getValue(), id);
+            stashImageService.remove(imgAbsolutePath);
         }
 
         return status;
@@ -457,6 +485,12 @@ public class BiographyService {
         }
 
         return new RequestResult<Biography>().setStatus(update == 1 ? HttpStatus.OK : HttpStatus.NOT_FOUND).setBody(biography);
+    }
+
+    private String getRelativeSrc(String srcQuery) {
+        int uploadRootIndexOf = srcQuery.indexOf(storageProperties.getRoot() + "/" + StorageProperties.TEMP_ROOT + "/");
+
+        return srcQuery.substring(uploadRootIndexOf + storageProperties.getRoot().length() + StorageProperties.TEMP_ROOT.length() + 2);
     }
 
     private int publishUpdate(TimeZone timeZone, int biographyId, Biography.PublishStatus publishStatus) {

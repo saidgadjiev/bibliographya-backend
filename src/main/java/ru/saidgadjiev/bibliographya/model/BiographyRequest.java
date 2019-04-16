@@ -35,8 +35,6 @@ public class BiographyRequest {
 
     private List<Integer> deleteCategories;
 
-    private Collection<String> deleteUploads;
-
     public String getFirstName() {
         return firstName;
     }
@@ -99,13 +97,5 @@ public class BiographyRequest {
 
     public void setDeleteCategories(List<Integer> deleteCategories) {
         this.deleteCategories = deleteCategories;
-    }
-
-    public Collection<String> getDeleteUploads() {
-        return deleteUploads;
-    }
-
-    public void setDeleteUploads(Collection<String> deleteUploads) {
-        this.deleteUploads = deleteUploads;
     }
 }
