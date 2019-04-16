@@ -611,6 +611,7 @@ public class BiographyService {
         Document document = Jsoup.parse(bio);
 
         Elements imgs = document.getElementsByTag("img");
+        List<String> currentSrc = new ArrayList<>();
 
         for (Element img : imgs) {
             URL src = new URL(img.attr("src"));
@@ -620,18 +621,14 @@ public class BiographyService {
             }
             //1. Получаем относительный путь к файлу https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
             String relativeSrc = getRelativeSrc(src.getQuery());
-            AtomicBoolean exist = new AtomicBoolean();
 
-            String newRelativeSrc = storageService.move(relativeSrc, exist);
+            String newRelativeSrc = storageService.move(relativeSrc);
 
             //2. Новый путь к файлу http
             String newSrc = src.getProtocol() + "://" + src.getHost() + "/" + storageProperties.getRoot() + "/" + newRelativeSrc;
 
             img.attr("src", newSrc + "/" + relativeSrc);
 
-            if (!exist.get()) {
-                mediaService.createLink(id, mediaService.create(newRelativeSrc));
-            }
             stashImageService.remove(relativeSrc);
         }
 

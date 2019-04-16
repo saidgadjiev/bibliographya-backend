@@ -13,7 +13,7 @@ public interface StorageService {
 
     void store(String filePath, MultipartFile file);
     
-    String move(String filePath, AtomicBoolean exist);
+    String move(String filePath);
 
     Resource loadAsResource(String filePath);
 

@@ -61,7 +61,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public String move(String filePath, AtomicBoolean exist) {
+    public String move(String filePath) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
             String ext = FilenameUtils.getExtension(filePath);
@@ -83,7 +83,6 @@ public class FileSystemStorageService implements StorageService {
             Path fullPath = path.resolve(newFilePath);
 
             if (Files.exists(fullPath)) {
-                exist.set(true);
                 FileUtils.deleteQuietly(file);
 
                 return newFilePath;
@@ -91,8 +90,6 @@ public class FileSystemStorageService implements StorageService {
             Files.createDirectories(fullPath);
 
             Files.move(file.toPath(), fullPath);
-
-            exist.set(false);
 
             return newFilePath;
         } catch (IOException | NoSuchAlgorithmException e) {

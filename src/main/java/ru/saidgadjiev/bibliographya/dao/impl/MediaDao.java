@@ -48,6 +48,21 @@ public class MediaDao {
         );
     }
 
+    public List<MediaLink> getAllLinks() {
+        return jdbcTemplate.query(
+                "SELECT object_id, media_id FROM media_link ORDER BY created_at ASC",
+                (rs, rowNum) -> {
+                    MediaLink mediaLink = new MediaLink();
+
+                    mediaLink.setId(rs.getInt("id"));
+                    mediaLink.setObjectId(rs.getInt("object_id"));
+                    mediaLink.setMediaId(rs.getInt("media_id"));
+
+                    return mediaLink;
+                }
+        );
+    }
+
     public List<Media> getNonLinked() {
         return jdbcTemplate.query(
                 "SELECT m.id, m.path FROM media m WHERE NOT EXISTS (SELECT 1 FROM media_link WHERE media_id = m.id)",

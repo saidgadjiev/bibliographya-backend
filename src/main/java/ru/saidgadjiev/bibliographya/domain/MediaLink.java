@@ -5,9 +5,19 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class MediaLink {
 
+    private int id;
+
     private int objectId;
 
     private int mediaId;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public int getObjectId() {
         return objectId;

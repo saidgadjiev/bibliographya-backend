@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS media (
 CREATE TABLE IF NOT EXISTS media_link (
   id SERIAL PRIMARY KEY,
   object_id INTEGER NOT NULL,
-  media_id INT NOT NULL
+  media_id INT NOT NULL,
+  created_at TIMESTAMP(3) NOT NULL DEFAULT NOW()
 );
