@@ -8,19 +8,16 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.saidgadjiev.bibliographya.domain.Image;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
-import ru.saidgadjiev.bibliographya.service.impl.ImageService;
 import ru.saidgadjiev.bibliographya.service.impl.StashImageService;
-import ru.saidgadjiev.bibliographya.utils.FileNameUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @RestController
 @RequestMapping("api/media/")
-public class UploadController {
+public class MediaController {
 
     private StashImageService stashImageService;
 
@@ -29,8 +26,10 @@ public class UploadController {
     private ObjectMapper objectMapper;
 
     @Autowired
-    public UploadController(StorageService storageService,
-                            ObjectMapper objectMapper) {
+    public MediaController(StashImageService stashImageService,
+                           StorageService storageService,
+                           ObjectMapper objectMapper) {
+        this.stashImageService = stashImageService;
         this.storageService = storageService;
         this.objectMapper = objectMapper;
     }
@@ -39,9 +38,7 @@ public class UploadController {
     public ResponseEntity<?> upload(@RequestPart("file") MultipartFile file) {
         String ext = FilenameUtils.getExtension(file.getOriginalFilename());
 
-        String fileName = new SimpleDateFormat("upload_'yyyyMMddHHmmSSSSS'." + ext + "'").format(new Date());
-
-        String filePath = StorageProperties.TEMP_ROOT + "/" + fileName;
+        String filePath = StorageProperties.TEMP_ROOT + "/" + new SimpleDateFormat("upload_'yyyyMMddHHmmSSSSS'." + ext + "'").format(new Date());
 
         storageService.store(filePath, file);
 
@@ -49,7 +46,7 @@ public class UploadController {
 
         objectNode.put("location", filePath);
 
-        stashImageService.create(fileName);
+        stashImageService.create(filePath);
 
         return ResponseEntity.ok(objectNode);
     }

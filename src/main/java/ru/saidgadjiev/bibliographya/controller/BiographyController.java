@@ -20,6 +20,7 @@ import ru.saidgadjiev.bibliographya.service.impl.BiographyService;
 
 import javax.script.ScriptException;
 import javax.validation.Valid;
+import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.TimeZone;
 
@@ -122,7 +123,7 @@ public class BiographyController {
             @PathVariable("id") Integer id,
             @Valid @RequestBody BiographyRequest biographyRequest,
             BindingResult bindingResult
-    ) throws SQLException {
+    ) throws SQLException, MalformedURLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
@@ -148,14 +149,15 @@ public class BiographyController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "")
     public ResponseEntity<?> create(
+            TimeZone timeZone,
             @Valid @RequestBody BiographyRequest biographyRequest,
             BindingResult bindingResult
-    ) throws SQLException {
+    ) throws SQLException, MalformedURLException {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
 
-        biographyService.create(biographyRequest);
+        biographyService.create(timeZone, biographyRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

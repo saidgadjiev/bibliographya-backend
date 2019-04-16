@@ -30,7 +30,7 @@ public class MagickService {
 
         Operation operation = new Operation();
 
-        operation.addImage(appProperties.getResources() + File.separator + providerId + "-" + AppProperties.SHARE_PATH);
+        operation.addImage(appProperties.getResources() + "/" + providerId + "-" + AppProperties.SHARE_PATH);
         if (StringUtils.isNotBlank(magickPointSize)) {
             operation.addRawArgs("-pointsize", magickPointSize);
         } else {
@@ -54,6 +54,6 @@ public class MagickService {
 
         convertCmd.run(operation);
 
-        return StorageProperties.TEMP_ROOT + File.separator + file.getName();
+        return StorageProperties.TEMP_ROOT + "/" + file.getName();
     }
 }

@@ -7,8 +7,6 @@ public class StorageProperties {
 
     public static final String CATEGORY_ROOT = "category";
 
-    public static final String BIOGRAPHY_ROOT = "biography";
-
     public static final String TEMP_ROOT = "temp";
 
     private String root;

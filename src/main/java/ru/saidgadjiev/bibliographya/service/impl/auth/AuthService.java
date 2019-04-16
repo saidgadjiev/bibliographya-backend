@@ -143,7 +143,7 @@ public class AuthService {
 
                 CookieUtils.addCookie(
                         authContext.getResponse(),
-                        uiProperties.getName(),
+                        uiProperties.getHost(),
                         jwtProperties.tokenName(),
                         token
                 );

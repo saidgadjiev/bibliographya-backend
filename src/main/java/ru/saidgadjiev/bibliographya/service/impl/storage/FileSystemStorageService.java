@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl.storage;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
@@ -9,7 +10,10 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +21,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @Profile({"dev", "prod"})
@@ -56,41 +61,42 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public String store(File file) {
-        File temp = null;
-
+    public String move(String filePath, AtomicBoolean exist) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
-            String ext = FilenameUtils.getExtension(file.getName());
+            String ext = FilenameUtils.getExtension(filePath);
 
-            temp = File.createTempFile("upload.", "." + ext);
-            try (OutputStream output = new BufferedOutputStream(new FileOutputStream(temp));
-                InputStream input = file.getInputStream()
-            ) {
+            File file = path.resolve(filePath).toFile();
+
+            try (InputStream input = new FileInputStream(file)) {
                 byte[] bytes = new byte[DEFAULT_BLOCK_SIZE];
                 int read;
+
                 while ((read = input.read(bytes)) != -1) {
                     digest.update(bytes, 0, read);
-                    output.write(bytes, 0, read);
                 }
             }
             byte[] digestBytes = digest.digest();
             String hash = hashToString(digestBytes);
-            String filePath = getFilePath(hash, ext);
+            String newFilePath = getFilePath(hash, ext);
 
-            Path fullPath = path.resolve(filePath);
+            Path fullPath = path.resolve(newFilePath);
 
+            if (Files.exists(fullPath)) {
+                exist.set(true);
+                FileUtils.deleteQuietly(file);
+
+                return newFilePath;
+            }
             Files.createDirectories(fullPath);
 
-            try (InputStream inputStream = new FileInputStream(temp)) {
-                Files.copy(inputStream, fullPath, StandardCopyOption.REPLACE_EXISTING);
-            }
+            Files.move(file.toPath(), fullPath);
+
+            exist.set(false);
+
+            return newFilePath;
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new StorageException("Failed to store file", e);
-        } finally {
-            if (temp != null) {
-                FileUtils.deleteQuietly(temp);
-            }
         }
     }
 

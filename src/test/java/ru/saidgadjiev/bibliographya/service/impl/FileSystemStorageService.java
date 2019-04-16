@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by said on 10.02.2019.
@@ -21,6 +22,11 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public void store(String filePath, MultipartFile file) {
+    }
+
+    @Override
+    public String move(String filePath, AtomicBoolean exist) {
+        return null;
     }
 
     @Override

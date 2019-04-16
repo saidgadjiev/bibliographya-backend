@@ -54,6 +54,6 @@ management:
 logging:
   file: logs/bibliographya.log
 ui:
-  name: localhost
+  host: localhost
 server:
   port: 8000

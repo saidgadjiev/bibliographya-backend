@@ -23,10 +23,10 @@ import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
+import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import javax.script.ScriptException;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.PreparedStatement;
@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by said on 22.10.2018.
@@ -43,7 +44,7 @@ import java.util.*;
 @Service
 public class BiographyService {
 
-    private ImageService imageService;
+    private MediaService mediaService;
 
     private StashImageService stashImageService;
 
@@ -59,17 +60,26 @@ public class BiographyService {
 
     private SecurityService securityService;
 
+    private UIProperties uiProperties;
+
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(StorageService storageService,
+    public BiographyService(MediaService mediaService,
+                            StashImageService stashImageService,
+                            StorageProperties storageProperties,
+                            StorageService storageService,
                             BiographyDao biographyDao,
                             GeneralDao generalDao,
-                            BiographyBuilder biographyBuilder) {
+                            BiographyBuilder biographyBuilder, UIProperties uiProperties) {
+        this.mediaService = mediaService;
+        this.stashImageService = stashImageService;
+        this.storageProperties = storageProperties;
         this.storageService = storageService;
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
         this.biographyBuilder = biographyBuilder;
+        this.uiProperties = uiProperties;
     }
 
     @Autowired
@@ -83,7 +93,7 @@ public class BiographyService {
     }
 
     @Transactional
-    public void create(BiographyRequest biographyRequest) throws SQLException {
+    public void create(TimeZone timeZone, BiographyRequest biographyRequest) throws SQLException, MalformedURLException {
         User userDetails = (User) securityService.findLoggedInUser();
 
         Biography biography = new Biography();
@@ -102,10 +112,32 @@ public class BiographyService {
                     biography.getId()
             );
         }
-        if (biographyRequest.getDeleteUploads() != null) {
-            for (String path: biographyRequest.getDeleteUploads()) {
-                storageService.deleteResource(path);
-            }
+        if (StringUtils.isNotBlank(biography.getBio())) {
+            String bio = storeMedia(biography.getId(), biography.getBio());
+
+            List<UpdateValue> updateValues = new ArrayList<>();
+
+            updateValues.add(
+                    new UpdateValue<>(
+                            Biography.BIO,
+                            bio,
+                            PreparedStatement::setString
+                    )
+            );
+
+            List<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<Integer>()
+                            .propertyName(Biography.ID)
+                            .filterValue(biography.getId())
+                            .filterOperation(FilterOperation.EQ)
+                            .needPreparedSet(true)
+                            .valueSetter(PreparedStatement::setInt)
+                            .build()
+            );
+
+            biographyDao.updateValues(timeZone, updateValues, criteria);
         }
     }
 
@@ -314,6 +346,9 @@ public class BiographyService {
                         PreparedStatement::setString
                 )
         );
+
+        updateBiographyRequest.setBio(storeMedia(id, updateBiographyRequest.getBio()));
+
         updateValues.add(
                 new UpdateValue<>(
                         Biography.BIO,
@@ -373,25 +408,6 @@ public class BiographyService {
                         id
                 );
             }
-        }
-        Document document = Jsoup.parse(updateBiographyRequest.getBio());
-
-        Elements imgs = document.getElementsByTag("img");
-        Map<String, String> fromToMap = new HashMap<>();
-
-        for (Element img : imgs) {
-            URL src = new URL(img.attr("src"));
-            String relativeSrc = getRelativeSrc(src.getQuery());
-            String newSrc = src.getProtocol() + "://" + src.getHost() + "/" + storageProperties.getRoot() + "/" + StorageProperties.BIOGRAPHY_ROOT + "/" + relativeSrc;
-
-            img.attr("src", newSrc + "/" + relativeSrc);
-            fromToMap.put(StorageProperties.TEMP_ROOT + "/" + relativeSrc, StorageProperties.BIOGRAPHY_ROOT + "/" + relativeSrc);
-        }
-
-        for (Map.Entry<String, String> entry: fromToMap.entrySet()) {
-            storageService.move(entry.getKey(), entry.getValue());
-            imageService.create(entry.getValue(), id);
-            stashImageService.remove(imgAbsolutePath);
         }
 
         return status;
@@ -487,6 +503,7 @@ public class BiographyService {
         return new RequestResult<Biography>().setStatus(update == 1 ? HttpStatus.OK : HttpStatus.NOT_FOUND).setBody(biography);
     }
 
+    //https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
     private String getRelativeSrc(String srcQuery) {
         int uploadRootIndexOf = srcQuery.indexOf(storageProperties.getRoot() + "/" + StorageProperties.TEMP_ROOT + "/");
 
@@ -585,5 +602,39 @@ public class BiographyService {
         }
 
         return normalizedFields;
+    }
+
+    private String storeMedia(int id, String bio) throws MalformedURLException {
+        if (StringUtils.isBlank(bio)) {
+            return bio;
+        }
+        Document document = Jsoup.parse(bio);
+
+        Elements imgs = document.getElementsByTag("img");
+
+        for (Element img : imgs) {
+            URL src = new URL(img.attr("src"));
+
+            if (!src.getHost().equals(uiProperties.getHost())) {
+                continue;
+            }
+            //1. Получаем относительный путь к файлу https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
+            String relativeSrc = getRelativeSrc(src.getQuery());
+            AtomicBoolean exist = new AtomicBoolean();
+
+            String newRelativeSrc = storageService.move(relativeSrc, exist);
+
+            //2. Новый путь к файлу http
+            String newSrc = src.getProtocol() + "://" + src.getHost() + "/" + storageProperties.getRoot() + "/" + newRelativeSrc;
+
+            img.attr("src", newSrc + "/" + relativeSrc);
+
+            if (!exist.get()) {
+                mediaService.createLink(id, mediaService.create(newRelativeSrc));
+            }
+            stashImageService.remove(relativeSrc);
+        }
+
+        return document.html();
     }
 }

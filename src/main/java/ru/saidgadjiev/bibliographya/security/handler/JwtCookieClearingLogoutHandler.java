@@ -23,7 +23,7 @@ public class JwtCookieClearingLogoutHandler implements LogoutHandler {
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         Cookie cookie = new Cookie(jwtProperties.tokenName(), null);
 
-        cookie.setDomain(uiProperties.getName());
+        cookie.setDomain(uiProperties.getHost());
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);
