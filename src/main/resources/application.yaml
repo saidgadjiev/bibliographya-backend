@@ -40,9 +40,6 @@ app:
   storage:
     upload:
       root: ${UPLOAD_DIR}
-      category-root: ${UPLOAD_CATEGORY_DIR}
-      share-root: ${SHARE_DIR}
-      biography-root: ${BIOGRAPHIES_DIR}
 management:
   endpoints:
     web:

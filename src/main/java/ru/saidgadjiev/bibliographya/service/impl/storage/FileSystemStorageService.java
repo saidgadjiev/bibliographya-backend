@@ -21,15 +21,12 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @Profile({"dev", "prod"})
 public class FileSystemStorageService implements StorageService {
 
     private static final int DEFAULT_BLOCK_SIZE = 64 * 1024;
-
-    private static final int DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024;
 
     private final Path path;
 

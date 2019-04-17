@@ -6,7 +6,6 @@ import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 
 /**
