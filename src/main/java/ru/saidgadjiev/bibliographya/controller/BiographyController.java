@@ -134,6 +134,7 @@ public class BiographyController {
             UpdateBiographyResponse response = new UpdateBiographyResponse();
 
             response.setUpdatedAt(updateResult.getUpdatedAt());
+            response.setBio(updateResult.getBio());
 
             return ResponseEntity.ok(response);
         }

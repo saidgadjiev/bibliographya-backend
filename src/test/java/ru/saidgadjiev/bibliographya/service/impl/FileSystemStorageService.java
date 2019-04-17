@@ -25,7 +25,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public String move(String filePath, AtomicBoolean exist) {
+    public String move(String filePath) {
         return null;
     }
 

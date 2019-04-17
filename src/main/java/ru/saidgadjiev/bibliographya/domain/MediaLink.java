@@ -9,9 +9,7 @@ public class MediaLink {
 
     private int objectId;
 
-    private int mediaId;
-
-    private Media media;
+    private String mediaPath;
 
     public int getId() {
         return id;
@@ -29,11 +27,11 @@ public class MediaLink {
         this.objectId = objectId;
     }
 
-    public int getMediaId() {
-        return mediaId;
+    public String getMediaPath() {
+        return mediaPath;
     }
 
-    public void setMediaId(int mediaId) {
-        this.mediaId = mediaId;
+    public void setMediaPath(String mediaPath) {
+        this.mediaPath = mediaPath;
     }
 }

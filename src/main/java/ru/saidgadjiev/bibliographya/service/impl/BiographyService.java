@@ -1,10 +1,6 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.apache.commons.lang.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,13 +18,9 @@ import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
-import ru.saidgadjiev.bibliographya.properties.StorageProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
-import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
 import javax.script.ScriptException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -36,7 +28,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by said on 22.10.2018.
@@ -44,13 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class BiographyService {
 
-    private MediaService mediaService;
-
-    private StashImageService stashImageService;
-
-    private StorageProperties storageProperties;
-
-    private StorageService storageService;
+    private final MediaService mediaService;
 
     private final BiographyDao biographyDao;
 
@@ -60,26 +45,17 @@ public class BiographyService {
 
     private SecurityService securityService;
 
-    private UIProperties uiProperties;
-
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
     public BiographyService(MediaService mediaService,
-                            StashImageService stashImageService,
-                            StorageProperties storageProperties,
-                            StorageService storageService,
                             BiographyDao biographyDao,
                             GeneralDao generalDao,
-                            BiographyBuilder biographyBuilder, UIProperties uiProperties) {
+                            BiographyBuilder biographyBuilder) {
         this.mediaService = mediaService;
-        this.stashImageService = stashImageService;
-        this.storageProperties = storageProperties;
-        this.storageService = storageService;
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
         this.biographyBuilder = biographyBuilder;
-        this.uiProperties = uiProperties;
     }
 
     @Autowired
@@ -113,7 +89,7 @@ public class BiographyService {
             );
         }
         if (StringUtils.isNotBlank(biography.getBio())) {
-            String bio = storeMedia(biography.getId(), biography.getBio());
+            String bio = mediaService.storeMedia(biography.getId(), biography.getBio());
 
             List<UpdateValue> updateValues = new ArrayList<>();
 
@@ -347,7 +323,7 @@ public class BiographyService {
                 )
         );
 
-        updateBiographyRequest.setBio(storeMedia(id, updateBiographyRequest.getBio()));
+        updateBiographyRequest.setBio(mediaService.storeMedia(id, updateBiographyRequest.getBio()));
 
         updateValues.add(
                 new UpdateValue<>(
@@ -396,6 +372,8 @@ public class BiographyService {
         BiographyUpdateStatus status = biographyDao.updateValues(timeZone, updateValues, criteria);
 
         if (status.getUpdated() > 0) {
+            status.setBio(updateBiographyRequest.getBio());
+
             if (updateBiographyRequest.getAddCategories() != null && !updateBiographyRequest.getAddCategories().isEmpty()) {
                 biographyCategoryBiographyService.addCategoriesToBiography(
                         updateBiographyRequest.getAddCategories(),
@@ -503,13 +481,6 @@ public class BiographyService {
         return new RequestResult<Biography>().setStatus(update == 1 ? HttpStatus.OK : HttpStatus.NOT_FOUND).setBody(biography);
     }
 
-    //https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
-    private String getRelativeSrc(String srcQuery) {
-        int uploadRootIndexOf = srcQuery.indexOf(storageProperties.getRoot() + "/");
-
-        return srcQuery.substring(uploadRootIndexOf + storageProperties.getRoot().length() + 1);
-    }
-
     private int publishUpdate(TimeZone timeZone, int biographyId, Biography.PublishStatus publishStatus) {
         List<UpdateValue> updateValues = new ArrayList<>();
 
@@ -602,47 +573,5 @@ public class BiographyService {
         }
 
         return normalizedFields;
-    }
-
-    private String storeMedia(int id, String bio) throws MalformedURLException {
-        if (StringUtils.isBlank(bio)) {
-            return bio;
-        }
-        Document document = Jsoup.parse(bio);
-
-        Elements imgs = document.getElementsByTag("img");
-        List<MediaLink> currentLinks = mediaService.getLinks(id);
-
-        List<String> currentSrc = new ArrayList<>();
-
-        for (Element img : imgs) {
-            URL src = new URL(img.attr("src"));
-
-            if (!src.getHost().equals(uiProperties.getHost())) {
-                continue;
-            }
-            //1. Получаем относительный путь к файлу https://bibliographya.com/upload/temp/upload.jpg -> temp/upload.jpg
-            String relativeSrc = getRelativeSrc(src.getQuery());
-
-            if (!relativeSrc.startsWith(StorageProperties.TEMP_ROOT)) {
-                currentSrc.add(relativeSrc);
-                continue;
-            }
-
-            String newRelativeSrc = storageService.move(relativeSrc);
-
-            //2. Новый путь к файлу http
-            String newSrc = src.getProtocol() + "://" + src.getHost() + "/" + storageProperties.getRoot() + "/" + newRelativeSrc;
-
-            img.attr("src", newSrc + "/" + relativeSrc);
-
-            mediaService.createLink(id, mediaService.create(newRelativeSrc));
-
-            currentSrc.add(newRelativeSrc);
-
-            stashImageService.remove(relativeSrc);
-        }
-
-        return document.html();
     }
 }

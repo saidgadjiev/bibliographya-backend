@@ -8,7 +8,7 @@ import ru.saidgadjiev.bibliographya.domain.Media;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 import ru.saidgadjiev.bibliographya.service.impl.MediaService;
-import ru.saidgadjiev.bibliographya.service.impl.StashImageService;
+import ru.saidgadjiev.bibliographya.service.impl.StashMediaService;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,23 +30,23 @@ public class MediaCleaner {
 
     private StorageProperties storageProperties;
 
-    private StashImageService stashImageService;
+    private StashMediaService stashMediaService;
 
     private StorageService storageService;
 
     private MediaService mediaService;
 
     public MediaCleaner(StorageProperties storageProperties,
-                        StashImageService stashImageService,
+                        StashMediaService stashMediaService,
                         StorageService storageService,
                         MediaService mediaService) {
         this.storageProperties = storageProperties;
-        this.stashImageService = stashImageService;
+        this.stashMediaService = stashMediaService;
         this.storageService = storageService;
         this.mediaService = mediaService;
     }
 
-    @Scheduled(cron = "0 */6 * * *")
+    @Scheduled(cron = "0 0 0/6 * * *")
     public void cleanTempFiles() throws IOException {
         Path basePath = Paths.get(storageProperties.getRoot());
         Path targetPath = Paths.get(storageProperties.getRoot()).resolve(StorageProperties.TEMP_ROOT);
@@ -69,7 +69,7 @@ public class MediaCleaner {
                             if (!delete) {
                                 LOGGER.debug("Temp img " + file.getName() + " not deleted.");
                             } else {
-                                stashImageService.remove(relativePath.toString());
+                                stashMediaService.remove(relativePath.toString());
                             }
                         }
                     });
@@ -77,7 +77,7 @@ public class MediaCleaner {
     }
 
 
-    @Scheduled(cron = "0 */6 * * *")
+    @Scheduled(cron = "0 0 0/6 * * *")
     public void cleanUserUnusedMedias() {
         List<Media> unusedMedias = mediaService.getNonLinkedMedias();
 

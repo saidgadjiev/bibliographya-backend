@@ -10,26 +10,26 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
-import ru.saidgadjiev.bibliographya.service.impl.StashImageService;
+import ru.saidgadjiev.bibliographya.service.impl.StashMediaService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @RestController
-@RequestMapping("api/media/")
+@RequestMapping("/api/media")
 public class MediaController {
 
-    private StashImageService stashImageService;
+    private StashMediaService stashMediaService;
 
     private StorageService storageService;
 
     private ObjectMapper objectMapper;
 
     @Autowired
-    public MediaController(StashImageService stashImageService,
+    public MediaController(StashMediaService stashMediaService,
                            StorageService storageService,
                            ObjectMapper objectMapper) {
-        this.stashImageService = stashImageService;
+        this.stashMediaService = stashMediaService;
         this.storageService = storageService;
         this.objectMapper = objectMapper;
     }
@@ -38,7 +38,7 @@ public class MediaController {
     public ResponseEntity<?> upload(@RequestPart("file") MultipartFile file) {
         String ext = FilenameUtils.getExtension(file.getOriginalFilename());
 
-        String filePath = StorageProperties.TEMP_ROOT + "/" + new SimpleDateFormat("upload_'yyyyMMddHHmmSSSSS'." + ext + "'").format(new Date());
+        String filePath = StorageProperties.TEMP_ROOT + "/" + new SimpleDateFormat("'upload_'yyyyMMddHHmmSSSSS'." + ext + "'").format(new Date());
 
         storageService.store(filePath, file);
 
@@ -46,13 +46,8 @@ public class MediaController {
 
         objectNode.put("location", filePath);
 
-        stashImageService.create(filePath);
+        stashMediaService.create(filePath);
 
         return ResponseEntity.ok(objectNode);
-    }
-
-    @GetMapping("")
-    public Resource serve(@RequestParam("filePath") String filePath) {
-        return storageService.loadAsResource(filePath);
     }
 }

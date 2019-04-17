@@ -78,7 +78,7 @@ public class FileSystemStorageService implements StorageService {
             }
             byte[] digestBytes = digest.digest();
             String hash = hashToString(digestBytes);
-            String newFilePath = getFilePath(hash, ext);
+            String newFilePath = getFilePath(hash, ext).substring(1);
 
             Path fullPath = path.resolve(newFilePath);
 
@@ -87,7 +87,7 @@ public class FileSystemStorageService implements StorageService {
 
                 return newFilePath;
             }
-            Files.createDirectories(fullPath);
+            Files.createDirectories(fullPath.getParent());
 
             Files.move(file.toPath(), fullPath);
 
@@ -149,8 +149,8 @@ public class FileSystemStorageService implements StorageService {
 
         int index = 0;
         for (char c : hash.toCharArray()) {
-            if (index % 2 == 0) {
-                builder.append(File.separatorChar);
+            if (index % 4 == 0) {
+                builder.append("/");
             }
             builder.append(c);
             index++;

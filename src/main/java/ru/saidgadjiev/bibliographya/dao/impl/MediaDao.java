@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -19,12 +20,17 @@ public class MediaDao {
 
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    public MediaDao(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     public void create(Media media) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement preparedStatement = con.prepareStatement("INSERT INTO media(path) VALUES(?)", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement preparedStatement = con.prepareStatement("INSERT INTO media(path) VALUES(?) ON CONFLICT DO NOTHING", Statement.RETURN_GENERATED_KEYS);
 
                     preparedStatement.setString(1, media.getPath());
 
@@ -33,30 +39,30 @@ public class MediaDao {
                 keyHolder
         );
 
-        if (keyHolder.getKeys().containsKey("id")) {
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
             media.setId(((Number) keyHolder.getKeys().get("id")).intValue());
         }
     }
 
     public void createLink(MediaLink mediaLink) {
         jdbcTemplate.update(
-                "INSERT INTO media_link(object_id, media_id) VALUES(?, ?)",
+                "INSERT INTO media_link(object_id, media_path) VALUES(?, ?)",
                 ps -> {
                     ps.setInt(1, mediaLink.getObjectId());
-                    ps.setInt(2, mediaLink.getMediaId());
+                    ps.setString(2, mediaLink.getMediaPath());
                 }
         );
     }
 
-    public List<MediaLink> getAllLinks() {
+    public List<MediaLink> getLinks(int objectId) {
         return jdbcTemplate.query(
-                "SELECT object_id, media_id FROM media_link ORDER BY created_at ASC",
+                "SELECT * FROM media_link WHERE object_id =" + objectId,
                 (rs, rowNum) -> {
                     MediaLink mediaLink = new MediaLink();
 
                     mediaLink.setId(rs.getInt("id"));
                     mediaLink.setObjectId(rs.getInt("object_id"));
-                    mediaLink.setMediaId(rs.getInt("media_id"));
+                    mediaLink.setMediaPath(rs.getString("media_path"));
 
                     return mediaLink;
                 }
@@ -65,7 +71,7 @@ public class MediaDao {
 
     public List<Media> getNonLinked() {
         return jdbcTemplate.query(
-                "SELECT m.id, m.path FROM media m WHERE NOT EXISTS (SELECT 1 FROM media_link WHERE media_id = m.id)",
+                "SELECT m.id, m.path FROM media m LEFT JOIN media_link ml ON m.path = ml.media_path WHERE ml.media_path IS NULL",
                 (rs, rowNum) -> {
                     Media media = new Media();
 
@@ -80,6 +86,16 @@ public class MediaDao {
     public void deleteById(int mediaId) {
         jdbcTemplate.update(
                 "DELETE FROM media WHERE id =" + mediaId
+        );
+    }
+
+    public void removeLinkById(String mediaPath, int objectId) {
+        jdbcTemplate.update(
+                "DELETE FROM media_link WHERE id IN (SELECT id FROM media_link WHERE media_path = ? AND object_id = ? LIMIT 1)",
+                ps -> {
+                    ps.setString(1, mediaPath);
+                    ps.setInt(2, objectId);
+                }
         );
     }
 }
