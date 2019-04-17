@@ -18,6 +18,7 @@ import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.utils.RoleUtils;
 
 import javax.script.ScriptException;
 import java.net.MalformedURLException;
@@ -88,7 +89,7 @@ public class BiographyService {
                     biography.getId()
             );
         }
-        if (StringUtils.isNotBlank(biography.getBio())) {
+        if (RoleUtils.hasAnyRole(userDetails.getRoles(), Role.ROLE_MODERATOR)) {
             String bio = mediaService.storeMedia(biography.getId(), biography.getBio());
 
             List<UpdateValue> updateValues = new ArrayList<>();
@@ -322,8 +323,11 @@ public class BiographyService {
                         PreparedStatement::setString
                 )
         );
+        User user = (User) securityService.findLoggedInUser();
 
-        updateBiographyRequest.setBio(mediaService.storeMedia(id, updateBiographyRequest.getBio()));
+        if (RoleUtils.hasAnyRole(user.getRoles(), Role.ROLE_MODERATOR)) {
+            updateBiographyRequest.setBio(mediaService.storeMedia(id, updateBiographyRequest.getBio()));
+        }
 
         updateValues.add(
                 new UpdateValue<>(

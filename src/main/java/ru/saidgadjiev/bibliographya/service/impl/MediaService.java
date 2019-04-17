@@ -81,7 +81,6 @@ public class MediaService {
         return mediaDao.getLinks(objectId);
     }
 
-
     public String storeMedia(int id, String bio) throws MalformedURLException {
         List<MediaLink> currentMediaLinks = getLinks(id);
         List<String> actualMediaLinks = new ArrayList<>();
