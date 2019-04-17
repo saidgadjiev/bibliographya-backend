@@ -54,6 +54,6 @@ public class MagickService {
 
         convertCmd.run(operation);
 
-        return StorageProperties.TEMP_ROOT + "/" + file.getName();
+        return file.getName();
     }
 }
