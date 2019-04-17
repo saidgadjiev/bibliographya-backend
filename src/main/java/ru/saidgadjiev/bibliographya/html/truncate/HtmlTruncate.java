@@ -4,8 +4,6 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by said on 23/03/2019.
@@ -25,10 +23,6 @@ public class HtmlTruncate {
     public static String truncate(String source, int maxLength) throws ScriptException, NoSuchMethodException {
         Invocable invocable = (Invocable) ENGINE;
 
-        Map<String, Object> options = new HashMap<>();
-
-        options.put("keepImageTag", true);
-
-        return (String) invocable.invokeFunction("truncate", source, maxLength, options);
+        return (String) invocable.invokeFunction("truncate", source, maxLength);
     }
 }
