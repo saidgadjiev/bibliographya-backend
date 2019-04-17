@@ -18,8 +18,10 @@ import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.BiographyUpdateRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
+import ru.saidgadjiev.bibliographya.utils.RoleUtils;
 
 import javax.script.ScriptException;
+import java.net.MalformedURLException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -34,6 +36,8 @@ import java.util.*;
 @Service
 public class BiographyService {
 
+    private final MediaService mediaService;
+
     private final BiographyDao biographyDao;
 
     private final GeneralDao generalDao;
@@ -45,7 +49,11 @@ public class BiographyService {
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
     @Autowired
-    public BiographyService(BiographyDao biographyDao, GeneralDao generalDao, BiographyBuilder biographyBuilder) {
+    public BiographyService(MediaService mediaService,
+                            BiographyDao biographyDao,
+                            GeneralDao generalDao,
+                            BiographyBuilder biographyBuilder) {
+        this.mediaService = mediaService;
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
         this.biographyBuilder = biographyBuilder;
@@ -62,7 +70,7 @@ public class BiographyService {
     }
 
     @Transactional
-    public void create(BiographyRequest biographyRequest) throws SQLException {
+    public void create(TimeZone timeZone, BiographyRequest biographyRequest) throws SQLException, MalformedURLException {
         User userDetails = (User) securityService.findLoggedInUser();
 
         Biography biography = new Biography();
@@ -80,6 +88,33 @@ public class BiographyService {
                     biographyRequest.getAddCategories(),
                     biography.getId()
             );
+        }
+        if (RoleUtils.hasAnyRole(userDetails.getRoles(), Role.ROLE_MODERATOR)) {
+            String bio = mediaService.storeMedia(biography.getId(), biography.getBio());
+
+            List<UpdateValue> updateValues = new ArrayList<>();
+
+            updateValues.add(
+                    new UpdateValue<>(
+                            Biography.BIO,
+                            bio,
+                            PreparedStatement::setString
+                    )
+            );
+
+            List<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<Integer>()
+                            .propertyName(Biography.ID)
+                            .filterValue(biography.getId())
+                            .filterOperation(FilterOperation.EQ)
+                            .needPreparedSet(true)
+                            .valueSetter(PreparedStatement::setInt)
+                            .build()
+            );
+
+            biographyDao.updateValues(timeZone, updateValues, criteria);
         }
     }
 
@@ -264,7 +299,7 @@ public class BiographyService {
     @Transactional
     public BiographyUpdateStatus update(TimeZone timeZone,
                                         Integer id,
-                                        BiographyRequest updateBiographyRequest) throws SQLException {
+                                        BiographyRequest updateBiographyRequest) throws SQLException, MalformedURLException {
         List<UpdateValue> updateValues = new ArrayList<>();
 
         updateValues.add(
@@ -288,6 +323,12 @@ public class BiographyService {
                         PreparedStatement::setString
                 )
         );
+        User user = (User) securityService.findLoggedInUser();
+
+        if (RoleUtils.hasAnyRole(user.getRoles(), Role.ROLE_MODERATOR)) {
+            updateBiographyRequest.setBio(mediaService.storeMedia(id, updateBiographyRequest.getBio()));
+        }
+
         updateValues.add(
                 new UpdateValue<>(
                         Biography.BIO,
@@ -335,6 +376,8 @@ public class BiographyService {
         BiographyUpdateStatus status = biographyDao.updateValues(timeZone, updateValues, criteria);
 
         if (status.getUpdated() > 0) {
+            status.setBio(updateBiographyRequest.getBio());
+
             if (updateBiographyRequest.getAddCategories() != null && !updateBiographyRequest.getAddCategories().isEmpty()) {
                 biographyCategoryBiographyService.addCategoriesToBiography(
                         updateBiographyRequest.getAddCategories(),

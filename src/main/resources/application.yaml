@@ -40,8 +40,6 @@ app:
   storage:
     upload:
       root: ${UPLOAD_DIR}
-      category-root: ${UPLOAD_CATEGORY_DIR}
-      share-root: ${SHARE_DIR}
 management:
   endpoints:
     web:
@@ -53,4 +51,4 @@ management:
 logging:
   file: logs/bibliographya.log
 ui:
-  name: localhost
+  host: localhost

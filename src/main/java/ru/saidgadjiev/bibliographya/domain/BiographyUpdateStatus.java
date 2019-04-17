@@ -11,6 +11,8 @@ public class BiographyUpdateStatus {
     
     private final Timestamp updatedAt;
 
+    private String bio;
+
     public BiographyUpdateStatus(int updated, Timestamp updatedAt) {
         this.updated = updated;
         this.updatedAt = updatedAt;
@@ -22,5 +24,13 @@ public class BiographyUpdateStatus {
 
     public Timestamp getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getBio() {
+        return bio;
     }
 }

@@ -1,23 +1,37 @@
 package ru.saidgadjiev.bibliographya.service.impl.storage;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-public abstract class FileSystemStorageService implements StorageService {
+@Service
+@Profile({"dev", "prod"})
+public class FileSystemStorageService implements StorageService {
+
+    private static final int DEFAULT_BLOCK_SIZE = 64 * 1024;
 
     private final Path path;
 
-    public FileSystemStorageService(Path path) {
-        this.path = path;
+    public FileSystemStorageService(StorageProperties storageProperties) {
+        this.path = Paths.get(storageProperties.getRoot());
     }
 
     @Override
@@ -31,11 +45,52 @@ public abstract class FileSystemStorageService implements StorageService {
                         "Cannot storeToCategoryRoot file with relative path outside current directory "
                                 + filePath);
             }
+            Path fullPath = path.resolve(filePath);
+
+            Files.createDirectories(fullPath);
+
             try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, path.resolve(filePath), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(inputStream, fullPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             throw new StorageException("Failed to storeToCategoryRoot file " + filePath, e);
+        }
+    }
+
+    @Override
+    public String move(String filePath) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            String ext = FilenameUtils.getExtension(filePath);
+
+            File file = path.resolve(filePath).toFile();
+
+            try (InputStream input = new FileInputStream(file)) {
+                byte[] bytes = new byte[DEFAULT_BLOCK_SIZE];
+                int read;
+
+                while ((read = input.read(bytes)) != -1) {
+                    digest.update(bytes, 0, read);
+                }
+            }
+            byte[] digestBytes = digest.digest();
+            String hash = hashToString(digestBytes);
+            String newFilePath = getFilePath(hash, ext).substring(1);
+
+            Path fullPath = path.resolve(newFilePath);
+
+            if (Files.exists(fullPath)) {
+                FileUtils.deleteQuietly(file);
+
+                return newFilePath;
+            }
+            Files.createDirectories(fullPath.getParent());
+
+            Files.move(file.toPath(), fullPath);
+
+            return newFilePath;
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new StorageException("Failed to store file", e);
         }
     }
 
@@ -76,5 +131,29 @@ public abstract class FileSystemStorageService implements StorageService {
         } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }
+    }
+
+    private static String hashToString(byte[] bytes) {
+        StringBuilder out = new StringBuilder();
+        for (byte b : bytes) {
+            out.append(Integer.toHexString(b & 0xff));
+        }
+        return out.toString();
+    }
+
+    private String getFilePath(String hash, String ext) {
+        StringBuilder builder = new StringBuilder();
+
+        int index = 0;
+        for (char c : hash.toCharArray()) {
+            if (index % 4 == 0) {
+                builder.append("/");
+            }
+            builder.append(c);
+            index++;
+        }
+        builder.append(".").append(ext);
+
+        return builder.toString();
     }
 }

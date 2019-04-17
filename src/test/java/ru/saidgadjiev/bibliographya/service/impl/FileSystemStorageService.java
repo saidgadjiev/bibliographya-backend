@@ -24,6 +24,11 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
+    public String move(String filePath) {
+        return null;
+    }
+
+    @Override
     public Resource loadAsResource(String filePath) {
         return null;
     }

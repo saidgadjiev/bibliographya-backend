@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,9 +21,7 @@ import ru.saidgadjiev.bibliographya.service.api.StorageService;
 @SpringBootApplication
 public class BibliographyApplication implements CommandLineRunner {
 
-	private StorageService categoryStorage;
-
-	private StorageService magickStorage;
+	private StorageService storageService;
 
 	public static void main(String[] args) {
 		try {
@@ -36,18 +33,12 @@ public class BibliographyApplication implements CommandLineRunner {
 	}
 
 	@Autowired
-	public void setCategoryStorage(@Qualifier("category") StorageService categoryStorage) {
-		this.categoryStorage = categoryStorage;
-	}
-
-	@Autowired
-	public void setMagickStorage(@Qualifier("magick") StorageService magickStorage) {
-		this.magickStorage = magickStorage;
+	public void setStorageService(StorageService storageService) {
+		this.storageService = storageService;
 	}
 
 	@Override
 	public void run(String... strings) throws Exception {
-		categoryStorage.init();
-		magickStorage.init();
+		storageService.init();
 	}
 }

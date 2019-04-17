@@ -8,13 +8,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "ui")
 public class UIProperties {
 
-    private String name;
+    private String host;
 
-    public String getName() {
-        return name;
+    public String getHost() {
+        return host;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setHost(String host) {
+        this.host = host;
     }
 }

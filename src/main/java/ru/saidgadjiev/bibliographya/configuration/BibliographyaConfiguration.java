@@ -69,7 +69,7 @@ public class BibliographyaConfiguration {
 
         slr.setDefaultLocale(new Locale("ru", "RU"));
         slr.setDefaultTimeZone(TimeZone.getTimeZone("Europe/Moscow"));
-        slr.setCookieDomain(uiProperties.getName());
+        slr.setCookieDomain(uiProperties.getHost());
         slr.setCookieName("localeInfo");
 
         return slr;
