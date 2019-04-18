@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.saidgadjiev.bibliographya.properties.*;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
@@ -18,6 +19,7 @@ import ru.saidgadjiev.bibliographya.service.api.StorageService;
 		AppProperties.class
 })
 @EnableScheduling
+@EnableAsync
 @SpringBootApplication
 public class BibliographyApplication implements CommandLineRunner {
 

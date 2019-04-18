@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS view_count (
+  id SERIAL PRIMARY KEY,
+  biography_id INT NOT NULL REFERENCES biography(id),
+  count BIGINT NOT NULL DEFAULT 0
+)
