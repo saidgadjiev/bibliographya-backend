@@ -23,6 +23,11 @@ public class ViewCounter {
         this.persistViewCountTask = persistViewCountTask;
     }
 
+    @Scheduled(fixedDelay = 1000)
+    public void expire() {
+        doPersist();
+    }
+
     public void hit(int biographyId) {
         if (viewCount.size() >= MAX_SIZE) {
             doPersist();
@@ -32,8 +37,7 @@ public class ViewCounter {
         viewCount.get(biographyId).incrementAndGet();
     }
 
-    @Scheduled(fixedDelay = 1000)
-    public void doPersist() {
+    private void doPersist() {
         Map<Integer, Long> tmp = viewCount.entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().get()));
