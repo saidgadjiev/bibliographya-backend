@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Service
 public class ViewCounter {
 
-    private long expiredAt = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+    private long expiredAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
 
     private ConcurrentHashMap<Integer, AtomicLong> viewCount = new ConcurrentHashMap<>();
 
@@ -46,6 +46,6 @@ public class ViewCounter {
 
         persistViewCountTask.persistViewCount(tmp);
         viewCount.clear();
-        expiredAt = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+        expiredAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
     }
 }
