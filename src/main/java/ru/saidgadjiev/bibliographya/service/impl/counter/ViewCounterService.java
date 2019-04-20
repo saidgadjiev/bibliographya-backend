@@ -15,7 +15,7 @@ public class ViewCounterService {
 
     private Cache<String, Boolean> viewedCache = Caffeine.newBuilder()
             .maximumSize(100)
-            .expireAfterWrite(Duration.ofMinutes(10))
+            .expireAfterWrite(Duration.ofSeconds(10))
             .build();
 
     private SecurityService securityService;
