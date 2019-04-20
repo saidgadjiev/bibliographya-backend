@@ -74,6 +74,8 @@ public class Biography {
 
     private long commentsCount;
 
+    private long viewsCount;
+
     private long newComplaintsCount;
 
     private Collection<BiographyReport> newComplaints;
@@ -312,6 +314,14 @@ public class Biography {
 
     public void setAnonymousCreator(boolean anonymousCreator) {
         this.anonymousCreator = anonymousCreator;
+    }
+
+    public long getViewsCount() {
+        return viewsCount;
+    }
+
+    public void setViewsCount(long viewsCount) {
+        this.viewsCount = viewsCount;
     }
 
     /**

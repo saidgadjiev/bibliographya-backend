@@ -454,7 +454,8 @@ public class BiographyDao {
                 .append("bm.id as m_id,")
                 .append("bm.user_id as bm_user_id,")
                 .append("l.cnt as l_cnt,")
-                .append("bc.cnt as bc_cnt");
+                .append("bc.cnt as bc_cnt,")
+                .append("bvc.cnt as bvc_views_count");
 
         if (fields.contains(Biography.IS_LIKED)) {
             selectList.append(",bisl.biography_id as bisl_biography_id");
@@ -509,6 +510,7 @@ public class BiographyDao {
 
         biography.setLikesCount(rs.getInt("l_cnt"));
         biography.setCommentsCount(rs.getInt("bc_cnt"));
+        biography.setViewsCount(rs.getLong("bvc_views_count"));
 
         boolean anonymous = rs.getBoolean("anonymous_creator");
 
@@ -534,8 +536,8 @@ public class BiographyDao {
     private void appendJoins(StringBuilder sql, Collection<String> fields, Collection<FilterCriteria> isLikedCriteria) {
         sql.append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
-                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ");
-
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ")
+                .append(" LEFT JOIN (SELECT biography_id, views_count as cnt FROM biography_view_count) bvc ON b.id = bvc.biography_id ");
         if (fields.contains(Biography.IS_LIKED)) {
             String isLikedClause = toClause(isLikedCriteria, null);
 

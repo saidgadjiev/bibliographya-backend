@@ -3,7 +3,6 @@ package ru.saidgadjiev.bibliographya.service.impl.counter;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -29,11 +28,19 @@ public class ViewCounterService {
         this.viewCounter = viewCounter;
     }
 
-    @Async
-    public void hit(HttpServletRequest request, int biographyId) {
-        if (viewedCache.getIfPresent(getKey(request, biographyId)) != null) {
+    public boolean hit(HttpServletRequest request, int biographyId) {
+        String key = getKey(request, biographyId);
+
+        boolean contains = viewedCache.getIfPresent(key) != null && viewedCache.getIfPresent(key);
+
+        if (!contains) {
+            viewedCache.put(key, true);
             viewCounter.hit(biographyId);
+
+            return true;
         }
+
+        return false;
     }
 
     private String getKey(HttpServletRequest request, int biographyId) {

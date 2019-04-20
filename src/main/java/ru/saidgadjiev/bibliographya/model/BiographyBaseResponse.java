@@ -34,6 +34,8 @@ public class BiographyBaseResponse {
 
     private long commentsCount;
 
+    private long viewsCount;
+
     private boolean liked;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
@@ -206,5 +208,13 @@ public class BiographyBaseResponse {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public long getViewsCount() {
+        return viewsCount;
+    }
+
+    public void setViewsCount(long viewsCount) {
+        this.viewsCount = viewsCount;
     }
 }

@@ -6,13 +6,14 @@ import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
 public class ViewCounter {
 
-    private long expiredAt = System.currentTimeMillis();
+    private long expiredAt = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
 
     private ConcurrentHashMap<Integer, AtomicLong> viewCount = new ConcurrentHashMap<>();
 
@@ -27,7 +28,11 @@ public class ViewCounter {
 
     public void hit(int biographyId) {
         if (viewCount.size() >= MAX_SIZE || TimeUtils.isExpired(expiredAt)) {
-            doPersist();
+            synchronized (this) {
+                if (viewCount.size() >= MAX_SIZE || TimeUtils.isExpired(expiredAt)) {
+                    doPersist();
+                }
+            }
         }
 
         viewCount.putIfAbsent(biographyId, new AtomicLong());
@@ -41,6 +46,6 @@ public class ViewCounter {
 
         persistViewCountTask.persistViewCount(tmp);
         viewCount.clear();
-        expiredAt = System.currentTimeMillis();
+        expiredAt = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
     }
 }

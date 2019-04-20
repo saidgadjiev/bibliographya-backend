@@ -81,7 +81,7 @@ public class BibliographyaConfiguration {
                 "userCache",
                 Caffeine.newBuilder()
                         .maximumSize(100)
-                        .expireAfterWrite(1, TimeUnit.MINUTES)
+                        .expireAfterWrite(1, TimeUnit.DAYS)
                         .build()
         );
     }
