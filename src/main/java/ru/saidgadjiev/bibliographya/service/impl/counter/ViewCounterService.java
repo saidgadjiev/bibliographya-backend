@@ -29,6 +29,12 @@ public class ViewCounterService {
     }
 
     public boolean hit(HttpServletRequest request, int biographyId) {
+        User user = (User) securityService.findLoggedInUser();
+
+        if (user != null && user.getBiography().getId() == biographyId) {
+            return false;
+        }
+
         String key = getKey(request, biographyId);
 
         boolean contains = viewedCache.getIfPresent(key) != null && viewedCache.getIfPresent(key);
