@@ -19,6 +19,7 @@ import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.impl.*;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
+import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
@@ -60,7 +61,7 @@ class AuthServiceTest {
     private HttpSessionEmailVerificationService emailVerificationService;
 
     @MockBean
-    private HttpSessionManager sessionManager;
+    private SessionVerificationStorage sessionManager;
 
     @MockBean
     private UIProperties uiProperties;

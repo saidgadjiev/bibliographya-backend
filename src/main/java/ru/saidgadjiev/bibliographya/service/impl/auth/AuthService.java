@@ -16,7 +16,7 @@ import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
 import ru.saidgadjiev.bibliographya.service.impl.HttpSessionEmailVerificationService;
-import ru.saidgadjiev.bibliographya.service.impl.HttpSessionManager;
+import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
@@ -44,7 +44,7 @@ public class AuthService {
 
     private UIProperties uiProperties;
 
-    private HttpSessionManager httpSessionManager;
+    private SessionVerificationStorage sessionVerificationStorage;
 
     private JwtProperties jwtProperties;
 
@@ -55,7 +55,7 @@ public class AuthService {
                        SecurityService securityService,
                        HttpSessionEmailVerificationService emailVerificationService,
                        UIProperties uiProperties,
-                       HttpSessionManager httpSessionManager,
+                       SessionVerificationStorage sessionVerificationStorage,
                        JwtProperties jwtProperties) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
@@ -63,7 +63,7 @@ public class AuthService {
         this.securityService = securityService;
         this.emailVerificationService = emailVerificationService;
         this.uiProperties = uiProperties;
-        this.httpSessionManager = httpSessionManager;
+        this.sessionVerificationStorage = sessionVerificationStorage;
         this.jwtProperties = jwtProperties;
     }
 
@@ -101,13 +101,13 @@ public class AuthService {
                 break;
         }
 
-        httpSessionManager.setSignUp(authContext.getRequest(), signUpRequest);
+        sessionVerificationStorage.setSignUp(authContext.getRequest(), signUpRequest);
 
         return HttpStatus.OK;
     }
 
     public SignUpResult confirmSignUpFinish(AuthContext authContext) throws SQLException {
-        SignUpRequest signUpRequest = httpSessionManager.getSignUp(authContext.getRequest());
+        SignUpRequest signUpRequest = sessionVerificationStorage.getSignUp(authContext.getRequest());
         SignUpConfirmation signUpConfirmation = (SignUpConfirmation) authContext.getBody();
 
         if (signUpRequest != null) {
@@ -135,7 +135,7 @@ public class AuthService {
 
                 user.setIsNew(true);
 
-                httpSessionManager.removeState(authContext.getRequest());
+                sessionVerificationStorage.removeState(authContext.getRequest());
 
                 securityService.autoLogin(user);
 
@@ -173,11 +173,11 @@ public class AuthService {
     }
 
     public void cancelSignUp(HttpServletRequest request) {
-        httpSessionManager.removeState(request);
+        sessionVerificationStorage.removeState(request);
     }
 
     public HttpStatus confirmation(HttpServletRequest request) {
-        SignUpRequest signUpRequest = httpSessionManager.getSignUp(request);
+        SignUpRequest signUpRequest = sessionVerificationStorage.getSignUp(request);
 
         if (signUpRequest == null) {
             return HttpStatus.FOUND;

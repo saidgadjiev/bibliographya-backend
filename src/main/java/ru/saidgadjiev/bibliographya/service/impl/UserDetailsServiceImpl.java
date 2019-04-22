@@ -21,6 +21,7 @@ import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.security.event.UnverifyEmailsEvent;
 import ru.saidgadjiev.bibliographya.security.event.ChangeEmailEvent;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
+import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +51,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final SecurityService securityService;
 
-    private final HttpSessionManager httpSessionManager;
+    private final SessionVerificationStorage sessionVerificationStorage;
 
     private ApplicationEventPublisher eventPublisher;
 
@@ -62,7 +63,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   PasswordEncoder passwordEncoder,
                                   HttpSessionEmailVerificationService emailVerificationService,
                                   SecurityService securityService,
-                                  HttpSessionManager httpSessionManager,
+                                  SessionVerificationStorage sessionVerificationStorage,
                                   ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.generalDao = generalDao;
@@ -71,7 +72,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
         this.securityService = securityService;
-        this.httpSessionManager = httpSessionManager;
+        this.sessionVerificationStorage = sessionVerificationStorage;
         this.eventPublisher = eventPublisher;
     }
 
@@ -234,7 +235,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
         }
-        httpSessionManager.setRestorePassword(request, actual);
+        sessionVerificationStorage.setRestorePassword(request, actual);
         emailVerificationService.sendVerification(request, locale, email);
 
         return HttpStatus.OK;
@@ -285,7 +286,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 return HttpStatus.NOT_FOUND;
             }
 
-            httpSessionManager.removeState(request);
+            sessionVerificationStorage.removeState(request);
 
             return HttpStatus.OK;
         }
@@ -340,7 +341,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             generalDao.update(User.TABLE, values, criteria, null);
 
-            httpSessionManager.removeState(request);
+            sessionVerificationStorage.removeState(request);
 
             actual.setEmail(emailConfirmation.getEmail());
             actual.setEmailVerified(true);
@@ -357,7 +358,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
-        httpSessionManager.setChangeEmail(request, email, user);
+        sessionVerificationStorage.setChangeEmail(request, email, user);
 
         emailVerificationService.sendVerification(request, locale, email);
 
