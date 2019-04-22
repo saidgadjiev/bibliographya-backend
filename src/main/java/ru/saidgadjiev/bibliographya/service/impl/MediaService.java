@@ -92,7 +92,12 @@ public class MediaService {
             Elements imgs = document.getElementsByTag("img");
 
             for (Element img : imgs) {
-                URL src = new URL(img.attr("src"));
+                String srcAttr = img.attr("src");
+
+                if (srcAttr.startsWith("/")) {
+                    continue;
+                }
+                URL src = new URL(srcAttr);
 
                 if (!src.getHost().equals(uiProperties.getHost())) {
                     continue;
@@ -112,7 +117,7 @@ public class MediaService {
 
                 srcBuilder.append(src.getProtocol()).append("://").append(src.getHost());
 
-                if (src.getPort() != src.getDefaultPort()) {
+                if (src.getPort() != -1) {
                     srcBuilder.append(":").append(src.getPort());
                 }
 
