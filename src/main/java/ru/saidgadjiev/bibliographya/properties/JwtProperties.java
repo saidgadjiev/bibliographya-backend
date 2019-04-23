@@ -8,6 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "app.jwt")
 public class JwtProperties {
+    
+    public static final String VERIFICATION_TOKEN = "tjwt";
 
     private String secret;
 

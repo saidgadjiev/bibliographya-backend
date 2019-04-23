@@ -23,4 +23,8 @@ public interface VerificationStorage {
     Object getAttr(HttpServletRequest request, String attr);
 
     void setAttr(HttpServletRequest request, String attr, Object data);
+    
+    default void expire(HttpServletRequest request) {
+        
+    }
 }

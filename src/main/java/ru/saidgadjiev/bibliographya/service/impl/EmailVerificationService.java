@@ -1,0 +1,201 @@
+package ru.saidgadjiev.bibliographya.service.impl;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import ru.saidgadjiev.bibliographya.domain.VerificationResult;
+import ru.saidgadjiev.bibliographya.domain.SentVerification;
+import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.model.SessionState;
+import ru.saidgadjiev.bibliographya.model.SignUpRequest;
+import ru.saidgadjiev.bibliographya.properties.JwtProperties;
+import ru.saidgadjiev.bibliographya.service.api.EmailService;
+import ru.saidgadjiev.bibliographya.service.api.TokenService;
+import ru.saidgadjiev.bibliographya.service.api.VerificationService;
+import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
+import ru.saidgadjiev.bibliographya.utils.TimeUtils;
+
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by said on 24.02.2019.
+ */
+@Service
+public class EmailVerificationService implements VerificationService {
+
+    private VerificationStorage coldVerificationStorage;
+
+    private VerificationStorage hotVerificationStorage;
+
+    private final CodeGenerator codeGenerator;
+
+    private final EmailService emailService;
+
+    private MessageSource messageSource;
+
+    private SecurityService securityService;
+
+    private TokenService tokenService;
+
+    @Autowired
+    public EmailVerificationService(@Qualifier("cold") VerificationStorage coldVerificationStorage,
+                                    @Qualifier("hot") VerificationStorage hotVerificationStorage,
+                                    CodeGenerator codeGenerator,
+                                    EmailService emailService,
+                                    MessageSource messageSource,
+                                    SecurityService securityService,
+                                    TokenService tokenService) {
+        this.coldVerificationStorage = coldVerificationStorage;
+        this.hotVerificationStorage = hotVerificationStorage;
+        this.codeGenerator = codeGenerator;
+        this.emailService = emailService;
+        this.messageSource = messageSource;
+        this.securityService = securityService;
+        this.tokenService = tokenService;
+    }
+
+    @Override
+    public SentVerification sendVerification(HttpServletRequest request, Locale locale, String email) throws MessagingException {
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+
+        if (!Objects.equals(sessionState, SessionState.NONE) && canSend(request)) {
+            int code = codeGenerator.generate();
+
+            Calendar calendar = Calendar.getInstance();
+
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DATE, 1);
+
+            hotVerificationStorage.expire(request);
+            hotVerificationStorage.setAttr(request, VerificationStorage.VERIFICATION_KEY, email);
+            hotVerificationStorage.setAttr(request, VerificationStorage.CODE, code);
+
+            emailService.sendEmail(
+                    email,
+                    getEmailSubject(request, locale),
+                    getEmailMessage(request, locale)
+            );
+
+            long nextCodeTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(2);
+
+            String token = tokenService.generate(new HashMap<String, Object>() {{
+                put("exp", nextCodeTime);
+                put("timer", TimeUnit.MINUTES.toSeconds(2));
+            }});
+
+            return new SentVerification(HttpStatus.OK, token);
+        }
+
+        return new SentVerification(HttpStatus.BAD_REQUEST, null);
+    }
+
+    @Override
+    public VerificationResult verify(HttpServletRequest request, String email, int code) {
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+
+        if (Objects.equals(sessionState, SessionState.NONE)) {
+            return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
+        }
+
+        String currentEmail = (String) hotVerificationStorage.getAttr(request, VerificationStorage.VERIFICATION_KEY);
+
+        if (!Objects.equals(currentEmail, email)) {
+            return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
+        }
+
+        int currentCode = (int) coldVerificationStorage.getAttr(request, VerificationStorage.CODE);
+
+        boolean equals = Objects.equals(currentCode, code);
+
+        return equals ? new VerificationResult().setStatus(VerificationResult.Status.VALID)
+                : new VerificationResult().setStatus(VerificationResult.Status.INVALID);
+    }
+
+    public String getEmailSubject(HttpServletRequest request, Locale locale) {
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+
+        if (sessionState == null) {
+            return null;
+        }
+        switch (sessionState) {
+            case RESTORE_PASSWORD:
+                return messageSource.getMessage("confirm.restorePassword.subject", new Object[] {}, locale);
+            case CHANGE_EMAIL:
+                return messageSource.getMessage("confirm.changeEmail.subject", new Object[] {}, locale);
+            case SIGN_UP_CONFIRM:
+                return messageSource.getMessage("confirm.signUp.subject", new Object[] {}, locale);
+            case NONE:
+                break;
+        }
+
+        return null;
+    }
+
+    public String getEmailMessage(HttpServletRequest request, Locale locale) {
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+
+        if (sessionState == null) {
+            return null;
+        }
+        String code = String.valueOf(coldVerificationStorage.getAttr(request, VerificationStorage.CODE));
+
+        switch (sessionState) {
+            case RESTORE_PASSWORD: {
+                String firstName = (String) coldVerificationStorage.getAttr(request, VerificationStorage.FIRST_NAME);
+
+                return messageSource.getMessage(
+                        "confirm.restorePassword.message",
+                        new Object[]{firstName, code},
+                        locale
+                );
+            }
+            case CHANGE_EMAIL: {
+                User user = (User) securityService.findLoggedInUser();
+
+                return messageSource.getMessage(
+                        "confirm.changeEmail.message",
+                        new Object[]{user.getBiography().getFirstName(), code},
+                        locale
+                );
+            }
+            case SIGN_UP_CONFIRM: {
+                SignUpRequest signUpRequest = (SignUpRequest) coldVerificationStorage.getAttr(request, VerificationStorage.SIGN_UP_REQUEST);
+
+                return messageSource.getMessage(
+                        "confirm.signUp.message",
+                        new Object[]{signUpRequest.getFirstName(), code},
+                        locale
+                );
+            }
+            case NONE:
+                break;
+        }
+
+        return null;
+    }
+    
+    private boolean canSend(HttpServletRequest request) {
+        String token = request.getHeader(JwtProperties.VERIFICATION_TOKEN);
+
+        if (StringUtils.isBlank(token)) {
+            return false;
+        }
+        Map<String, Object> claims = tokenService.validate(token);
+
+        if (claims == null) {
+            return false;
+        }
+
+        if (!TimeUtils.isExpired((Long) claims.get("exp"))) {
+            return false;
+        }
+        
+        return true;
+    }
+}

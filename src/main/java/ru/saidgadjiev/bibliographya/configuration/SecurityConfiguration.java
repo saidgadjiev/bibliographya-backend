@@ -31,7 +31,7 @@ import ru.saidgadjiev.bibliographya.security.filter.AuthenticationFilter;
 import ru.saidgadjiev.bibliographya.security.handler.*;
 import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
-import ru.saidgadjiev.bibliographya.service.impl.TokenService;
+import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 
 import javax.servlet.Filter;
 import java.util.Arrays;
@@ -59,7 +59,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private ApplicationEventPublisher eventPublisher;
 
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     private SecurityContextRepository securityContextRepository;
 
@@ -71,7 +71,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                  UIProperties uiProperties,
                                  JwtProperties jwtProperties,
                                  ApplicationEventPublisher eventPublisher,
-                                 TokenService tokenService) {
+                                 AuthTokenService tokenService) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;

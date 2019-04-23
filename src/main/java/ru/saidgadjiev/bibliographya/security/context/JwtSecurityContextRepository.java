@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsUtils;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
-import ru.saidgadjiev.bibliographya.service.impl.TokenService;
+import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.servlet.http.Cookie;
@@ -24,13 +24,13 @@ import java.util.Map;
 @Component
 public class JwtSecurityContextRepository implements SecurityContextRepository {
 
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     private JwtProperties jwtProperties;
 
     private AuthenticationManager authenticationManager;
 
-    public JwtSecurityContextRepository(TokenService tokenService,
+    public JwtSecurityContextRepository(AuthTokenService tokenService,
                                         JwtProperties jwtProperties) {
         this.tokenService = tokenService;
         this.jwtProperties = jwtProperties;

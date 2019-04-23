@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
@@ -15,10 +16,10 @@ import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
-import ru.saidgadjiev.bibliographya.service.impl.HttpSessionEmailVerificationService;
-import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
+import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
+import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
+import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
-import ru.saidgadjiev.bibliographya.service.impl.TokenService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.mail.MessagingException;
@@ -36,26 +37,26 @@ public class AuthService {
 
     private BibliographyaUserDetailsService userAccountDetailsService;
 
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     private SecurityService securityService;
 
-    private HttpSessionEmailVerificationService emailVerificationService;
+    private EmailVerificationService emailVerificationService;
 
     private UIProperties uiProperties;
 
-    private SessionVerificationStorage sessionVerificationStorage;
+    private VerificationStorage verificationStorage;
 
     private JwtProperties jwtProperties;
 
     @Autowired
     public AuthService(SocialServiceFactory socialServiceFactory,
                        BibliographyaUserDetailsService userAccountDetailsService,
-                       TokenService tokenService,
+                       AuthTokenService tokenService,
                        SecurityService securityService,
-                       HttpSessionEmailVerificationService emailVerificationService,
+                       EmailVerificationService emailVerificationService,
                        UIProperties uiProperties,
-                       SessionVerificationStorage sessionVerificationStorage,
+                       @Qualifier("cold") VerificationStorage verificationStorage,
                        JwtProperties jwtProperties) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
@@ -63,7 +64,7 @@ public class AuthService {
         this.securityService = securityService;
         this.emailVerificationService = emailVerificationService;
         this.uiProperties = uiProperties;
-        this.sessionVerificationStorage = sessionVerificationStorage;
+        this.verificationStorage = verificationStorage;
         this.jwtProperties = jwtProperties;
     }
 
@@ -101,17 +102,17 @@ public class AuthService {
                 break;
         }
 
-        sessionVerificationStorage.setSignUp(authContext.getRequest(), signUpRequest);
+        verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
 
         return HttpStatus.OK;
     }
 
     public SignUpResult confirmSignUpFinish(AuthContext authContext) throws SQLException {
-        SignUpRequest signUpRequest = sessionVerificationStorage.getSignUp(authContext.getRequest());
+        SignUpRequest signUpRequest = (SignUpRequest) verificationStorage.getAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST);
         SignUpConfirmation signUpConfirmation = (SignUpConfirmation) authContext.getBody();
 
         if (signUpRequest != null) {
-            EmailVerificationResult result = emailVerificationService.verify(
+            VerificationResult result = emailVerificationService.verify(
                     authContext.getRequest(),
                     signUpConfirmation.getEmail(),
                     signUpConfirmation.getCode()
@@ -135,7 +136,7 @@ public class AuthService {
 
                 user.setIsNew(true);
 
-                sessionVerificationStorage.removeState(authContext.getRequest());
+                verificationStorage.removeAttr(authContext.getRequest(), VerificationStorage.STATE);
 
                 securityService.autoLogin(user);
 
@@ -162,22 +163,20 @@ public class AuthService {
         return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
     }
 
-    public HttpStatus confirmSignUpStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
+    public SentVerification confirmSignUpStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
         if (userAccountDetailsService.isExistEmail(email)) {
-            return HttpStatus.CONFLICT;
+            return new SentVerification(HttpStatus.CONFLICT, null);
         }
 
-        emailVerificationService.sendVerification(request, locale, email);
-
-        return HttpStatus.OK;
+        return emailVerificationService.sendVerification(request, locale, email);
     }
 
     public void cancelSignUp(HttpServletRequest request) {
-        sessionVerificationStorage.removeState(request);
+        verificationStorage.removeAttr(request, VerificationStorage.STATE);
     }
 
     public HttpStatus confirmation(HttpServletRequest request) {
-        SignUpRequest signUpRequest = sessionVerificationStorage.getSignUp(request);
+        SignUpRequest signUpRequest = (SignUpRequest) verificationStorage.getAttr(request, VerificationStorage.SIGN_UP_REQUEST);
 
         if (signUpRequest == null) {
             return HttpStatus.FOUND;

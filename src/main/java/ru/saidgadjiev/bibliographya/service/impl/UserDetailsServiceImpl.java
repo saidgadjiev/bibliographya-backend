@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,10 +19,11 @@ import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
-import ru.saidgadjiev.bibliographya.security.event.UnverifyEmailsEvent;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.security.event.ChangeEmailEvent;
+import ru.saidgadjiev.bibliographya.security.event.UnverifyEmailsEvent;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
-import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
+import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -47,11 +49,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final HttpSessionEmailVerificationService emailVerificationService;
+    private final EmailVerificationService emailVerificationService;
 
     private final SecurityService securityService;
 
-    private final SessionVerificationStorage sessionVerificationStorage;
+    private final VerificationStorage verificationStorage;
 
     private ApplicationEventPublisher eventPublisher;
 
@@ -61,9 +63,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
-                                  HttpSessionEmailVerificationService emailVerificationService,
+                                  EmailVerificationService emailVerificationService,
                                   SecurityService securityService,
-                                  SessionVerificationStorage sessionVerificationStorage,
+                                  @Qualifier("cold") VerificationStorage verificationStorage,
                                   ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.generalDao = generalDao;
@@ -72,7 +74,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationService = emailVerificationService;
         this.securityService = securityService;
-        this.sessionVerificationStorage = sessionVerificationStorage;
+        this.verificationStorage = verificationStorage;
         this.eventPublisher = eventPublisher;
     }
 
@@ -235,7 +237,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
         }
-        sessionVerificationStorage.setRestorePassword(request, actual);
+        verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.RESTORE_PASSWORD);
+        verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, actual.getBiography().getFirstName());
+
         emailVerificationService.sendVerification(request, locale, email);
 
         return HttpStatus.OK;
@@ -243,7 +247,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword) {
-        EmailVerificationResult verificationResult = emailVerificationService.verify(
+        VerificationResult verificationResult = emailVerificationService.verify(
                 request,
                 restorePassword.getEmail(),
                 restorePassword.getCode()
@@ -286,7 +290,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 return HttpStatus.NOT_FOUND;
             }
 
-            sessionVerificationStorage.removeState(request);
+            verificationStorage.removeAttr(request, VerificationStorage.STATE);
+            verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
 
             return HttpStatus.OK;
         }
@@ -298,7 +303,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public HttpStatus saveEmailFinish(HttpServletRequest request, EmailConfirmation emailConfirmation) {
         User actual = (User) securityService.findLoggedInUser();
 
-        EmailVerificationResult emailVerificationResult = emailVerificationService.verify(
+        VerificationResult emailVerificationResult = emailVerificationService.verify(
                 request,
                 emailConfirmation.getEmail(),
                 emailConfirmation.getCode()
@@ -341,7 +346,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             generalDao.update(User.TABLE, values, criteria, null);
 
-            sessionVerificationStorage.removeState(request);
+            verificationStorage.removeAttr(request, VerificationStorage.STATE);
+            verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
 
             actual.setEmail(emailConfirmation.getEmail());
             actual.setEmailVerified(true);
@@ -358,7 +364,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
-        sessionVerificationStorage.setChangeEmail(request, email, user);
+        verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_EMAIL);
+        verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
         emailVerificationService.sendVerification(request, locale, email);
 

@@ -55,10 +55,10 @@ class AuthServiceTest {
     private UserDetailsServiceImpl userDetailsService;
 
     @MockBean
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     @MockBean
-    private HttpSessionEmailVerificationService emailVerificationService;
+    private EmailVerificationService emailVerificationService;
 
     @MockBean
     private SessionVerificationStorage sessionManager;
@@ -146,7 +146,7 @@ class AuthServiceTest {
 
         Mockito.when(sessionManager.getSignUp(any())).thenReturn(signUpRequest);
         Mockito.when(emailVerificationService.verify(any(), eq(TestModelsUtils.TEST_EMAIL), eq(1234)))
-                .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.VALID));
+                .thenReturn(new VerificationResult().setStatus(VerificationResult.Status.VALID));
 
         List<User> db = new ArrayList<>();
 

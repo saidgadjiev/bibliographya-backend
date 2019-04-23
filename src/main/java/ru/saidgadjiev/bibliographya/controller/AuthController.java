@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
+import ru.saidgadjiev.bibliographya.domain.SentVerification;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
@@ -28,7 +31,14 @@ import java.util.Locale;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private ObjectMapper objectMapper;
+
     private AuthService authService;
+
+    @Autowired
+    public AuthController(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Autowired
     public void setAuthService(AuthService authService) {
@@ -81,9 +91,13 @@ public class AuthController {
     public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
                                            Locale locale,
                                            @RequestParam("email") String email) throws MessagingException {
-        HttpStatus status = authService.confirmSignUpStart(request, locale, email);
+        SentVerification status = authService.confirmSignUpStart(request, locale, email);
 
-        return ResponseEntity.status(status).build();
+        ObjectNode objectNode = objectMapper.createObjectNode();
+
+        objectNode.put("tjwt", status.getTjwt());
+
+        return ResponseEntity.status(status.getStatus()).body(objectNode);
     }
 
     @PostMapping("/signUp/cancel")
