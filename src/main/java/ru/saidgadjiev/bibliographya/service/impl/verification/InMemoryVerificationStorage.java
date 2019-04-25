@@ -11,43 +11,41 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Created by said on 23/04/2019.
+ */
 @Service
-@Qualifier("hot")
-public class HotInMemoryVerificationStorage implements VerificationStorage {
+@Qualifier("cold")
+public class InMemoryVerificationStorage implements VerificationStorage {
 
-    private Cache<String, Map<String, Object>> hotCache = Caffeine.newBuilder()
-            .expireAfterWrite(Duration.ofMinutes(10))
+    private Cache<String, Map<String, Object>> coldCache = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(30))
             .build();
 
     @Override
     public void removeAttr(HttpServletRequest request, String attr) {
-        hotCache.getIfPresent(request.getRemoteAddr()).remove(attr);
+        coldCache.getIfPresent(request.getRemoteAddr()).remove(attr);
     }
 
     @Override
     public Object getAttr(HttpServletRequest request, String attr) {
-        Map<String, Object> values = hotCache.getIfPresent(request.getRemoteAddr());
+        Map<String, Object> values = coldCache.getIfPresent(request.getRemoteAddr());
 
         if (values == null) {
             return null;
         }
 
-        return hotCache.getIfPresent(request.getRemoteAddr()).get(attr);
+        return coldCache.getIfPresent(request.getRemoteAddr()).get(attr);
     }
 
     @Override
     public void setAttr(HttpServletRequest request, String attr, Object data) {
-        Map<String, Object> values = hotCache.getIfPresent(request.getRemoteAddr());
+        Map<String, Object> values = coldCache.getIfPresent(request.getRemoteAddr());
 
         if (values == null) {
-            hotCache.put(attr, new ConcurrentHashMap<>());
+            coldCache.put(request.getRemoteAddr(), new ConcurrentHashMap<>());
         }
 
-        hotCache.getIfPresent(request.getRemoteAddr()).put(attr, data);
-    }
-    
-    @Override
-    public void expire(HttpServletRequest request) {
-        hotCache.invalidate(request.getRemoteAddr());
+        coldCache.getIfPresent(request.getRemoteAddr()).put(attr, data);
     }
 }

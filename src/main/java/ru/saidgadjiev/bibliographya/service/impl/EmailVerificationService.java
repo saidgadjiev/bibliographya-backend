@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.domain.VerificationResult;
+import ru.saidgadjiev.bibliographya.dao.api.VerificationDao;
 import ru.saidgadjiev.bibliographya.domain.SentVerification;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.Verification;
+import ru.saidgadjiev.bibliographya.domain.VerificationResult;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
@@ -20,7 +22,10 @@ import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,7 +36,7 @@ public class EmailVerificationService implements VerificationService {
 
     private VerificationStorage coldVerificationStorage;
 
-    private VerificationStorage hotVerificationStorage;
+    private VerificationDao verificationDao;
 
     private final CodeGenerator codeGenerator;
 
@@ -45,14 +50,14 @@ public class EmailVerificationService implements VerificationService {
 
     @Autowired
     public EmailVerificationService(@Qualifier("cold") VerificationStorage coldVerificationStorage,
-                                    @Qualifier("hot") VerificationStorage hotVerificationStorage,
+                                    VerificationDao verificationDao,
                                     CodeGenerator codeGenerator,
                                     EmailService emailService,
                                     MessageSource messageSource,
                                     SecurityService securityService,
                                     TokenService tokenService) {
         this.coldVerificationStorage = coldVerificationStorage;
-        this.hotVerificationStorage = hotVerificationStorage;
+        this.verificationDao = verificationDao;
         this.codeGenerator = codeGenerator;
         this.emailService = emailService;
         this.messageSource = messageSource;
@@ -66,15 +71,15 @@ public class EmailVerificationService implements VerificationService {
 
         if (!Objects.equals(sessionState, SessionState.NONE) && canSend(request)) {
             int code = codeGenerator.generate();
+            long expiredAt = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(2);
 
-            Calendar calendar = Calendar.getInstance();
+            Verification verification = new Verification();
 
-            calendar.setTime(new Date());
-            calendar.add(Calendar.DATE, 1);
+            verification.setVerificationKey(email);
+            verification.setCode(String.valueOf(code));
+            verification.setExipredAt(expiredAt);
 
-            hotVerificationStorage.expire(request);
-            hotVerificationStorage.setAttr(request, VerificationStorage.VERIFICATION_KEY, email);
-            hotVerificationStorage.setAttr(request, VerificationStorage.CODE, code);
+            verificationDao.create(verification);
 
             emailService.sendEmail(
                     email,
@@ -82,10 +87,8 @@ public class EmailVerificationService implements VerificationService {
                     getEmailMessage(request, locale)
             );
 
-            long nextCodeTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(2);
-
             String token = tokenService.generate(new HashMap<String, Object>() {{
-                put("exp", nextCodeTime);
+                put("exp", expiredAt);
                 put("timer", TimeUnit.MINUTES.toSeconds(2));
             }});
 
@@ -103,7 +106,13 @@ public class EmailVerificationService implements VerificationService {
             return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
         }
 
-        String currentEmail = (String) hotVerificationStorage.getAttr(request, VerificationStorage.VERIFICATION_KEY);
+        Verification verification = verificationDao.get(email, String.valueOf(code));
+
+        if (verification == null) {
+            return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
+        }
+
+        String currentEmail = verification.getVerificationKey();
 
         if (!Objects.equals(currentEmail, email)) {
             return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
@@ -117,7 +126,7 @@ public class EmailVerificationService implements VerificationService {
                 : new VerificationResult().setStatus(VerificationResult.Status.INVALID);
     }
 
-    public String getEmailSubject(HttpServletRequest request, Locale locale) {
+    private String getEmailSubject(HttpServletRequest request, Locale locale) {
         SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
 
         if (sessionState == null) {
@@ -137,7 +146,7 @@ public class EmailVerificationService implements VerificationService {
         return null;
     }
 
-    public String getEmailMessage(HttpServletRequest request, Locale locale) {
+    private String getEmailMessage(HttpServletRequest request, Locale locale) {
         SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
 
         if (sessionState == null) {
