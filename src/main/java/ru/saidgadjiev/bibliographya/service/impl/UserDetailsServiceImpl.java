@@ -49,7 +49,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final EmailVerificationService emailVerificationService;
+    private final VerificationServiceWrapper emailVerificationService;
 
     private final SecurityService securityService;
 
@@ -63,7 +63,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
-                                  EmailVerificationService emailVerificationService,
+                                  VerificationServiceWrapper emailVerificationService,
                                   SecurityService securityService,
                                   @Qualifier("cold") VerificationStorage verificationStorage,
                                   ApplicationEventPublisher eventPublisher) {

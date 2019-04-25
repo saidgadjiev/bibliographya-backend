@@ -18,7 +18,7 @@ import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
-import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
+import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
@@ -41,7 +41,7 @@ public class AuthService {
 
     private SecurityService securityService;
 
-    private EmailVerificationService emailVerificationService;
+    private VerificationServiceWrapper emailVerificationService;
 
     private UIProperties uiProperties;
 
@@ -54,7 +54,7 @@ public class AuthService {
                        BibliographyaUserDetailsService userAccountDetailsService,
                        AuthTokenService tokenService,
                        SecurityService securityService,
-                       EmailVerificationService emailVerificationService,
+                       VerificationServiceWrapper emailVerificationService,
                        UIProperties uiProperties,
                        @Qualifier("cold") VerificationStorage verificationStorage,
                        JwtProperties jwtProperties) {

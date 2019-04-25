@@ -18,7 +18,7 @@ import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
-import ru.saidgadjiev.bibliographya.service.impl.EmailVerificationService;
+import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
@@ -62,7 +62,7 @@ class AuthServiceTest {
     private AuthTokenService tokenService;
 
     @MockBean
-    private EmailVerificationService emailVerificationService;
+    private VerificationServiceWrapper emailVerificationService;
 
     @MockBean
     private SessionVerificationStorage sessionManager;

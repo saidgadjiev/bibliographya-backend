@@ -289,6 +289,12 @@
             <version>8.10.10</version>
         </dependency>
 
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.6</version>
+        </dependency>
+
     </dependencies>
 
 </project>

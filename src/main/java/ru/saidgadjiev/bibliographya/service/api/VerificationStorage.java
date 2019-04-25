@@ -4,19 +4,19 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface VerificationStorage {
 
-    public static final String STATE = "state";
+    String STATE = "state";
 
-    public static final String FIRST_NAME = "firstName";
+    String FIRST_NAME = "firstName";
 
-    public static final String LAST_NAME = "lastName";
+    String LAST_NAME = "lastName";
 
-    public static final String MIDDLE_NAME = "middleName";
+    String MIDDLE_NAME = "middleName";
 
-    public static final String SIGN_UP_REQUEST = "signUpRequest";
+    String SIGN_UP_REQUEST = "signUpRequest";
 
-    public static final String CODE = "code";
+    String CODE = "code";
 
-    public static final String VERIFICATION_KEY = "verificationKey";
+    String VERIFICATION_KEY = "verificationKey";
 
     void removeAttr(HttpServletRequest request, String attr);
 

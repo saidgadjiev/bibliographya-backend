@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,8 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.domain.SentVerification;
+import ru.saidgadjiev.bibliographya.domain.VerificationKey;
 import ru.saidgadjiev.bibliographya.domain.VerificationResult;
-import ru.saidgadjiev.bibliographya.service.api.VerificationService;
+import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,23 +24,21 @@ import java.util.Locale;
 @RequestMapping("/api/verifications")
 public class VerificationController {
     
-    private final VerificationService emailVerificationService;
-
-    private final VerificationService phoneVerificationService;
+    private final VerificationServiceWrapper verificationService;
 
     private ObjectMapper objectMapper;
 
-    public VerificationController(VerificationService emailVerificationService,
-                                  VerificationService phoneVerificationService,
+    public VerificationController(VerificationServiceWrapper verificationService,
                                   ObjectMapper objectMapper) {
-        this.emailVerificationService = emailVerificationService;
-        this.phoneVerificationService = phoneVerificationService;
+        this.verificationService = verificationService;
         this.objectMapper = objectMapper;
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verify(HttpServletRequest request, @RequestParam("verificationKey") String key, @RequestParam("code") Integer code) {
-        VerificationResult verificationResult = emailVerificationService.verify(request, key, code);
+    public ResponseEntity<?> verify(HttpServletRequest request,
+                                    VerificationKey verificationKey,
+                                    @RequestParam("code") Integer code) {
+        VerificationResult verificationResult = verificationService.verify(request, verificationKey, code);
         
         if (verificationResult.isExpired()) {
             return ResponseEntity.status(498).build();
@@ -56,11 +54,9 @@ public class VerificationController {
     @PostMapping("/resend")
     public ResponseEntity<?> resend(HttpServletRequest request,
                                     Locale locale,
-                                    @RequestParam("verificationKey") String verificationKey
+                                    VerificationKey verificationKey
     ) throws MessagingException {
-        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
-
-        SentVerification sentVerification = emailVerificationService.sendVerification(request, locale, verificationKey);
+        SentVerification sentVerification = verificationService.sendVerification(request, locale, verificationKey);
 
         ObjectNode objectNode = objectMapper.createObjectNode();
 
