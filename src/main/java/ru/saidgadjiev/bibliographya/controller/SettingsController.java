@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliographya.domain.EmailConfirmation;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKeyConfirmation;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.model.GeneralSettings;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
@@ -51,13 +52,16 @@ public class SettingsController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email/finish")
     public ResponseEntity<?> saveEmail(HttpServletRequest request,
-                                       @Valid @RequestBody EmailConfirmation emailConfirmation,
+                                       @Valid @RequestBody AuthenticationKeyConfirmation authenticationKeyConfirmation,
                                        BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
+        if (!authenticationKeyConfirmation.getAuthenticationKey().getType().equals(AuthenticationKey.Type.EMAIL)) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        HttpStatus status = userDetailsService.saveEmailFinish(request, emailConfirmation);
+        HttpStatus status = userDetailsService.saveEmailFinish(request, authenticationKeyConfirmation);
 
         return ResponseEntity.status(status).build();
     }
@@ -66,8 +70,12 @@ public class SettingsController {
     @PostMapping("/save-email/start")
     public ResponseEntity<?> changeEmail(HttpServletRequest request,
                                          Locale locale,
-                                         @RequestParam("email") String email) throws MessagingException {
-        HttpStatus status = userDetailsService.saveEmailStart(request, locale, email);
+                                         AuthenticationKey authenticationKey) throws MessagingException {
+        if (!authenticationKey.getType().equals(AuthenticationKey.Type.EMAIL)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        HttpStatus status = userDetailsService.saveEmailStart(request, locale, authenticationKey);
 
         return ResponseEntity.status(status).build();
     }
@@ -85,8 +93,10 @@ public class SettingsController {
     }
 
     @PostMapping("/restore-password/start")
-    public ResponseEntity<?> restorePassword(HttpServletRequest request, Locale locale, @RequestParam("email") String email) throws MessagingException {
-        HttpStatus restoreResult = userDetailsService.restorePasswordStart(request, locale, email);
+    public ResponseEntity<?> restorePassword(HttpServletRequest request,
+                                             Locale locale,
+                                             AuthenticationKey authenticationKey) throws MessagingException {
+        HttpStatus restoreResult = userDetailsService.restorePasswordStart(request, locale, authenticationKey);
 
         return ResponseEntity.status(restoreResult).build();
     }

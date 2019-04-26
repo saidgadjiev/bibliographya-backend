@@ -10,7 +10,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import ru.saidgadjiev.bibliographya.domain.VerificationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 
 /**
  * Created by said on 25/04/2019.
@@ -19,7 +19,7 @@ public class VerificationKeyArgumentResolver implements HandlerMethodArgumentRes
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterType().equals(VerificationKey.class);
+        return parameter.getParameterType().equals(AuthenticationKey.class);
     }
 
     @Override
@@ -33,17 +33,21 @@ public class VerificationKeyArgumentResolver implements HandlerMethodArgumentRes
             throw new IllegalArgumentException("Verification key can't be null!");
         }
 
-        VerificationKey verificationKey = new VerificationKey();
+        return resolve(verificationKeyParameter);
+    }
+
+    public static AuthenticationKey resolve(String verificationKeyParameter) {
+        AuthenticationKey authenticationKey = new AuthenticationKey();
 
         EmailValidator emailValidator = EmailValidator.getInstance();
 
         boolean isValidEmail = emailValidator.isValid(verificationKeyParameter);
 
         if (isValidEmail) {
-            verificationKey.setEmail(verificationKeyParameter);
-            verificationKey.setType(VerificationKey.Type.EMAIL);
+            authenticationKey.setEmail(verificationKeyParameter);
+            authenticationKey.setType(AuthenticationKey.Type.EMAIL);
 
-            return verificationKey;
+            return authenticationKey;
         }
 
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
@@ -51,11 +55,11 @@ public class VerificationKeyArgumentResolver implements HandlerMethodArgumentRes
         try {
             Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(verificationKeyParameter, null);
 
-            verificationKey.setCountryCode(String.valueOf(phoneNumber.getCountryCode()));
-            verificationKey.setPhone(String.valueOf(phoneNumber.getNationalNumber()));
-            verificationKey.setType(VerificationKey.Type.PHONE);
+            authenticationKey.setCountryCode(String.valueOf(phoneNumber.getCountryCode()));
+            authenticationKey.setPhone(String.valueOf(phoneNumber.getNationalNumber()));
+            authenticationKey.setType(AuthenticationKey.Type.PHONE);
 
-            return verificationKey;
+            return authenticationKey;
         } catch (NumberParseException e) {
             throw new IllegalArgumentException("Phone is invalid!");
         }

@@ -1,13 +1,14 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import ru.saidgadjiev.bibliographya.domain.HasVerificationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class RestorePassword {
+public class RestorePassword implements HasVerificationKey {
 
-    @NotNull
-    @Size(min = 1)
-    private String email;
+    private AuthenticationKey authenticationKey;
 
     @NotNull
     @Size(min = 6)
@@ -15,14 +16,6 @@ public class RestorePassword {
 
     @NotNull
     private Integer code;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public String getPassword() {
         return password;
@@ -38,5 +31,15 @@ public class RestorePassword {
 
     public void setCode(Integer code) {
         this.code = code;
+    }
+
+    @Override
+    public AuthenticationKey getAuthenticationKey() {
+        return authenticationKey;
+    }
+
+    @Override
+    public void setAuthenticationKey(AuthenticationKey authenticationKey) {
+        this.authenticationKey = authenticationKey;
     }
 }

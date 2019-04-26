@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 
 import java.sql.SQLException;
 
@@ -108,8 +109,13 @@ class UserDetailsServiceImplTest {
     void isExistUserName() {
         Mockito.when(accountDao.isExistEmail(eq("Test"))).thenReturn(true).thenReturn(false);
 
-        Assertions.assertTrue(service.isExistEmail("Test"));
-        Assertions.assertFalse(service.isExistEmail("Test"));
+        AuthenticationKey authenticationKey = new AuthenticationKey();
+
+        authenticationKey.setEmail("Test");
+        authenticationKey.setType(AuthenticationKey.Type.EMAIL);
+
+        Assertions.assertTrue(service.isExist(authenticationKey));
+        Assertions.assertFalse(service.isExist(authenticationKey));
 
         Mockito.verify(accountDao, Mockito.times(2)).isExistEmail(eq("Test"));
     }

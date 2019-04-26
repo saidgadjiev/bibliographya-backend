@@ -5,13 +5,13 @@ import org.springframework.http.HttpStatus;
 /**
  * Created by said on 23/04/2019.
  */
-public class SentVerification {
+public class SendVerificationResult {
 
     private HttpStatus status;
 
     private String tjwt;
 
-    public SentVerification(HttpStatus status, String tjwt) {
+    public SendVerificationResult(HttpStatus status, String tjwt) {
         this.status = status;
         this.tjwt = tjwt;
     }

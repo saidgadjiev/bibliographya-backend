@@ -6,6 +6,8 @@ public enum SessionState {
 
     CHANGE_EMAIL,
 
+    CHANGE_PHONE,
+
     SIGN_UP_CONFIRM,
 
     NONE

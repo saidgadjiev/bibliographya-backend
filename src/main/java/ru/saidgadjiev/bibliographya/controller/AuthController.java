@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
-import ru.saidgadjiev.bibliographya.domain.SentVerification;
+import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
@@ -90,8 +91,8 @@ public class AuthController {
     @PostMapping("/signUp/confirm-start")
     public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
                                            Locale locale,
-                                           @RequestParam("email") String email) throws MessagingException {
-        SentVerification status = authService.confirmSignUpStart(request, locale, email);
+                                           AuthenticationKey authenticationKey) throws MessagingException {
+        SendVerificationResult status = authService.confirmSignUpStart(request, locale, authenticationKey);
 
         ObjectNode objectNode = objectMapper.createObjectNode();
 

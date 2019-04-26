@@ -1,8 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.api;
 
-import ru.saidgadjiev.bibliographya.domain.VerificationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.domain.VerificationResult;
-import ru.saidgadjiev.bibliographya.domain.SentVerification;
+import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,8 +13,8 @@ import java.util.Locale;
  */
 public interface VerificationService {
     
-    SentVerification sendVerification(HttpServletRequest request, Locale locale, VerificationKey verificationKey) throws MessagingException;
+    SendVerificationResult sendVerification(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException;
 
 
-    VerificationResult verify(HttpServletRequest request, VerificationKey verificationKey, int code);
+    VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code);
 }

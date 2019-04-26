@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.domain.UserAccount;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
@@ -27,9 +28,9 @@ public class UserAccountController {
         this.bibliographyaMapper = bibliographyaMapper;
     }
 
-    @RequestMapping(value = "/{email}", method = RequestMethod.HEAD)
-    public ResponseEntity checkEmail(@PathVariable(value = "email") String email) throws SQLException {
-        if (userAccountDetailsService.isExistEmail(email)) {
+    @RequestMapping(value = "", method = RequestMethod.HEAD)
+    public ResponseEntity checkPhone(AuthenticationKey authenticationKey) throws SQLException {
+        if (userAccountDetailsService.isExist(authenticationKey)) {
             return ResponseEntity.status(HttpStatus.FOUND).build();
         }
 

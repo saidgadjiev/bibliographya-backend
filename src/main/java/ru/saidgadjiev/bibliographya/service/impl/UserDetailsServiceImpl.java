@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,8 +20,11 @@ import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.security.event.ChangeEmailEvent;
+import ru.saidgadjiev.bibliographya.security.event.ChangePhoneEvent;
 import ru.saidgadjiev.bibliographya.security.event.UnverifyEmailsEvent;
+import ru.saidgadjiev.bibliographya.security.event.UnverifyPhonesEvent;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
+import ru.saidgadjiev.bibliographya.service.api.VerificationService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 
 import javax.mail.MessagingException;
@@ -49,7 +51,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final VerificationServiceWrapper emailVerificationService;
+    private final VerificationService verificationService;
 
     private final SecurityService securityService;
 
@@ -63,53 +65,37 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
                                   PasswordEncoder passwordEncoder,
-                                  VerificationServiceWrapper emailVerificationService,
+                                  @Qualifier("wrapper") VerificationService verificationService,
                                   SecurityService securityService,
-                                  @Qualifier("cold") VerificationStorage verificationStorage,
+                                  @Qualifier("inMemory") VerificationStorage verificationStorage,
                                   ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.generalDao = generalDao;
         this.userRoleDao = userRoleDao;
         this.biographyService = biographyService;
         this.passwordEncoder = passwordEncoder;
-        this.emailVerificationService = emailVerificationService;
+        this.verificationService = verificationService;
         this.securityService = securityService;
         this.verificationStorage = verificationStorage;
         this.eventPublisher = eventPublisher;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Collection<FilterCriteria> userCriteria = new ArrayList<>();
+    public List<User> loadUserByUsername(AuthenticationKey authenticationKey) throws UsernameNotFoundException {
+        switch (authenticationKey.getType()) {
+            case PHONE:
+                break;
+            case EMAIL:
+                List<User> users = retrieveByEmail(authenticationKey.getEmail());
 
-        userCriteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName(User.EMAIL)
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(email)
-                        .build()
+                if (users.isEmpty()) {
+                    throw new UsernameNotFoundException("User not found");
+                }
 
-        );
-        userCriteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .propertyName(User.EMAIL_VERIFIED)
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(true)
-                        .build()
-
-        );
-
-        User user = userDao.get(userCriteria);
-
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found");
+                return users;
         }
 
-        user.setRoles(userRoleDao.getRoles(user.getId()));
-
-        return user;
+        return null;
     }
 
     @Override
@@ -120,8 +106,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         User user = new User();
 
-        user.setEmail(saveUser.getEmail());
-        user.setEmailVerified(true);
+        user.setPhone(saveUser.getPhone());
+        user.setPhoneVerified(true);
         user.setPassword(passwordEncoder.encode(saveUser.getPassword()));
 
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
@@ -145,7 +131,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .build()
         );
 
-        User user = userDao.get(userCriteria);
+        User user = userDao.getUniqueUser(userCriteria);
 
         if (user != null) {
             user.setRoles(userRoleDao.getRoles(user.getId()));
@@ -155,8 +141,15 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public boolean isExistEmail(String email) {
-        return userDao.isExistEmail(email);
+    public boolean isExist(AuthenticationKey authenticationKey) {
+        switch (authenticationKey.getType()) {
+            case PHONE:
+                break;
+            case EMAIL:
+                return userDao.isExistEmail(authenticationKey.getEmail());
+        }
+
+        return false;
     }
 
     @Override
@@ -210,29 +203,53 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
+    public HttpStatus restorePasswordStart(HttpServletRequest request,
+                                           Locale locale,
+                                           AuthenticationKey authenticationKey) throws MessagingException {
         Collection<FilterCriteria> userCriteria = new ArrayList<>();
 
-        userCriteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName(User.EMAIL)
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(email)
-                        .build()
+        switch (authenticationKey.getType()) {
+            case PHONE:
+                userCriteria.add(
+                        new FilterCriteria.Builder<String>()
+                                .propertyName(User.PHONE)
+                                .valueSetter(PreparedStatement::setString)
+                                .filterOperation(FilterOperation.EQ)
+                                .filterValue(authenticationKey.getEmail())
+                                .build()
 
-        );
-        userCriteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .propertyName(User.EMAIL_VERIFIED)
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(true)
-                        .build()
+                );
+                userCriteria.add(
+                        new FilterCriteria.Builder<Boolean>()
+                                .propertyName(User.PHONE_VERIFIED)
+                                .valueSetter(PreparedStatement::setBoolean)
+                                .filterOperation(FilterOperation.EQ)
+                                .filterValue(true)
+                                .build()
+                );
+                break;
+            case EMAIL:
+                userCriteria.add(
+                        new FilterCriteria.Builder<String>()
+                                .propertyName(User.EMAIL)
+                                .valueSetter(PreparedStatement::setString)
+                                .filterOperation(FilterOperation.EQ)
+                                .filterValue(authenticationKey.getEmail())
+                                .build()
 
-        );
+                );
+                userCriteria.add(
+                        new FilterCriteria.Builder<Boolean>()
+                                .propertyName(User.EMAIL_VERIFIED)
+                                .valueSetter(PreparedStatement::setBoolean)
+                                .filterOperation(FilterOperation.EQ)
+                                .filterValue(true)
+                                .build()
+                );
+                break;
+        }
 
-        User actual = userDao.get(userCriteria);
+        User actual = userDao.getUniqueUser(userCriteria);
 
         if (actual == null) {
             return HttpStatus.NOT_FOUND;
@@ -240,16 +257,16 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.RESTORE_PASSWORD);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, actual.getBiography().getFirstName());
 
-        emailVerificationService.sendVerification(request, locale, email);
+        verificationService.sendVerification(request, locale, authenticationKey);
 
         return HttpStatus.OK;
     }
 
     @Override
     public HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword) {
-        VerificationResult verificationResult = emailVerificationService.verify(
+        VerificationResult verificationResult = verificationService.verify(
                 request,
-                restorePassword.getEmail(),
+                restorePassword.getAuthenticationKey(),
                 restorePassword.getCode()
         );
 
@@ -268,7 +285,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             criteria.add(
                     new FilterCriteria.Builder<String>()
                             .filterOperation(FilterOperation.EQ)
-                            .filterValue(restorePassword.getEmail())
+                            .filterValue(restorePassword.getAuthenticationKey().getEmail())
                             .needPreparedSet(true)
                             .propertyName(User.EMAIL)
                             .valueSetter(PreparedStatement::setString)
@@ -300,18 +317,18 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus saveEmailFinish(HttpServletRequest request, EmailConfirmation emailConfirmation) {
+    public HttpStatus saveEmailFinish(HttpServletRequest request, AuthenticationKeyConfirmation authenticationKeyConfirmation) {
         User actual = (User) securityService.findLoggedInUser();
 
-        VerificationResult emailVerificationResult = emailVerificationService.verify(
+        VerificationResult emailVerificationResult = verificationService.verify(
                 request,
-                emailConfirmation.getEmail(),
-                emailConfirmation.getCode()
+                authenticationKeyConfirmation.getAuthenticationKey(),
+                authenticationKeyConfirmation.getCode()
         );
 
         if (emailVerificationResult.isValid()) {
             //1. Отвязываем почту у всех людей
-            unverifyEmails(emailConfirmation.getEmail());
+            unverifyEmails(authenticationKeyConfirmation.getAuthenticationKey().getEmail());
 
             //1. Обновление email с привязкой данного пользователя
             List<UpdateValue> values = new ArrayList<>();
@@ -319,7 +336,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             values.add(
                     new UpdateValue<>(
                             User.EMAIL,
-                            emailConfirmation.getEmail(),
+                            authenticationKeyConfirmation.getAuthenticationKey().getEmail(),
                             PreparedStatement::setString
                     )
             );
@@ -349,7 +366,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             verificationStorage.removeAttr(request, VerificationStorage.STATE);
             verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
 
-            actual.setEmail(emailConfirmation.getEmail());
+            actual.setEmail(authenticationKeyConfirmation.getAuthenticationKey().getEmail());
             actual.setEmailVerified(true);
 
             eventPublisher.publishEvent(new ChangeEmailEvent(actual));
@@ -361,15 +378,88 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
+    public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_EMAIL);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
-        emailVerificationService.sendVerification(request, locale, email);
+        verificationService.sendVerification(request, locale, authenticationKey);
 
         return HttpStatus.OK;
+    }
+
+    @Override
+    public HttpStatus savePhoneStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+        User user = (User) securityService.findLoggedInUser();
+
+        verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_PHONE);
+        verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
+
+        verificationService.sendVerification(request, locale, authenticationKey);
+
+        return HttpStatus.OK;
+    }
+
+    @Override
+    public HttpStatus savePhoneFinish(HttpServletRequest request, AuthenticationKeyConfirmation authenticationKeyConfirmation) {
+        User actual = (User) securityService.findLoggedInUser();
+
+        VerificationResult verificationResult = verificationService.verify(
+                request,
+                authenticationKeyConfirmation.getAuthenticationKey(),
+                authenticationKeyConfirmation.getCode()
+        );
+
+        if (verificationResult.isValid()) {
+            //1. Отвязываем почту у всех людей
+            unverifyPhones(authenticationKeyConfirmation.getAuthenticationKey().getPhone());
+
+            //1. Обновление email с привязкой данного пользователя
+            List<UpdateValue> values = new ArrayList<>();
+
+            values.add(
+                    new UpdateValue<>(
+                            User.PHONE,
+                            authenticationKeyConfirmation.getAuthenticationKey().getPhone(),
+                            PreparedStatement::setString
+                    )
+            );
+
+            values.add(
+                    new UpdateValue<>(
+                            User.PHONE_VERIFIED,
+                            true,
+                            PreparedStatement::setBoolean
+                    )
+            );
+
+            List<FilterCriteria> criteria = new ArrayList<>();
+
+            criteria.add(
+                    new FilterCriteria.Builder<Integer>()
+                            .filterOperation(FilterOperation.EQ)
+                            .filterValue(actual.getId())
+                            .needPreparedSet(true)
+                            .propertyName(User.ID)
+                            .valueSetter(PreparedStatement::setInt)
+                            .build()
+            );
+
+            generalDao.update(User.TABLE, values, criteria, null);
+
+            verificationStorage.removeAttr(request, VerificationStorage.STATE);
+            verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
+
+            actual.setPhone(authenticationKeyConfirmation.getAuthenticationKey().getPhone());
+            actual.setPhoneVerified(true);
+
+            eventPublisher.publishEvent(new ChangePhoneEvent(actual));
+
+            return HttpStatus.OK;
+        }
+
+        return HttpStatus.PRECONDITION_FAILED;
     }
 
     @Override
@@ -436,5 +526,48 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification, null);
 
         eventPublisher.publishEvent(new UnverifyEmailsEvent(email));
+    }
+
+    private void unverifyPhones(String phone) {
+        List<UpdateValue> valuesRemoveEmailsVerification = new ArrayList<>();
+
+        valuesRemoveEmailsVerification.add(
+                new UpdateValue<>(
+                        User.PHONE_VERIFIED,
+                        false,
+                        PreparedStatement::setBoolean
+                )
+        );
+
+        List<FilterCriteria> criteriaRemoveEmailsVerification = new ArrayList<>();
+
+        criteriaRemoveEmailsVerification.add(
+                new FilterCriteria.Builder<String>()
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(phone)
+                        .needPreparedSet(true)
+                        .propertyName(User.PHONE)
+                        .valueSetter(PreparedStatement::setString)
+                        .build()
+        );
+
+        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification, null);
+
+        eventPublisher.publishEvent(new UnverifyPhonesEvent(phone));
+    }
+
+    private List<User> retrieveByEmail(String email) {
+        Collection<FilterCriteria> userCriteria = new ArrayList<>();
+
+        userCriteria.add(
+                new FilterCriteria.Builder<String>()
+                        .propertyName(User.EMAIL)
+                        .valueSetter(PreparedStatement::setString)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(email)
+                        .build()
+        );
+
+        return userDao.getUsers(userCriteria);
     }
 }

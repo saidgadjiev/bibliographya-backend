@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.saidgadjiev.bibliographya.domain.SentVerification;
-import ru.saidgadjiev.bibliographya.domain.VerificationKey;
+import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.domain.VerificationResult;
 import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 
@@ -36,9 +36,9 @@ public class VerificationController {
 
     @PostMapping("/verify")
     public ResponseEntity<?> verify(HttpServletRequest request,
-                                    VerificationKey verificationKey,
+                                    AuthenticationKey authenticationKey,
                                     @RequestParam("code") Integer code) {
-        VerificationResult verificationResult = verificationService.verify(request, verificationKey, code);
+        VerificationResult verificationResult = verificationService.verify(request, authenticationKey, code);
         
         if (verificationResult.isExpired()) {
             return ResponseEntity.status(498).build();
@@ -54,14 +54,14 @@ public class VerificationController {
     @PostMapping("/resend")
     public ResponseEntity<?> resend(HttpServletRequest request,
                                     Locale locale,
-                                    VerificationKey verificationKey
+                                    AuthenticationKey authenticationKey
     ) throws MessagingException {
-        SentVerification sentVerification = verificationService.sendVerification(request, locale, verificationKey);
+        SendVerificationResult sendVerificationResult = verificationService.sendVerification(request, locale, authenticationKey);
 
         ObjectNode objectNode = objectMapper.createObjectNode();
 
-        objectNode.put("tjwt", sentVerification.getTjwt());
+        objectNode.put("tjwt", sendVerificationResult.getTjwt());
 
-        return ResponseEntity.status(sentVerification.getStatus()).body(objectNode);
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(objectNode);
     }
 }

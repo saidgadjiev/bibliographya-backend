@@ -39,13 +39,15 @@ public class UserDao {
         jdbcTemplate.update(
                 con -> {
                     PreparedStatement ps = con.prepareStatement(
-                            "INSERT INTO \"user\"(email, email_verified, password) VALUES (?, ?, ?)",
+                            "INSERT INTO \"user\"(email, email_verified, phone, phone_verified, password) VALUES (?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS
                     );
 
                     ps.setString(1, user.getUsername());
                     ps.setBoolean(2, user.isEmailVerified());
-                    ps.setString(3, user.getPassword());
+                    ps.setString(3, user.getPhone());
+                    ps.setBoolean(4, user.isPhoneVerified());
+                    ps.setString(5, user.getPassword());
 
                     return ps;
                 },
@@ -60,7 +62,13 @@ public class UserDao {
         return user;
     }
 
-    public User get(Collection<FilterCriteria> userCriteria) {
+    public User getUniqueUser(Collection<FilterCriteria> userCriteria) {
+        List<User> users = getUsers(userCriteria);
+
+        return users.isEmpty() ? null : users.iterator().next();
+    }
+
+    public List<User> getUsers(Collection<FilterCriteria> userCriteria) {
         String userClause = FilterUtils.toClause(userCriteria, "u");
 
         StringBuilder sql = new StringBuilder();
@@ -84,13 +92,7 @@ public class UserDao {
                         }
                     }
                 },
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
+                (rs, rowNum) -> map(rs)
         );
     }
 
@@ -171,6 +173,8 @@ public class UserDao {
 
         user.setEmailVerified(rs.getBoolean("u_verified"));
         user.setEmail(rs.getString("u_email"));
+        user.setPhone(rs.getString("u_phone"));
+        user.setPhoneVerified(rs.getBoolean("u_phone_verified"));
         user.setPassword(rs.getString("u_password"));
 
         Biography biography = new Biography();
@@ -188,6 +192,8 @@ public class UserDao {
         return "  u.id AS u_id,\n" +
                 "  u.email_verified as u_verified,\n" +
                 "  u.email AS u_email,\n" +
+                "  u.phone AS u_phone,\n" +
+                "  u.phone_verified as u_phone_verified,\n" +
                 "  u.password AS u_password,\n" +
                 "  b.id AS b_id,\n" +
                 "  b.first_name AS b_first_name,\n" +

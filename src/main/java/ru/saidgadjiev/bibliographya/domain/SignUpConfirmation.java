@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliographya.domain;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class SignUpConfirmation extends EmailConfirmation {
+public class SignUpConfirmation extends AuthenticationKeyConfirmation {
 
     @NotNull
     @Size(min = 6)

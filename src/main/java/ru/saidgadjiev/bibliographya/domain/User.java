@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,19 +19,32 @@ public class User implements UserDetails, CredentialsContainer {
 
     public static final String EMAIL = "email";
 
+    public static final String PHONE = "phone";
+
+    public static final String PHONE_VERIFIED = "phone_verified";
+
     public static final String EMAIL_VERIFIED = "email_verified";
 
     public static final String PASSWORD = "password";
 
     private int id;
 
+    @JsonIgnore
     private String email;
 
+    @JsonIgnore
     private boolean emailVerified;
 
+    @JsonIgnore
     private String password;
 
     private Biography biography;
+
+    @JsonIgnore
+    private String phone;
+
+    @JsonIgnore
+    private boolean phoneVerified;
 
     private Set<Role> roles;
 
@@ -146,5 +160,21 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setDeleted(boolean deleted) {
         isDeleted = deleted;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public boolean isPhoneVerified() {
+        return phoneVerified;
+    }
+
+    public void setPhoneVerified(boolean phoneVerified) {
+        this.phoneVerified = phoneVerified;
     }
 }

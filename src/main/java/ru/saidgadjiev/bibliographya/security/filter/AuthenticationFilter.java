@@ -37,7 +37,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
             SignInRequest signInRequest = objectMapper.readValue(requestBody, SignInRequest.class);
 
             UsernamePasswordAuthenticationToken token
-                    = new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword());
+                    = new UsernamePasswordAuthenticationToken(signInRequest.getAuthenticationKey(), signInRequest.getPassword());
 
             return this.getAuthenticationManager().authenticate(token);
         } catch(IOException e) {

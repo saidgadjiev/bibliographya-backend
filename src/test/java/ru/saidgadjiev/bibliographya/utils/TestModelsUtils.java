@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.utils;
 
 import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -31,6 +32,8 @@ public class TestModelsUtils {
 
     public static final String TEST_EMAIL = "test@mail.ru";
 
+    public static final AuthenticationKey TEST_AUTHENTICATION_KEY = new AuthenticationKey();
+
     public static final String TEST_SOCIAL_USER_ID = "socialUserId";
 
     public static final Integer TEST_USER_ID = 1;
@@ -44,6 +47,10 @@ public class TestModelsUtils {
     public static final Cookie TEST_TOKEN_REMOVE_COOKIE = new Cookie("X-TOKEN", null);
 
     static {
+
+        TEST_AUTHENTICATION_KEY.setEmail(TEST_EMAIL);
+        TEST_AUTHENTICATION_KEY.setType(AuthenticationKey.Type.EMAIL);
+
         TEST_TOKEN_COOKIE.setMaxAge(60 * 60 * 24 * 30);
         TEST_TOKEN_COOKIE.setDomain(TEST_SERVER_NAME);
         TEST_TOKEN_COOKIE.setPath("/");
@@ -56,7 +63,7 @@ public class TestModelsUtils {
 
         User user = new User();
 
-        user.setEmail(TEST_EMAIL);
+        user.setEmail(TEST_AUTHENTICATION_KEY.getEmail());
         user.setId(1);
         user.setPassword("Test");
         user.setEmailVerified(true);

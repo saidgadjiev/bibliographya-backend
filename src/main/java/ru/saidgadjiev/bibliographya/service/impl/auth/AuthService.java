@@ -16,9 +16,9 @@ import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
+import ru.saidgadjiev.bibliographya.service.api.VerificationService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
-import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
@@ -41,7 +41,7 @@ public class AuthService {
 
     private SecurityService securityService;
 
-    private VerificationServiceWrapper emailVerificationService;
+    private VerificationService verificationService;
 
     private UIProperties uiProperties;
 
@@ -54,15 +54,15 @@ public class AuthService {
                        BibliographyaUserDetailsService userAccountDetailsService,
                        AuthTokenService tokenService,
                        SecurityService securityService,
-                       VerificationServiceWrapper emailVerificationService,
+                       @Qualifier("wrapper") VerificationService verificationService,
                        UIProperties uiProperties,
-                       @Qualifier("cold") VerificationStorage verificationStorage,
+                       @Qualifier("inMemory") VerificationStorage verificationStorage,
                        JwtProperties jwtProperties) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
-        this.emailVerificationService = emailVerificationService;
+        this.verificationService = verificationService;
         this.uiProperties = uiProperties;
         this.verificationStorage = verificationStorage;
         this.jwtProperties = jwtProperties;
@@ -112,16 +112,16 @@ public class AuthService {
         SignUpConfirmation signUpConfirmation = (SignUpConfirmation) authContext.getBody();
 
         if (signUpRequest != null) {
-            VerificationResult result = emailVerificationService.verify(
+            VerificationResult result = verificationService.verify(
                     authContext.getRequest(),
-                    signUpConfirmation.getEmail(),
+                    signUpConfirmation.getAuthenticationKey(),
                     signUpConfirmation.getCode()
             );
 
             if (result.isValid()) {
                 User saveUser = new User();
 
-                saveUser.setEmail(signUpConfirmation.getEmail());
+                saveUser.setPhone(signUpConfirmation.getAuthenticationKey().getCountryCode() + signUpConfirmation.getAuthenticationKey().getPhone());
                 saveUser.setPassword(signUpConfirmation.getPassword());
 
                 Biography biography = new Biography();
@@ -163,12 +163,12 @@ public class AuthService {
         return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
     }
 
-    public SentVerification confirmSignUpStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
-        if (userAccountDetailsService.isExistEmail(email)) {
-            return new SentVerification(HttpStatus.CONFLICT, null);
+    public SendVerificationResult confirmSignUpStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+        if (userAccountDetailsService.isExist(authenticationKey)) {
+            return new SendVerificationResult(HttpStatus.CONFLICT, null);
         }
 
-        return emailVerificationService.sendVerification(request, locale, email);
+        return verificationService.sendVerification(request, locale, authenticationKey);
     }
 
     public void cancelSignUp(HttpServletRequest request) {

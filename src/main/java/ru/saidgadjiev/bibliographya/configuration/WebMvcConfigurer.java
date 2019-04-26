@@ -1,14 +1,19 @@
 package ru.saidgadjiev.bibliographya.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.web.SortArgumentResolver;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import ru.saidgadjiev.bibliographya.data.VerificationKeyArgumentResolver;
+import ru.saidgadjiev.bibliographya.http.message.VerificationKeyMessageConverter;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
 import java.util.List;
@@ -55,5 +60,12 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
                 return builder.build();
             }
         });
+
+        resolvers.add(new VerificationKeyArgumentResolver());
+    }
+
+    @Bean
+    public HttpMessageConverter<?> verificationKeyConverter(ObjectMapper objectMapper) {
+        return new VerificationKeyMessageConverter(objectMapper);
     }
 }
