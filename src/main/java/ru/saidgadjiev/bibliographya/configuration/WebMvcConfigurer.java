@@ -12,8 +12,8 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import ru.saidgadjiev.bibliographya.data.VerificationKeyArgumentResolver;
-import ru.saidgadjiev.bibliographya.http.message.VerificationKeyMessageConverter;
+import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;
+import ru.saidgadjiev.bibliographya.http.message.AuthKeyMessageConverter;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
 import java.util.List;
@@ -61,11 +61,11 @@ public class WebMvcConfigurer implements org.springframework.web.servlet.config.
             }
         });
 
-        resolvers.add(new VerificationKeyArgumentResolver());
+        resolvers.add(new AuthKeyArgumentResolver());
     }
 
     @Bean
     public HttpMessageConverter<?> verificationKeyConverter(ObjectMapper objectMapper) {
-        return new VerificationKeyMessageConverter(objectMapper);
+        return new AuthKeyMessageConverter(objectMapper);
     }
 }

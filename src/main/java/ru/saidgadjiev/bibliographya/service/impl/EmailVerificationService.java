@@ -58,7 +58,7 @@ public class EmailVerificationService extends AbstractVerificationService {
 
     @Override
     public SendVerificationResult sendVerification(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
-        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
         if (!Objects.equals(sessionState, SessionState.NONE)) {
             int code = codeGenerator.generate();
@@ -85,9 +85,9 @@ public class EmailVerificationService extends AbstractVerificationService {
     }
 
     private String getEmailSubject(HttpServletRequest request, Locale locale) {
-        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
-        if (sessionState == null) {
+        if (Objects.equals(sessionState, SessionState.NONE)) {
             return null;
         }
         switch (sessionState) {
@@ -105,9 +105,9 @@ public class EmailVerificationService extends AbstractVerificationService {
     }
 
     private String getEmailMessage(HttpServletRequest request, Locale locale) {
-        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE);
+        SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
-        if (sessionState == null) {
+        if (Objects.equals(sessionState, SessionState.NONE)) {
             return null;
         }
         String code = String.valueOf(coldVerificationStorage.getAttr(request, VerificationStorage.CODE));

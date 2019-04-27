@@ -34,6 +34,11 @@ public class SessionVerificationStorage implements VerificationStorage {
     }
 
     @Override
+    public Object getAttr(HttpServletRequest request, String attr, Object defaultValue) {
+        return null;
+    }
+
+    @Override
     public void setAttr(HttpServletRequest request, String attr, Object data) {
         HttpSession session = request.getSession(true);
 

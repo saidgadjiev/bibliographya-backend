@@ -15,7 +15,7 @@ import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 /**
  * Created by said on 25/04/2019.
  */
-public class VerificationKeyArgumentResolver implements HandlerMethodArgumentResolver {
+public class AuthKeyArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -53,6 +53,10 @@ public class VerificationKeyArgumentResolver implements HandlerMethodArgumentRes
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 
         try {
+            if (!verificationKeyParameter.startsWith("+")) {
+                verificationKeyParameter = "+" + verificationKeyParameter;
+            }
+
             Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(verificationKeyParameter, null);
 
             authenticationKey.setCountryCode(String.valueOf(phoneNumber.getCountryCode()));

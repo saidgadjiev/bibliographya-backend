@@ -2,7 +2,7 @@ package ru.saidgadjiev.bibliographya.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public interface HasVerificationKey {
+public interface HasAuthKey {
 
     @JsonIgnore
     AuthenticationKey getAuthenticationKey();

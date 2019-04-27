@@ -14,6 +14,8 @@ public interface VerificationStorage {
 
     String SIGN_UP_REQUEST = "signUpRequest";
 
+    String TIMER = "timer";
+
     String CODE = "code";
 
     String VERIFICATION_KEY = "verificationKey";
@@ -21,6 +23,8 @@ public interface VerificationStorage {
     void removeAttr(HttpServletRequest request, String attr);
 
     Object getAttr(HttpServletRequest request, String attr);
+
+    Object getAttr(HttpServletRequest request, String attr, Object defaultValue);
 
     void setAttr(HttpServletRequest request, String attr, Object data);
     

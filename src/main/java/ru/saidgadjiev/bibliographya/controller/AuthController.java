@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
+import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
+import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 import javax.mail.MessagingException;
@@ -92,13 +94,9 @@ public class AuthController {
     public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
                                            Locale locale,
                                            AuthenticationKey authenticationKey) throws MessagingException {
-        SendVerificationResult status = authService.confirmSignUpStart(request, locale, authenticationKey);
+        SendVerificationResult sendVerificationResult = authService.confirmSignUpStart(request, locale, authenticationKey);
 
-        ObjectNode objectNode = objectMapper.createObjectNode();
-
-        objectNode.put("tjwt", status.getTjwt());
-
-        return ResponseEntity.status(status.getStatus()).body(objectNode);
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult.getTimer());
     }
 
     @PostMapping("/signUp/cancel")

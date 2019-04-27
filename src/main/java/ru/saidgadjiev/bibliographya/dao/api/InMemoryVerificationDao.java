@@ -8,7 +8,6 @@ import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Repository
 public class InMemoryVerificationDao implements VerificationDao {
@@ -21,7 +20,6 @@ public class InMemoryVerificationDao implements VerificationDao {
     public void create(Verification verification) {
         synchronized (mutex) {
             verifications.add(verification);
-            TimeUnit.MINUTES.toSeconds(10);
         }
     }
 

@@ -1,6 +1,6 @@
 package ru.saidgadjiev.bibliographya.model;
 
-import ru.saidgadjiev.bibliographya.domain.HasVerificationKey;
+import ru.saidgadjiev.bibliographya.domain.HasAuthKey;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 
 import javax.validation.constraints.NotNull;
@@ -9,7 +9,7 @@ import javax.validation.constraints.Size;
 /**
  * Created by said on 28.10.2018.
  */
-public class SignInRequest implements HasVerificationKey {
+public class SignInRequest implements HasAuthKey {
 
     private AuthenticationKey authenticationKey;
 

@@ -1,12 +1,12 @@
 package ru.saidgadjiev.bibliographya.model;
 
-import ru.saidgadjiev.bibliographya.domain.HasVerificationKey;
+import ru.saidgadjiev.bibliographya.domain.HasAuthKey;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class RestorePassword implements HasVerificationKey {
+public class RestorePassword implements HasAuthKey {
 
     private AuthenticationKey authenticationKey;
 

@@ -1,8 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
 import ru.saidgadjiev.bibliographya.dao.api.VerificationDao;
-import ru.saidgadjiev.bibliographya.domain.Verification;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.Verification;
 import ru.saidgadjiev.bibliographya.domain.VerificationResult;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.service.api.VerificationService;
@@ -24,13 +24,22 @@ public abstract class AbstractVerificationService implements VerificationService
 
     @Override
     public VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code) {
-        SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE);
+        SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
         if (Objects.equals(sessionState, SessionState.NONE)) {
             return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
         }
 
-        Verification verification = verificationDao.get(authenticationKey.getEmail(), String.valueOf(code));
+        Verification verification = null;
+
+        switch (authenticationKey.getType()) {
+            case PHONE:
+                verification = verificationDao.get(authenticationKey.formattedNumber(), String.valueOf(code));
+                break;
+            case EMAIL:
+                verification = verificationDao.get(authenticationKey.getEmail(), String.valueOf(code));
+                break;
+        }
 
         if (verification == null) {
             return new VerificationResult().setStatus(VerificationResult.Status.INVALID);

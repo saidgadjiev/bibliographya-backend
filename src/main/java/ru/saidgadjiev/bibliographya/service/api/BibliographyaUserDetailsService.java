@@ -28,7 +28,7 @@ public interface BibliographyaUserDetailsService {
 
     HttpStatus savePassword(SavePassword savePassword);
 
-    HttpStatus restorePasswordStart(HttpServletRequest request,
+    SendVerificationResult restorePasswordStart(HttpServletRequest request,
                                     Locale locale,
                                     AuthenticationKey authenticationKey) throws MessagingException;
 
@@ -36,11 +36,11 @@ public interface BibliographyaUserDetailsService {
 
     HttpStatus saveEmailFinish(HttpServletRequest request, AuthenticationKeyConfirmation authenticationKeyConfirmation);
 
-    HttpStatus saveEmailStart(HttpServletRequest request,
+    SendVerificationResult saveEmailStart(HttpServletRequest request,
                               Locale locale,
                               AuthenticationKey authenticationKey) throws MessagingException;
 
-    HttpStatus savePhoneStart(HttpServletRequest request,
+    SendVerificationResult savePhoneStart(HttpServletRequest request,
                               Locale locale,
                               AuthenticationKey authenticationKey) throws MessagingException;
 

@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,10 +57,6 @@ public class VerificationController {
     ) throws MessagingException {
         SendVerificationResult sendVerificationResult = verificationService.sendVerification(request, locale, authenticationKey);
 
-        ObjectNode objectNode = objectMapper.createObjectNode();
-
-        objectNode.put("tjwt", sendVerificationResult.getTjwt());
-
-        return ResponseEntity.status(sendVerificationResult.getStatus()).body(objectNode);
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult.getTimer());
     }
 }

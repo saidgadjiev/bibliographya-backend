@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
+import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
@@ -144,7 +145,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public boolean isExist(AuthenticationKey authenticationKey) {
         switch (authenticationKey.getType()) {
             case PHONE:
-                break;
+                return userDao.isExistPhone(authenticationKey.getCountryCode() + authenticationKey.getPhone());
             case EMAIL:
                 return userDao.isExistEmail(authenticationKey.getEmail());
         }
@@ -203,7 +204,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus restorePasswordStart(HttpServletRequest request,
+    public SendVerificationResult restorePasswordStart(HttpServletRequest request,
                                            Locale locale,
                                            AuthenticationKey authenticationKey) throws MessagingException {
         Collection<FilterCriteria> userCriteria = new ArrayList<>();
@@ -252,14 +253,14 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         User actual = userDao.getUniqueUser(userCriteria);
 
         if (actual == null) {
-            return HttpStatus.NOT_FOUND;
+            return new SendVerificationResult(HttpStatus.NOT_FOUND, null);
         }
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.RESTORE_PASSWORD);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, actual.getBiography().getFirstName());
 
-        verificationService.sendVerification(request, locale, authenticationKey);
+        AuthenticationKey phoneKey = AuthKeyArgumentResolver.resolve(actual.getPhone());
 
-        return HttpStatus.OK;
+        return verificationService.sendVerification(request, locale, phoneKey);
     }
 
     @Override
@@ -378,27 +379,23 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+    public SendVerificationResult saveEmailStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_EMAIL);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
-        verificationService.sendVerification(request, locale, authenticationKey);
-
-        return HttpStatus.OK;
+        return verificationService.sendVerification(request, locale, authenticationKey);
     }
 
     @Override
-    public HttpStatus savePhoneStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+    public SendVerificationResult savePhoneStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_PHONE);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
-        verificationService.sendVerification(request, locale, authenticationKey);
-
-        return HttpStatus.OK;
+        return verificationService.sendVerification(request, locale, authenticationKey);
     }
 
     @Override

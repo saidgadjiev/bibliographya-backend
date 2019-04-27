@@ -11,6 +11,7 @@ import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
@@ -102,6 +103,7 @@ public class AuthService {
                 break;
         }
 
+        verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.STATE, SessionState.SIGN_UP_CONFIRM);
         verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
 
         return HttpStatus.OK;
@@ -136,7 +138,7 @@ public class AuthService {
 
                 user.setIsNew(true);
 
-                verificationStorage.removeAttr(authContext.getRequest(), VerificationStorage.STATE);
+                verificationStorage.expire(authContext.getRequest());
 
                 securityService.autoLogin(user);
 

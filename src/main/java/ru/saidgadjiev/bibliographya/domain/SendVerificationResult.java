@@ -9,11 +9,11 @@ public class SendVerificationResult {
 
     private HttpStatus status;
 
-    private String tjwt;
+    private Timer timer;
 
-    public SendVerificationResult(HttpStatus status, String tjwt) {
+    public SendVerificationResult(HttpStatus status, Timer timer) {
         this.status = status;
-        this.tjwt = tjwt;
+        this.timer = timer;
     }
 
     public HttpStatus getStatus() {
@@ -24,11 +24,11 @@ public class SendVerificationResult {
         this.status = status;
     }
 
-    public String getTjwt() {
-        return tjwt;
+    public Timer getTimer() {
+        return timer;
     }
 
-    public void setTjwt(String tjwt) {
-        this.tjwt = tjwt;
+    public void setTimer(Timer timer) {
+        this.timer = timer;
     }
 }

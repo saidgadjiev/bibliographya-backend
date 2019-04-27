@@ -45,6 +45,10 @@ public class AuthenticationKey {
         this.type = type;
     }
 
+    public String formattedNumber() {
+        return this.countryCode + this.phone;
+    }
+
     public enum Type {
 
         PHONE,

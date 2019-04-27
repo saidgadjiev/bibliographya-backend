@@ -2,7 +2,7 @@ package ru.saidgadjiev.bibliographya.domain;
 
 import javax.validation.constraints.NotNull;
 
-public class AuthenticationKeyConfirmation implements HasVerificationKey {
+public class AuthenticationKeyConfirmation implements HasAuthKey {
 
     private AuthenticationKey authenticationKey;
 

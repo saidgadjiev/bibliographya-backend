@@ -107,6 +107,17 @@ public class UserDao {
         );
     }
 
+    public boolean isExistPhone(String phone) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM \"user\" WHERE phone = ? AND phone_verified = ?",
+                preparedStatement -> {
+                    preparedStatement.setString(1, phone);
+                    preparedStatement.setBoolean(2, true);
+                },
+                rs -> rs.next() && rs.getLong("cnt") > 0
+        );
+    }
+
     public UsersStats getStats() {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM \"user\"",
