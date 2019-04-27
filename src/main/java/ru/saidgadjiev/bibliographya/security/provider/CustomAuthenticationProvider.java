@@ -49,7 +49,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             }
         }
 
-        if (users.isEmpty()) {
+        if (found.isEmpty()) {
             throw new BadCredentialsException(messages.getMessage(
                     "AbstractUserDetailsAuthenticationProvider.badCredentials",
                     "Bad credentials"));
@@ -57,8 +57,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         User toAuthenticate;
 
-        if (users.size() == 1) {
-            toAuthenticate = users.get(0);
+        if (found.size() == 1) {
+            toAuthenticate = found.get(0);
         } else {
             toAuthenticate = found.stream().filter(user -> {
                 switch (authenticationKey.getType()) {

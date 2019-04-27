@@ -11,6 +11,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.exception.handler.PhoneOrEmailIsInvalidException;
 
 /**
  * Created by said on 25/04/2019.
@@ -65,7 +66,7 @@ public class AuthKeyArgumentResolver implements HandlerMethodArgumentResolver {
 
             return authenticationKey;
         } catch (NumberParseException e) {
-            throw new IllegalArgumentException("Phone is invalid!");
+            throw new PhoneOrEmailIsInvalidException();
         }
     }
 }

@@ -124,7 +124,7 @@ public class AuthService {
             if (result.isValid()) {
                 User saveUser = new User();
 
-                saveUser.setPhone(signUpConfirmation.getAuthenticationKey().getCountryCode() + signUpConfirmation.getAuthenticationKey().getPhone());
+                saveUser.setPhone(signUpConfirmation.getAuthenticationKey().formattedNumber());
                 saveUser.setPassword(signUpConfirmation.getPassword());
 
                 Biography biography = new Biography();

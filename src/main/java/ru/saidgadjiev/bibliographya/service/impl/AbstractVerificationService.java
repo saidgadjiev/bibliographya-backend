@@ -45,18 +45,7 @@ public abstract class AbstractVerificationService implements VerificationService
             return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
         }
 
-        String currentEmail = verification.getVerificationKey();
-
-        if (!Objects.equals(currentEmail, authenticationKey.getEmail())) {
-            return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
-        }
-
-        int currentCode = (int) verificationStorage.getAttr(request, VerificationStorage.CODE);
-
-        boolean equals = Objects.equals(currentCode, code);
-
-        return equals ? new VerificationResult().setStatus(VerificationResult.Status.VALID)
-                : new VerificationResult().setStatus(VerificationResult.Status.INVALID);
+        return new VerificationResult().setStatus(VerificationResult.Status.VALID);
     }
 
 }
