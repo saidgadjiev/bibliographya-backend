@@ -255,6 +255,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         if (actual == null) {
             return new SendVerificationResult(HttpStatus.NOT_FOUND, null);
         }
+        verificationStorage.expire(request);
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.RESTORE_PASSWORD);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, actual.getBiography().getFirstName());
 
@@ -308,8 +309,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 return HttpStatus.NOT_FOUND;
             }
 
-            verificationStorage.removeAttr(request, VerificationStorage.STATE);
-            verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
+            verificationStorage.expire(request);
 
             return HttpStatus.OK;
         }
@@ -364,8 +364,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             generalDao.update(User.TABLE, values, criteria, null);
 
-            verificationStorage.removeAttr(request, VerificationStorage.STATE);
-            verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
+            verificationStorage.expire(request);
 
             actual.setEmail(authenticationKeyConfirmation.getAuthenticationKey().getEmail());
             actual.setEmailVerified(true);
@@ -382,6 +381,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public SendVerificationResult saveEmailStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
+        verificationStorage.expire(request);
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_EMAIL);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
@@ -392,6 +392,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public SendVerificationResult savePhoneStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
+        verificationStorage.expire(request);
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_PHONE);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
@@ -445,8 +446,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             generalDao.update(User.TABLE, values, criteria, null);
 
-            verificationStorage.removeAttr(request, VerificationStorage.STATE);
-            verificationStorage.removeAttr(request, VerificationStorage.FIRST_NAME);
+            verificationStorage.expire(request);
 
             actual.setPhone(authenticationKeyConfirmation.getAuthenticationKey().getPhone());
             actual.setPhoneVerified(true);

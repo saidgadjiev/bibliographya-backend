@@ -103,6 +103,7 @@ public class AuthService {
                 break;
         }
 
+        verificationStorage.expire(authContext.getRequest());
         verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.STATE, SessionState.SIGN_UP_CONFIRM);
         verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
 
@@ -174,7 +175,7 @@ public class AuthService {
     }
 
     public void cancelSignUp(HttpServletRequest request) {
-        verificationStorage.removeAttr(request, VerificationStorage.STATE);
+        verificationStorage.expire(request);
     }
 
     public HttpStatus confirmation(HttpServletRequest request) {
