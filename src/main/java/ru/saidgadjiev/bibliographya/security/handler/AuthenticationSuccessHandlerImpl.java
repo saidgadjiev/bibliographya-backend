@@ -11,7 +11,6 @@ import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
-import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 import ru.saidgadjiev.bibliographya.utils.ResponseUtils;
 
 import javax.servlet.ServletException;
@@ -55,11 +54,8 @@ public class AuthenticationSuccessHandlerImpl extends SimpleUrlAuthenticationSuc
 
         String token = tokenService.createToken(user);
 
-        CookieUtils.addCookie(response, uiProperties.getHost(), jwtProperties.tokenName(), token);
-        response.addHeader(
-                jwtProperties.tokenName(),
-                token
-        );
+        //CookieUtils.addCookie(response, uiProperties.getHost(), jwtProperties.tokenName(), token);
+        response.addHeader(jwtProperties.tokenName(), token);
 
         String body = objectMapper.writeValueAsString(user);
 

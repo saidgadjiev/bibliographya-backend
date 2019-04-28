@@ -21,7 +21,6 @@ import ru.saidgadjiev.bibliographya.service.api.VerificationService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
-import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +49,8 @@ public class AuthService {
 
     private JwtProperties jwtProperties;
 
+    private ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService;
+
     @Autowired
     public AuthService(SocialServiceFactory socialServiceFactory,
                        BibliographyaUserDetailsService userAccountDetailsService,
@@ -58,7 +59,8 @@ public class AuthService {
                        @Qualifier("wrapper") VerificationService verificationService,
                        UIProperties uiProperties,
                        @Qualifier("inMemory") VerificationStorage verificationStorage,
-                       JwtProperties jwtProperties) {
+                       JwtProperties jwtProperties,
+                       ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
@@ -67,6 +69,7 @@ public class AuthService {
         this.uiProperties = uiProperties;
         this.verificationStorage = verificationStorage;
         this.jwtProperties = jwtProperties;
+        this.bruteForceService = bruteForceService;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri, ResponseType responseType) {
@@ -119,7 +122,8 @@ public class AuthService {
                     authContext.getRequest(),
                     signUpConfirmation.getAuthenticationKey(),
                     signUpConfirmation.getCode(),
-                    false);
+                    true
+            );
 
             if (result.isValid()) {
                 User saveUser = new User();
@@ -145,17 +149,9 @@ public class AuthService {
 
                 String token = tokenService.createToken(user);
 
-                CookieUtils.addCookie(
-                        authContext.getResponse(),
-                        uiProperties.getHost(),
-                        jwtProperties.tokenName(),
-                        token
-                );
+                //CookieUtils.addCookie(authContext.getResponse(), uiProperties.getHost(), jwtProperties.tokenName(), token);
 
-                authContext.getResponse().addHeader(
-                        jwtProperties.tokenName(),
-                        token
-                );
+                authContext.getResponse().addHeader(jwtProperties.tokenName(), token);
 
                 return new SignUpResult().setStatus(HttpStatus.OK).setUser(user);
             }
@@ -170,6 +166,8 @@ public class AuthService {
         if (userAccountDetailsService.isExist(authenticationKey)) {
             return new SendVerificationResult(HttpStatus.CONFLICT, null);
         }
+
+        bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SIGN_UP);
 
         return verificationService.sendVerification(request, locale, authenticationKey);
     }

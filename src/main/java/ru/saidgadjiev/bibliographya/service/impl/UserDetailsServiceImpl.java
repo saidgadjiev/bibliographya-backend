@@ -277,7 +277,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 request,
                 restorePassword.getAuthenticationKey(),
                 restorePassword.getCode(),
-                false);
+                true
+        );
 
         if (verificationResult.isValid()) {
             List<UpdateValue> values = new ArrayList<>();
@@ -332,7 +333,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 request,
                 authenticationKeyConfirmation.getAuthenticationKey(),
                 authenticationKeyConfirmation.getCode(),
-                false);
+                true
+        );
 
         if (emailVerificationResult.isValid()) {
             //1. Отвязываем почту у всех людей
@@ -414,7 +416,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 request,
                 authenticationKeyConfirmation.getAuthenticationKey(),
                 authenticationKeyConfirmation.getCode(),
-                false);
+                true
+        );
 
         if (verificationResult.isValid()) {
             //1. Отвязываем почту у всех людей

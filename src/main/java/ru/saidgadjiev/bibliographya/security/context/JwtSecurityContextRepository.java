@@ -14,9 +14,7 @@ import org.springframework.web.cors.CorsUtils;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.security.provider.JwtAuthenticationToken;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
-import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -50,18 +48,20 @@ public class JwtSecurityContextRepository implements SecurityContextRepository {
         }
 
         if (!CorsUtils.isPreFlightRequest(requestResponseHolder.getRequest())) {
-            Cookie tokenCookie = CookieUtils.getCookie(requestResponseHolder.getRequest(), jwtProperties.tokenName());
+            /*Cookie tokenCookie = CookieUtils.getCookie(requestResponseHolder.getRequest(), jwtProperties.tokenName());
 
             //Пробуем по cookie
             if (tokenCookie != null) {
                 auth(tokenCookie.getValue(), context);
             } else {
-                //Пробуем по header-у
-                String token = requestResponseHolder.getRequest().getHeader(jwtProperties.tokenName());
 
-                if (StringUtils.isNotBlank(token) && !"null".equals(token)) {
-                    auth(token, context);
-                }
+            }*/
+
+            //Пробуем по header-у
+            String token = requestResponseHolder.getRequest().getHeader(jwtProperties.tokenName());
+
+            if (StringUtils.isNotBlank(token) && !"null".equals(token)) {
+                auth(token, context);
             }
         }
 

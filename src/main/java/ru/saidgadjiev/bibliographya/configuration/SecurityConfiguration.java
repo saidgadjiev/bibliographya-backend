@@ -116,7 +116,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .logoutSuccessHandler(new LogoutSuccessHandlerImpl(eventPublisher))
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")
-                    .addLogoutHandler(new JwtCookieClearingLogoutHandler(uiProperties, jwtProperties))
+                    //.addLogoutHandler(new JwtCookieClearingLogoutHandler(uiProperties, jwtProperties))
                     .permitAll();
     }
 

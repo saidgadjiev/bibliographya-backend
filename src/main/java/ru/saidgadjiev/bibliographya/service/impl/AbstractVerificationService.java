@@ -45,7 +45,13 @@ public abstract class AbstractVerificationService implements VerificationService
             return new VerificationResult().setStatus(VerificationResult.Status.INVALID);
         }
 
-        return new VerificationResult().setStatus(VerificationResult.Status.VALID);
+        VerificationResult verificationResult = new VerificationResult().setStatus(VerificationResult.Status.VALID);
+
+        if (confirm && verificationResult.isValid()) {
+            verificationDao.remove(verification);
+        }
+
+        return verificationResult;
     }
 
 }

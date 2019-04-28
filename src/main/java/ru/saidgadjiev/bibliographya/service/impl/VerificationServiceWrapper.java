@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 import ru.saidgadjiev.bibliographya.domain.VerificationResult;
-import ru.saidgadjiev.bibliographya.service.api.VerificationService;
+import ru.saidgadjiev.bibliographya.service.api.*;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,12 +24,12 @@ public class VerificationServiceWrapper implements VerificationService {
 
     private VerificationService phoneVerificationService;
 
-    private BruteForceService bruteForceService;
+    private ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService;
 
     @Autowired
     public VerificationServiceWrapper(@Qualifier("email") VerificationService emailVerificationService,
                                       @Qualifier("phone") VerificationService phoneVerificationService,
-                                      BruteForceService bruteForceService) {
+                                      ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService) {
         this.emailVerificationService = emailVerificationService;
         this.phoneVerificationService = phoneVerificationService;
         this.bruteForceService = bruteForceService;
@@ -39,11 +39,11 @@ public class VerificationServiceWrapper implements VerificationService {
     public SendVerificationResult sendVerification(HttpServletRequest request,
                                                    Locale locale,
                                                    AuthenticationKey authenticationKey) throws MessagingException {
-        if (bruteForceService.isBlocked(request, BruteForceService.Type.SEND_VERIFICATION_CODE)) {
+        if (bruteForceService.isBlocked(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE)) {
             return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null);
         }
 
-        bruteForceService.count(request, BruteForceService.Type.SEND_VERIFICATION_CODE);
+        bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE);
 
         switch (authenticationKey.getType()) {
             case PHONE:
