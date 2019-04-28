@@ -23,7 +23,7 @@ public abstract class AbstractVerificationService implements VerificationService
     }
 
     @Override
-    public VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code) {
+    public VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code, boolean confirm) {
         SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
         if (Objects.equals(sessionState, SessionState.NONE)) {

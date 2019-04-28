@@ -149,7 +149,7 @@ class AuthServiceTest {
         signUpRequest.setMiddleName(TestModelsUtils.TEST_MIDDLE_NAME);
 
         Mockito.when(sessionManager.getAttr(request, VerificationStorage.SIGN_UP_REQUEST)).thenReturn(signUpRequest);
-        Mockito.when(emailVerificationService.verify(any(), eq(TestModelsUtils.TEST_AUTHENTICATION_KEY), eq(1234)))
+        Mockito.when(emailVerificationService.verify(any(), eq(TestModelsUtils.TEST_AUTHENTICATION_KEY), eq(1234), false))
                 .thenReturn(new VerificationResult().setStatus(VerificationResult.Status.VALID));
 
         List<User> db = new ArrayList<>();

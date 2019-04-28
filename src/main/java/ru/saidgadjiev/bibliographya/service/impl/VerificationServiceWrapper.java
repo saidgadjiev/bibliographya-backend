@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
@@ -23,17 +24,27 @@ public class VerificationServiceWrapper implements VerificationService {
 
     private VerificationService phoneVerificationService;
 
+    private BruteForceService bruteForceService;
+
     @Autowired
     public VerificationServiceWrapper(@Qualifier("email") VerificationService emailVerificationService,
-                                      @Qualifier("phone") VerificationService phoneVerificationService) {
+                                      @Qualifier("phone") VerificationService phoneVerificationService,
+                                      BruteForceService bruteForceService) {
         this.emailVerificationService = emailVerificationService;
         this.phoneVerificationService = phoneVerificationService;
+        this.bruteForceService = bruteForceService;
     }
 
     @Override
     public SendVerificationResult sendVerification(HttpServletRequest request,
                                                    Locale locale,
                                                    AuthenticationKey authenticationKey) throws MessagingException {
+        if (bruteForceService.isBlocked(request, BruteForceService.Type.SEND_VERIFICATION_CODE)) {
+            return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null);
+        }
+
+        bruteForceService.count(request, BruteForceService.Type.SEND_VERIFICATION_CODE);
+
         switch (authenticationKey.getType()) {
             case PHONE:
                 return phoneVerificationService.sendVerification(request, locale, authenticationKey);
@@ -45,12 +56,12 @@ public class VerificationServiceWrapper implements VerificationService {
     }
 
     @Override
-    public VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code) {
+    public VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code, boolean confirm) {
         switch (authenticationKey.getType()) {
             case PHONE:
-                return phoneVerificationService.verify(request, authenticationKey, code);
+                return phoneVerificationService.verify(request, authenticationKey, code, confirm);
             case EMAIL:
-                return emailVerificationService.verify(request, authenticationKey, code);
+                return emailVerificationService.verify(request, authenticationKey, code, confirm);
         }
 
         return null;

@@ -118,8 +118,8 @@ public class AuthService {
             VerificationResult result = verificationService.verify(
                     authContext.getRequest(),
                     signUpConfirmation.getAuthenticationKey(),
-                    signUpConfirmation.getCode()
-            );
+                    signUpConfirmation.getCode(),
+                    false);
 
             if (result.isValid()) {
                 User saveUser = new User();

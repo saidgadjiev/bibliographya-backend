@@ -16,5 +16,5 @@ public interface VerificationService {
     SendVerificationResult sendVerification(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException;
 
 
-    VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code);
+    VerificationResult verify(HttpServletRequest request, AuthenticationKey authenticationKey, int code, boolean confirm);
 }

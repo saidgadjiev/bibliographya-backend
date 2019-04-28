@@ -37,7 +37,7 @@ public class VerificationController {
     public ResponseEntity<?> verify(HttpServletRequest request,
                                     AuthenticationKey authenticationKey,
                                     @RequestParam("code") Integer code) {
-        VerificationResult verificationResult = verificationService.verify(request, authenticationKey, code);
+        VerificationResult verificationResult = verificationService.verify(request, authenticationKey, code, false);
         
         if (verificationResult.isExpired()) {
             return ResponseEntity.status(498).build();
