@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,20 +84,26 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public List<User> loadUserByUsername(AuthenticationKey authenticationKey) throws UsernameNotFoundException {
+        List<User> users = null;
+
         switch (authenticationKey.getType()) {
-            case PHONE:
+            case PHONE: {
+                users = retrieveByPhone(authenticationKey.formattedNumber());
                 break;
-            case EMAIL:
-                List<User> users = retrieveByEmail(authenticationKey.getEmail());
-
-                if (users.isEmpty()) {
-                    throw new UsernameNotFoundException("User not found");
-                }
-
-                return users;
+            }
+            case EMAIL: {
+                users = retrieveByEmail(authenticationKey.getEmail());
+                break;
+            }
         }
 
-        return null;
+        if (users == null || users.isEmpty()) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        users.forEach(user -> user.setRoles(userRoleDao.getRoles(user.getId())));
+
+        return users;
     }
 
     @Override
@@ -145,7 +152,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public boolean isExist(AuthenticationKey authenticationKey) {
         switch (authenticationKey.getType()) {
             case PHONE:
-                return userDao.isExistPhone(authenticationKey.getCountryCode() + authenticationKey.getPhone());
+                return userDao.isExistPhone(authenticationKey.formattedNumber());
             case EMAIL:
                 return userDao.isExistEmail(authenticationKey.getEmail());
         }
@@ -562,6 +569,21 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .valueSetter(PreparedStatement::setString)
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(email)
+                        .build()
+        );
+
+        return userDao.getUsers(userCriteria);
+    }
+
+    private List<User> retrieveByPhone(String phone) {
+        Collection<FilterCriteria> userCriteria = new ArrayList<>();
+
+        userCriteria.add(
+                new FilterCriteria.Builder<String>()
+                        .propertyName(User.PHONE)
+                        .valueSetter(PreparedStatement::setString)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(phone)
                         .build()
         );
 

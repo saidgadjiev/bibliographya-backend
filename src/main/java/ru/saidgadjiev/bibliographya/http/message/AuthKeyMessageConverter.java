@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.http.message;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,6 +14,7 @@ import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 public class AuthKeyMessageConverter extends MappingJackson2HttpMessageConverter {
 
@@ -29,15 +31,16 @@ public class AuthKeyMessageConverter extends MappingJackson2HttpMessageConverter
 
     @Override
     public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
-        return HasAuthKey.class.isAssignableFrom(contextClass);
+        return HasAuthKey.class.isAssignableFrom((Class<?>) type);
     }
 
     @Override
     public HasAuthKey read(Type type, Class<?> contextClass, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
-        ObjectNode objectNode = objectMapper.readValue(inputMessage.getBody(), ObjectNode.class);
+        String body = IOUtils.toString(inputMessage.getBody(), Charset.defaultCharset());
+        ObjectNode objectNode = objectMapper.readValue(body, ObjectNode.class);
         JavaType javaType = getJavaType(type, contextClass);
 
-        HasAuthKey hasAuthKey = objectMapper.readValue(inputMessage.getBody(), javaType);
+        HasAuthKey hasAuthKey = objectMapper.readValue(body, javaType);
 
         if (objectNode.has("verificationKey")) {
             AuthenticationKey authenticationKey = AuthKeyArgumentResolver.resolve(objectNode.get("verificationKey").asText());

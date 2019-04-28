@@ -1,8 +1,5 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +14,6 @@ import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
-import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
 import javax.mail.MessagingException;
@@ -34,14 +30,7 @@ import java.util.Locale;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private ObjectMapper objectMapper;
-
     private AuthService authService;
-
-    @Autowired
-    public AuthController(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     @Autowired
     public void setAuthService(AuthService authService) {

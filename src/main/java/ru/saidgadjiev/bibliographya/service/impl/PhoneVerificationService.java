@@ -69,7 +69,7 @@ public class PhoneVerificationService extends AbstractVerificationService {
             verificationDao.create(verification);
 
             phoneService.sendSms(
-                    authenticationKey.getCountryCode() + authenticationKey.getPhone(),
+                    authenticationKey.formattedNumber(),
                     "Ваш код " + code
             );
 
