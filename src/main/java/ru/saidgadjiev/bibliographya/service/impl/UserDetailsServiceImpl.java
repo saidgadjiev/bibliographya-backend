@@ -434,14 +434,14 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 return HttpStatus.BAD_REQUEST;
             }
 
-            unverifyPhones(authKey.getPhone());
+            unverifyPhones(authKey.formattedNumber());
 
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
                     new UpdateValue<>(
                             User.PHONE,
-                            authKey.getPhone(),
+                            authKey.formattedNumber(),
                             PreparedStatement::setString
                     )
             );
@@ -470,7 +470,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             verificationStorage.expire(request);
 
-            actual.setPhone(authKey.getPhone());
+            actual.setPhone(authKey.formattedNumber());
             actual.setPhoneVerified(true);
 
             eventPublisher.publishEvent(new ChangePhoneEvent(actual));

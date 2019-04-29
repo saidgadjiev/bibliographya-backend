@@ -1,7 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -23,7 +23,7 @@ public class BruteForceServiceImpl implements ru.saidgadjiev.bibliographya.servi
 
     private VerificationStorage verificationStorage;
 
-    private Cache<String, AtomicLong> bruteCache = Caffeine.newBuilder()
+    private LoadingCache<String, AtomicLong> bruteCache = Caffeine.newBuilder()
             .expireAfterWrite(Duration.ofHours(1))
             .build(s -> new AtomicLong());
 
@@ -36,14 +36,14 @@ public class BruteForceServiceImpl implements ru.saidgadjiev.bibliographya.servi
     public void count(HttpServletRequest request, Type type) {
         switch (type) {
             case SIGN_UP: {
-                bruteCache.getIfPresent(getKey(request, Type.SIGN_UP)).incrementAndGet();
+                bruteCache.get(getKey(request, Type.SIGN_UP)).incrementAndGet();
                 bruteCache.invalidate(getKey(request, SessionState.SIGN_UP_CONFIRM, Type.SEND_VERIFICATION_CODE));
                 break;
             }
             case SEND_VERIFICATION_CODE: {
                 SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE);
 
-                bruteCache.getIfPresent(getKey(request, sessionState, Type.SEND_VERIFICATION_CODE)).incrementAndGet();
+                bruteCache.get(getKey(request, sessionState, Type.SEND_VERIFICATION_CODE)).incrementAndGet();
                 break;
             }
         }
@@ -53,11 +53,11 @@ public class BruteForceServiceImpl implements ru.saidgadjiev.bibliographya.servi
     public boolean isBlocked(HttpServletRequest request, Type type) {
         switch (type) {
             case SIGN_UP:
-                return bruteCache.getIfPresent(getKey(request, type)).get() >= type.getBlockedCount();
+                return bruteCache.get(getKey(request, type)).get() >= type.getBlockedCount();
             case SEND_VERIFICATION_CODE:
                 SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE);
 
-                return bruteCache.getIfPresent(getKey(request, sessionState, type)).get() >= type.getBlockedCount();
+                return bruteCache.get(getKey(request, sessionState, type)).get() >= type.getBlockedCount();
         }
 
         return false;

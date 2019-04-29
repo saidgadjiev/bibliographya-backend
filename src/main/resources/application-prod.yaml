@@ -1,2 +1,5 @@
+app:
+  verification:
+    time: 120
 ui:
   host: bibliographya.com

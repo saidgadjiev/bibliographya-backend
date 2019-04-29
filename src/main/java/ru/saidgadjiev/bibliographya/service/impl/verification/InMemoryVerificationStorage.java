@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.service.impl.verification;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
@@ -18,30 +19,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Qualifier("inMemory")
 public class InMemoryVerificationStorage implements VerificationStorage {
 
-    private Cache<String, Map<String, Object>> coldCache = Caffeine.newBuilder()
+    private LoadingCache<String, Map<String, Object>> coldCache = Caffeine.newBuilder()
             .expireAfterWrite(Duration.ofMinutes(30))
-            .build();
+            .build(key -> new ConcurrentHashMap<>());
 
     @Override
     public void removeAttr(HttpServletRequest request, String attr) {
-        Map<String, Object> cache = coldCache.getIfPresent(request.getRemoteAddr());
-
-        if (cache == null) {
-            return;
-        }
-
-        cache.remove(attr);
+        coldCache.get(request.getRemoteAddr()).remove(attr);
     }
 
     @Override
     public Object getAttr(HttpServletRequest request, String attr) {
-        Map<String, Object> values = coldCache.getIfPresent(request.getRemoteAddr());
-
-        if (values == null) {
-            return null;
-        }
-
-        return values.get(attr);
+        return coldCache.get(request.getRemoteAddr()).get(attr);
     }
 
     @Override
@@ -53,13 +42,7 @@ public class InMemoryVerificationStorage implements VerificationStorage {
 
     @Override
     public void setAttr(HttpServletRequest request, String attr, Object data) {
-        Map<String, Object> values = coldCache.getIfPresent(request.getRemoteAddr());
-
-        if (values == null) {
-            coldCache.put(request.getRemoteAddr(), new ConcurrentHashMap<>());
-        }
-
-        coldCache.getIfPresent(request.getRemoteAddr()).put(attr, data);
+        coldCache.get(request.getRemoteAddr()).put(attr, data);
     }
 
     @Override

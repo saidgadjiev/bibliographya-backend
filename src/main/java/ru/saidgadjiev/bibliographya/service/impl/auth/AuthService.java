@@ -15,10 +15,7 @@ import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
-import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
-import ru.saidgadjiev.bibliographya.service.api.SocialService;
-import ru.saidgadjiev.bibliographya.service.api.VerificationService;
-import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
+import ru.saidgadjiev.bibliographya.service.api.*;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
 
@@ -172,6 +169,9 @@ public class AuthService {
             return new SendVerificationResult(HttpStatus.CONFLICT, null, null);
         }
 
+        if (bruteForceService.isBlocked(request, BruteForceService.Type.SIGN_UP)) {
+            return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null, null);
+        }
         bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SIGN_UP);
 
         return verificationService.sendVerification(request, locale, authKey);

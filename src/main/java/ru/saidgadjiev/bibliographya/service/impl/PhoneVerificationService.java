@@ -114,10 +114,7 @@ public class PhoneVerificationService extends AbstractVerificationService {
 
             verificationDao.create(verification);
 
-            phoneService.sendSms(
-                    authKey.formattedNumber(),
-                    "Ваш код " + code
-            );
+            phoneService.sendSms(authKey.formattedNumber(), "Ваш код " + code);
 
             Timer timer = new Timer();
 

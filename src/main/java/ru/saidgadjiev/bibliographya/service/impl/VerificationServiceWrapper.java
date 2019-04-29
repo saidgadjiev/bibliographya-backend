@@ -63,6 +63,12 @@ public class VerificationServiceWrapper implements VerificationService {
 
     @Override
     public SendVerificationResult resendVerification(HttpServletRequest request, Locale locale) throws MessagingException {
+        if (bruteForceService.isBlocked(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE)) {
+            return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null, null);
+        }
+
+        bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE);
+
         AuthKey authKey = (AuthKey) verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null);
 
         if (authKey == null) {

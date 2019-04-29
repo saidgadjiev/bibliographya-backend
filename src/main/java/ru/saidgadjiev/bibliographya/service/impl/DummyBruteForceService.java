@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 @Service
 @Profile(BibliographyaConfiguration.PROFILE_DEV)
 public class DummyBruteForceService implements BruteForceService {
+
     @Override
     public void count(HttpServletRequest request, Type type) {
 
