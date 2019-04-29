@@ -8,17 +8,11 @@ public interface VerificationStorage {
 
     String FIRST_NAME = "firstName";
 
-    String LAST_NAME = "lastName";
-
-    String MIDDLE_NAME = "middleName";
-
     String SIGN_UP_REQUEST = "signUpRequest";
 
+    String AUTH_KEY = "authKey";
+
     String TIMER = "timer";
-
-    String CODE = "code";
-
-    String VERIFICATION_KEY = "verificationKey";
 
     void removeAttr(HttpServletRequest request, String attr);
 

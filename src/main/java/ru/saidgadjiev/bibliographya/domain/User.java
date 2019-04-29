@@ -60,11 +60,13 @@ public class User implements UserDetails, CredentialsContainer {
         return roles;
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return email;
     }

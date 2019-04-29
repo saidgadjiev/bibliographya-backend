@@ -1,14 +1,9 @@
 package ru.saidgadjiev.bibliographya.model;
 
-import ru.saidgadjiev.bibliographya.domain.HasAuthKey;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class RestorePassword implements HasAuthKey {
-
-    private AuthenticationKey authenticationKey;
+public class RestorePassword{
 
     @NotNull
     @Size(min = 6)
@@ -31,15 +26,5 @@ public class RestorePassword implements HasAuthKey {
 
     public void setCode(Integer code) {
         this.code = code;
-    }
-
-    @Override
-    public AuthenticationKey getAuthenticationKey() {
-        return authenticationKey;
-    }
-
-    @Override
-    public void setAuthenticationKey(AuthenticationKey authenticationKey) {
-        this.authenticationKey = authenticationKey;
     }
 }

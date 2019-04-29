@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,16 +82,16 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public List<User> loadUserByUsername(AuthenticationKey authenticationKey) throws UsernameNotFoundException {
+    public List<User> loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException {
         List<User> users = null;
 
-        switch (authenticationKey.getType()) {
+        switch (authKey.getType()) {
             case PHONE: {
-                users = retrieveByPhone(authenticationKey.formattedNumber());
+                users = retrieveByPhone(authKey.formattedNumber());
                 break;
             }
             case EMAIL: {
-                users = retrieveByEmail(authenticationKey.getEmail());
+                users = retrieveByEmail(authKey.getEmail());
                 break;
             }
         }
@@ -149,12 +148,12 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public boolean isExist(AuthenticationKey authenticationKey) {
-        switch (authenticationKey.getType()) {
+    public boolean isExist(AuthKey authKey) {
+        switch (authKey.getType()) {
             case PHONE:
-                return userDao.isExistPhone(authenticationKey.formattedNumber());
+                return userDao.isExistPhone(authKey.formattedNumber());
             case EMAIL:
-                return userDao.isExistEmail(authenticationKey.getEmail());
+                return userDao.isExistEmail(authKey.getEmail());
         }
 
         return false;
@@ -213,27 +212,19 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Override
     public SendVerificationResult restorePasswordStart(HttpServletRequest request,
                                            Locale locale,
-                                           AuthenticationKey authenticationKey) throws MessagingException {
+                                           AuthKey authKey) throws MessagingException {
         Collection<FilterCriteria> userCriteria = new ArrayList<>();
 
-        switch (authenticationKey.getType()) {
+        switch (authKey.getType()) {
             case PHONE:
                 userCriteria.add(
                         new FilterCriteria.Builder<String>()
                                 .propertyName(User.PHONE)
                                 .valueSetter(PreparedStatement::setString)
                                 .filterOperation(FilterOperation.EQ)
-                                .filterValue(authenticationKey.getEmail())
+                                .filterValue(authKey.formattedNumber())
                                 .build()
 
-                );
-                userCriteria.add(
-                        new FilterCriteria.Builder<Boolean>()
-                                .propertyName(User.PHONE_VERIFIED)
-                                .valueSetter(PreparedStatement::setBoolean)
-                                .filterOperation(FilterOperation.EQ)
-                                .filterValue(true)
-                                .build()
                 );
                 break;
             case EMAIL:
@@ -242,7 +233,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                 .propertyName(User.EMAIL)
                                 .valueSetter(PreparedStatement::setString)
                                 .filterOperation(FilterOperation.EQ)
-                                .filterValue(authenticationKey.getEmail())
+                                .filterValue(authKey.getEmail())
                                 .build()
 
                 );
@@ -256,17 +247,25 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 );
                 break;
         }
+        userCriteria.add(
+                new FilterCriteria.Builder<Boolean>()
+                        .propertyName(User.PHONE_VERIFIED)
+                        .valueSetter(PreparedStatement::setBoolean)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(true)
+                        .build()
+        );
 
         User actual = userDao.getUniqueUser(userCriteria);
 
         if (actual == null) {
-            return new SendVerificationResult(HttpStatus.NOT_FOUND, null);
+            return new SendVerificationResult(HttpStatus.NOT_FOUND, null, null);
         }
         verificationStorage.expire(request);
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.RESTORE_PASSWORD);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, actual.getBiography().getFirstName());
 
-        AuthenticationKey phoneKey = AuthKeyArgumentResolver.resolve(actual.getPhone());
+        AuthKey phoneKey = AuthKeyArgumentResolver.resolve(actual.getPhone());
 
         return verificationService.sendVerification(request, locale, phoneKey);
     }
@@ -275,12 +274,17 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword) {
         VerificationResult verificationResult = verificationService.verify(
                 request,
-                restorePassword.getAuthenticationKey(),
                 restorePassword.getCode(),
                 true
         );
 
         if (verificationResult.isValid()) {
+            AuthKey authKey = (AuthKey) verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null);
+
+            if (authKey == null) {
+                return HttpStatus.BAD_REQUEST;
+            }
+
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
@@ -295,9 +299,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             criteria.add(
                     new FilterCriteria.Builder<String>()
                             .filterOperation(FilterOperation.EQ)
-                            .filterValue(restorePassword.getAuthenticationKey().getEmail())
+                            .filterValue(authKey.formattedNumber())
                             .needPreparedSet(true)
-                            .propertyName(User.EMAIL)
+                            .propertyName(User.PHONE)
                             .valueSetter(PreparedStatement::setString)
                             .build()
             );
@@ -306,7 +310,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .filterOperation(FilterOperation.EQ)
                             .filterValue(true)
                             .needPreparedSet(true)
-                            .propertyName(User.EMAIL_VERIFIED)
+                            .propertyName(User.PHONE_VERIFIED)
                             .valueSetter(PreparedStatement::setBoolean)
                             .build()
             );
@@ -331,14 +335,19 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         VerificationResult emailVerificationResult = verificationService.verify(
                 request,
-                authenticationKeyConfirmation.getAuthenticationKey(),
                 authenticationKeyConfirmation.getCode(),
                 true
         );
 
         if (emailVerificationResult.isValid()) {
+            AuthKey authKey = (AuthKey) verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null);
+
+            if (authKey == null) {
+                return HttpStatus.BAD_REQUEST;
+            }
+
             //1. Отвязываем почту у всех людей
-            unverifyEmails(authenticationKeyConfirmation.getAuthenticationKey().getEmail());
+            unverifyEmails(authKey.getEmail());
 
             //1. Обновление email с привязкой данного пользователя
             List<UpdateValue> values = new ArrayList<>();
@@ -346,7 +355,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             values.add(
                     new UpdateValue<>(
                             User.EMAIL,
-                            authenticationKeyConfirmation.getAuthenticationKey().getEmail(),
+                            authKey.getEmail(),
                             PreparedStatement::setString
                     )
             );
@@ -375,7 +384,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             verificationStorage.expire(request);
 
-            actual.setEmail(authenticationKeyConfirmation.getAuthenticationKey().getEmail());
+            actual.setEmail(authKey.getEmail());
             actual.setEmailVerified(true);
 
             eventPublisher.publishEvent(new ChangeEmailEvent(actual));
@@ -387,25 +396,25 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public SendVerificationResult saveEmailStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+    public SendVerificationResult saveEmailStart(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
         verificationStorage.expire(request);
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_EMAIL);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
-        return verificationService.sendVerification(request, locale, authenticationKey);
+        return verificationService.sendVerification(request, locale, authKey);
     }
 
     @Override
-    public SendVerificationResult savePhoneStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+    public SendVerificationResult savePhoneStart(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
         User user = (User) securityService.findLoggedInUser();
 
         verificationStorage.expire(request);
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.CHANGE_PHONE);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, user.getBiography().getFirstName());
 
-        return verificationService.sendVerification(request, locale, authenticationKey);
+        return verificationService.sendVerification(request, locale, authKey);
     }
 
     @Override
@@ -414,22 +423,25 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         VerificationResult verificationResult = verificationService.verify(
                 request,
-                authenticationKeyConfirmation.getAuthenticationKey(),
                 authenticationKeyConfirmation.getCode(),
                 true
         );
 
         if (verificationResult.isValid()) {
-            //1. Отвязываем почту у всех людей
-            unverifyPhones(authenticationKeyConfirmation.getAuthenticationKey().getPhone());
+            AuthKey authKey = (AuthKey) verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null);
 
-            //1. Обновление email с привязкой данного пользователя
+            if (authKey == null) {
+                return HttpStatus.BAD_REQUEST;
+            }
+
+            unverifyPhones(authKey.getPhone());
+
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
                     new UpdateValue<>(
                             User.PHONE,
-                            authenticationKeyConfirmation.getAuthenticationKey().getPhone(),
+                            authKey.getPhone(),
                             PreparedStatement::setString
                     )
             );
@@ -458,7 +470,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             verificationStorage.expire(request);
 
-            actual.setPhone(authenticationKeyConfirmation.getAuthenticationKey().getPhone());
+            actual.setPhone(authKey.getPhone());
             actual.setPhoneVerified(true);
 
             eventPublisher.publishEvent(new ChangePhoneEvent(actual));

@@ -13,7 +13,7 @@ import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.exception.handler.PhoneOrEmailIsInvalidException;
 import ru.saidgadjiev.bibliographya.model.SignInRequest;
 
@@ -48,9 +48,9 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
 
             if (objectNode.has("verificationKey")) {
                 try {
-                    AuthenticationKey authenticationKey = AuthKeyArgumentResolver.resolve(objectNode.get("verificationKey").asText());
+                    AuthKey authKey = AuthKeyArgumentResolver.resolve(objectNode.get("verificationKey").asText());
 
-                    signInRequest.setAuthenticationKey(authenticationKey);
+                    signInRequest.setAuthKey(authKey);
                 } catch (PhoneOrEmailIsInvalidException ex) {
                     throw new BadCredentialsException(messages.getMessage(
                             "AbstractUserDetailsAuthenticationProvider.badCredentials",
@@ -63,7 +63,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
             }
 
             UsernamePasswordAuthenticationToken token
-                    = new UsernamePasswordAuthenticationToken(signInRequest.getAuthenticationKey(), signInRequest.getPassword());
+                    = new UsernamePasswordAuthenticationToken(signInRequest.getAuthKey(), signInRequest.getPassword());
 
             return this.getAuthenticationManager().authenticate(token);
         } catch(IOException e) {

@@ -6,14 +6,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.api.VerificationDao;
-import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
-import ru.saidgadjiev.bibliographya.domain.User;
-import ru.saidgadjiev.bibliographya.domain.Verification;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.api.EmailService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
+import ru.saidgadjiev.bibliographya.utils.SecureUtils;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -42,11 +40,11 @@ public class EmailVerificationService extends AbstractVerificationService {
 
     @Autowired
     public EmailVerificationService(@Qualifier("inMemory") VerificationStorage verificationStorage,
-                                      VerificationDao verificationDao,
-                                      CodeGenerator codeGenerator,
-                                      EmailService emailService,
-                                      MessageSource messageSource,
-                                      SecurityService securityService) {
+                                    VerificationDao verificationDao,
+                                    CodeGenerator codeGenerator,
+                                    EmailService emailService,
+                                    MessageSource messageSource,
+                                    SecurityService securityService) {
         super(verificationStorage, verificationDao);
         this.coldVerificationStorage = verificationStorage;
         this.verificationDao = verificationDao;
@@ -57,7 +55,7 @@ public class EmailVerificationService extends AbstractVerificationService {
     }
 
     @Override
-    public SendVerificationResult sendVerification(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
+    public SendVerificationResult sendVerification(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
         SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
         if (!Objects.equals(sessionState, SessionState.NONE)) {
@@ -66,22 +64,52 @@ public class EmailVerificationService extends AbstractVerificationService {
 
             Verification verification = new Verification();
 
-            verification.setVerificationKey(authenticationKey.getEmail());
+            verification.setVerificationKey(authKey.getEmail());
             verification.setCode(String.valueOf(code));
             verification.setExipredAt(expiredAt);
 
             verificationDao.create(verification);
 
             emailService.sendEmail(
-                    authenticationKey.getEmail(),
+                    authKey.getEmail(),
                     getEmailSubject(request, locale),
-                    getEmailMessage(request, locale)
+                    getEmailMessage(request, locale, String.valueOf(code))
             );
 
-            return new SendVerificationResult(HttpStatus.OK, null);
+            coldVerificationStorage.setAttr(request, VerificationStorage.AUTH_KEY, authKey);
+
+            return new SendVerificationResult(HttpStatus.OK, null, SecureUtils.secureEmail(authKey.getEmail()));
         }
 
-        return new SendVerificationResult(HttpStatus.BAD_REQUEST, null);
+        return new SendVerificationResult(HttpStatus.BAD_REQUEST, null, null);
+    }
+
+    @Override
+    public SendVerificationResult resendVerification(HttpServletRequest request, Locale locale) throws MessagingException {
+        SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
+        AuthKey authKey = (AuthKey) verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null);
+
+        if (authKey == null || Objects.equals(sessionState, SessionState.NONE)) {
+            return new SendVerificationResult(HttpStatus.BAD_REQUEST, null, null);
+        }
+        int code = codeGenerator.generate();
+        long expiredAt = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(2);
+
+        Verification verification = new Verification();
+
+        verification.setVerificationKey(authKey.getEmail());
+        verification.setCode(String.valueOf(code));
+        verification.setExipredAt(expiredAt);
+
+        verificationDao.create(verification);
+
+        emailService.sendEmail(
+                authKey.getEmail(),
+                getEmailSubject(request, locale),
+                getEmailMessage(request, locale, String.valueOf(code))
+        );
+
+        return new SendVerificationResult(HttpStatus.OK, null, null);
     }
 
     private String getEmailSubject(HttpServletRequest request, Locale locale) {
@@ -92,11 +120,11 @@ public class EmailVerificationService extends AbstractVerificationService {
         }
         switch (sessionState) {
             case RESTORE_PASSWORD:
-                return messageSource.getMessage("confirm.restorePassword.subject", new Object[] {}, locale);
+                return messageSource.getMessage("confirm.restorePassword.subject", new Object[]{}, locale);
             case CHANGE_EMAIL:
-                return messageSource.getMessage("confirm.changeEmail.subject", new Object[] {}, locale);
+                return messageSource.getMessage("confirm.changeEmail.subject", new Object[]{}, locale);
             case SIGN_UP_CONFIRM:
-                return messageSource.getMessage("confirm.signUp.subject", new Object[] {}, locale);
+                return messageSource.getMessage("confirm.signUp.subject", new Object[]{}, locale);
             case NONE:
                 break;
         }
@@ -104,13 +132,12 @@ public class EmailVerificationService extends AbstractVerificationService {
         return null;
     }
 
-    private String getEmailMessage(HttpServletRequest request, Locale locale) {
+    private String getEmailMessage(HttpServletRequest request, Locale locale, String code) {
         SessionState sessionState = (SessionState) coldVerificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
 
         if (Objects.equals(sessionState, SessionState.NONE)) {
             return null;
         }
-        String code = String.valueOf(coldVerificationStorage.getAttr(request, VerificationStorage.CODE));
 
         switch (sessionState) {
             case RESTORE_PASSWORD: {

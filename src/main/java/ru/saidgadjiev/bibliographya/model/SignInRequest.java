@@ -1,7 +1,7 @@
 package ru.saidgadjiev.bibliographya.model;
 
 import ru.saidgadjiev.bibliographya.domain.HasAuthKey;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
  */
 public class SignInRequest implements HasAuthKey {
 
-    private AuthenticationKey authenticationKey;
+    private AuthKey authKey;
 
     @NotNull
     @Size(min = 1)
@@ -26,12 +26,12 @@ public class SignInRequest implements HasAuthKey {
     }
 
     @Override
-    public AuthenticationKey getAuthenticationKey() {
-        return authenticationKey;
+    public AuthKey getAuthKey() {
+        return authKey;
     }
 
     @Override
-    public void setAuthenticationKey(AuthenticationKey authenticationKey) {
-        this.authenticationKey = authenticationKey;
+    public void setAuthKey(AuthKey authKey) {
+        this.authKey = authKey;
     }
 }

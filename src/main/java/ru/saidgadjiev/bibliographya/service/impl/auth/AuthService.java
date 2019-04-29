@@ -120,15 +120,20 @@ public class AuthService {
         if (signUpRequest != null) {
             VerificationResult result = verificationService.verify(
                     authContext.getRequest(),
-                    signUpConfirmation.getAuthenticationKey(),
                     signUpConfirmation.getCode(),
                     true
             );
 
             if (result.isValid()) {
+                AuthKey authKey = (AuthKey) verificationStorage.getAttr(authContext.getRequest(), VerificationStorage.AUTH_KEY, null);
+
+                if (authKey == null) {
+                    return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
+                }
+
                 User saveUser = new User();
 
-                saveUser.setPhone(signUpConfirmation.getAuthenticationKey().formattedNumber());
+                saveUser.setPhone(authKey.formattedNumber());
                 saveUser.setPassword(signUpConfirmation.getPassword());
 
                 Biography biography = new Biography();
@@ -162,14 +167,14 @@ public class AuthService {
         return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
     }
 
-    public SendVerificationResult confirmSignUpStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
-        if (userAccountDetailsService.isExist(authenticationKey)) {
-            return new SendVerificationResult(HttpStatus.CONFLICT, null);
+    public SendVerificationResult confirmSignUpStart(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
+        if (userAccountDetailsService.isExist(authKey)) {
+            return new SendVerificationResult(HttpStatus.CONFLICT, null, null);
         }
 
         bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SIGN_UP);
 
-        return verificationService.sendVerification(request, locale, authenticationKey);
+        return verificationService.sendVerification(request, locale, authKey);
     }
 
     public void cancelSignUp(HttpServletRequest request) {

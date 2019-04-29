@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SignUpResult;
@@ -82,10 +82,10 @@ public class AuthController {
     @PostMapping("/signUp/confirm-start")
     public ResponseEntity<?> confirmSignUp(HttpServletRequest request,
                                            Locale locale,
-                                           AuthenticationKey authenticationKey) throws MessagingException {
-        SendVerificationResult sendVerificationResult = authService.confirmSignUpStart(request, locale, authenticationKey);
+                                           AuthKey authKey) throws MessagingException {
+        SendVerificationResult sendVerificationResult = authService.confirmSignUpStart(request, locale, authKey);
 
-        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult.getTimer());
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult);
     }
 
     @PostMapping("/signUp/cancel")

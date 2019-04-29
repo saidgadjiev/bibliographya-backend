@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.domain.AuthenticationKeyConfirmation;
 import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
 import ru.saidgadjiev.bibliographya.model.GeneralSettings;
@@ -64,9 +64,6 @@ public class SettingsController {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        if (!authenticationKeyConfirmation.getAuthenticationKey().getType().equals(AuthenticationKey.Type.EMAIL)) {
-            return ResponseEntity.badRequest().build();
-        }
 
         HttpStatus status = userDetailsService.saveEmailFinish(request, authenticationKeyConfirmation);
 
@@ -77,14 +74,14 @@ public class SettingsController {
     @PostMapping("/save-email/start")
     public ResponseEntity<?> changeEmail(HttpServletRequest request,
                                          Locale locale,
-                                         AuthenticationKey authenticationKey) throws MessagingException {
-        if (!authenticationKey.getType().equals(AuthenticationKey.Type.EMAIL)) {
+                                         AuthKey authKey) throws MessagingException {
+        if (!authKey.getType().equals(AuthKey.Type.EMAIL)) {
             return ResponseEntity.badRequest().build();
         }
 
-        SendVerificationResult sendVerificationResult = userDetailsService.saveEmailStart(request, locale, authenticationKey);
+        SendVerificationResult sendVerificationResult = userDetailsService.saveEmailStart(request, locale, authKey);
 
-        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult.getTimer());
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult);
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -102,10 +99,10 @@ public class SettingsController {
     @PostMapping("/restore-password/start")
     public ResponseEntity<?> restorePassword(HttpServletRequest request,
                                              Locale locale,
-                                             AuthenticationKey authenticationKey) throws MessagingException {
-        SendVerificationResult sendVerificationResult = userDetailsService.restorePasswordStart(request, locale, authenticationKey);
+                                             AuthKey authKey) throws MessagingException {
+        SendVerificationResult sendVerificationResult = userDetailsService.restorePasswordStart(request, locale, authKey);
 
-        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult.getTimer());
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult);
     }
 
     @PostMapping("/restore-password/finish")
@@ -122,10 +119,10 @@ public class SettingsController {
     }
 
     @PostMapping("/save-phone/start")
-    public ResponseEntity<?> savePhoneStart(HttpServletRequest request, Locale locale, AuthenticationKey authenticationKey) throws MessagingException {
-        SendVerificationResult sendVerificationResult = userDetailsService.savePhoneStart(request, locale, authenticationKey);
+    public ResponseEntity<?> savePhoneStart(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
+        SendVerificationResult sendVerificationResult = userDetailsService.savePhoneStart(request, locale, authKey);
 
-        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult.getTimer());
+        return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult);
     }
 
     @PostMapping("/save-phone/finish")

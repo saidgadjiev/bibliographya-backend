@@ -10,7 +10,7 @@ import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.NullAuthoritiesMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
@@ -37,10 +37,10 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        AuthenticationKey authenticationKey = (AuthenticationKey) authentication.getPrincipal();
+        AuthKey authKey = (AuthKey) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
 
-        List<User> users = userDetailsService.loadUserByUsername(authenticationKey);
+        List<User> users = userDetailsService.loadUserByUsername(authKey);
         List<User> found = new ArrayList<>();
 
         for (User user: users) {
@@ -61,7 +61,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             toAuthenticate = found.get(0);
         } else {
             toAuthenticate = found.stream().filter(user -> {
-                switch (authenticationKey.getType()) {
+                switch (authKey.getType()) {
                     case PHONE:
                         return user.isPhoneVerified();
                     case EMAIL:

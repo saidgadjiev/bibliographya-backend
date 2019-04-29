@@ -10,7 +10,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.exception.handler.PhoneOrEmailIsInvalidException;
 
 /**
@@ -20,7 +20,7 @@ public class AuthKeyArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterType().equals(AuthenticationKey.class);
+        return parameter.getParameterType().equals(AuthKey.class);
     }
 
     @Override
@@ -37,18 +37,18 @@ public class AuthKeyArgumentResolver implements HandlerMethodArgumentResolver {
         return resolve(verificationKeyParameter);
     }
 
-    public static AuthenticationKey resolve(String verificationKeyParameter) {
-        AuthenticationKey authenticationKey = new AuthenticationKey();
+    public static AuthKey resolve(String verificationKeyParameter) {
+        AuthKey authKey = new AuthKey();
 
         EmailValidator emailValidator = EmailValidator.getInstance();
 
         boolean isValidEmail = emailValidator.isValid(verificationKeyParameter);
 
         if (isValidEmail) {
-            authenticationKey.setEmail(verificationKeyParameter);
-            authenticationKey.setType(AuthenticationKey.Type.EMAIL);
+            authKey.setEmail(verificationKeyParameter);
+            authKey.setType(AuthKey.Type.EMAIL);
 
-            return authenticationKey;
+            return authKey;
         }
 
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
@@ -60,11 +60,11 @@ public class AuthKeyArgumentResolver implements HandlerMethodArgumentResolver {
 
             Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(verificationKeyParameter, null);
 
-            authenticationKey.setCountryCode(String.valueOf(phoneNumber.getCountryCode()));
-            authenticationKey.setPhone(String.valueOf(phoneNumber.getNationalNumber()));
-            authenticationKey.setType(AuthenticationKey.Type.PHONE);
+            authKey.setCountryCode(String.valueOf(phoneNumber.getCountryCode()));
+            authKey.setPhone(String.valueOf(phoneNumber.getNationalNumber()));
+            authKey.setType(AuthKey.Type.PHONE);
 
-            return authenticationKey;
+            return authKey;
         } catch (NumberParseException e) {
             throw new PhoneOrEmailIsInvalidException();
         }

@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliographya.domain;
 /**
  * Created by said on 25/04/2019.
  */
-public class AuthenticationKey {
+public class AuthKey {
 
     private String email;
 
@@ -61,7 +61,7 @@ public class AuthenticationKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AuthenticationKey that = (AuthenticationKey) o;
+        AuthKey that = (AuthKey) o;
 
         if (email != null ? !email.equals(that.email) : that.email != null) return false;
         if (phone != null ? !phone.equals(that.phone) : that.phone != null) return false;

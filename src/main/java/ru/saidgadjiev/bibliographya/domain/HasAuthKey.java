@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public interface HasAuthKey {
 
     @JsonIgnore
-    AuthenticationKey getAuthenticationKey();
+    AuthKey getAuthKey();
 
     @JsonIgnore
-    void setAuthenticationKey(AuthenticationKey authenticationKey);
+    void setAuthKey(AuthKey authKey);
 
 }

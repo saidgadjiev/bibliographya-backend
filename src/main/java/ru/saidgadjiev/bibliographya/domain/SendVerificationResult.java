@@ -1,5 +1,6 @@
 package ru.saidgadjiev.bibliographya.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -7,13 +8,17 @@ import org.springframework.http.HttpStatus;
  */
 public class SendVerificationResult {
 
+    @JsonIgnore
     private HttpStatus status;
+
+    private String authKey;
 
     private Timer timer;
 
-    public SendVerificationResult(HttpStatus status, Timer timer) {
+    public SendVerificationResult(HttpStatus status, Timer timer, String authKey) {
         this.status = status;
         this.timer = timer;
+        this.authKey = authKey;
     }
 
     public HttpStatus getStatus() {
@@ -30,5 +35,13 @@ public class SendVerificationResult {
 
     public void setTimer(Timer timer) {
         this.timer = timer;
+    }
+
+    public String getAuthKey() {
+        return authKey;
+    }
+
+    public void setAuthKey(String authKey) {
+        this.authKey = authKey;
     }
 }

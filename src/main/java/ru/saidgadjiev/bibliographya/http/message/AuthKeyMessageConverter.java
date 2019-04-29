@@ -10,7 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;
 import ru.saidgadjiev.bibliographya.domain.HasAuthKey;
-import ru.saidgadjiev.bibliographya.domain.AuthenticationKey;
+import ru.saidgadjiev.bibliographya.domain.AuthKey;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -43,9 +43,9 @@ public class AuthKeyMessageConverter extends MappingJackson2HttpMessageConverter
         HasAuthKey hasAuthKey = objectMapper.readValue(body, javaType);
 
         if (objectNode.has("verificationKey")) {
-            AuthenticationKey authenticationKey = AuthKeyArgumentResolver.resolve(objectNode.get("verificationKey").asText());
+            AuthKey authKey = AuthKeyArgumentResolver.resolve(objectNode.get("verificationKey").asText());
 
-            hasAuthKey.setAuthenticationKey(authenticationKey);
+            hasAuthKey.setAuthKey(authKey);
         }
 
         return hasAuthKey;

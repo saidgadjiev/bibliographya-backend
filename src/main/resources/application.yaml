@@ -25,6 +25,8 @@ spring:
             enable: true
         timeout: 8000
 app:
+  verification:
+    time: 20
   resources: ${RESOURCES_DIR}
   social:
     facebook:

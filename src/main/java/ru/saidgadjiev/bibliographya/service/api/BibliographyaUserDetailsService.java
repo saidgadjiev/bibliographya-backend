@@ -20,17 +20,17 @@ public interface BibliographyaUserDetailsService {
 
     User save(User user) throws SQLException;
 
-    List<User> loadUserByUsername(AuthenticationKey authenticationKey) throws UsernameNotFoundException;
+    List<User> loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException;
 
     User loadUserById(int id);
 
-    boolean isExist(AuthenticationKey authenticationKey);
+    boolean isExist(AuthKey authKey);
 
     HttpStatus savePassword(SavePassword savePassword);
 
     SendVerificationResult restorePasswordStart(HttpServletRequest request,
                                     Locale locale,
-                                    AuthenticationKey authenticationKey) throws MessagingException;
+                                    AuthKey authKey) throws MessagingException;
 
     HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword);
 
@@ -38,11 +38,11 @@ public interface BibliographyaUserDetailsService {
 
     SendVerificationResult saveEmailStart(HttpServletRequest request,
                               Locale locale,
-                              AuthenticationKey authenticationKey) throws MessagingException;
+                              AuthKey authKey) throws MessagingException;
 
     SendVerificationResult savePhoneStart(HttpServletRequest request,
                               Locale locale,
-                              AuthenticationKey authenticationKey) throws MessagingException;
+                              AuthKey authKey) throws MessagingException;
 
     HttpStatus savePhoneFinish(HttpServletRequest request,
                                AuthenticationKeyConfirmation authenticationKeyConfirmation);
