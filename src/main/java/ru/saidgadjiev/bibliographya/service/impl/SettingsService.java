@@ -38,7 +38,7 @@ public class SettingsService {
 
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
                 User.TABLE,
-                Arrays.asList(User.EMAIL, User.EMAIL_VERIFIED, User.PHONE, User.PHONE_VERIFIED),
+                Arrays.asList(User.EMAIL, User.PHONE),
                 Collections.singletonList(
                         new FilterCriteria.Builder<Integer>()
                                 .propertyName(User.ID)
@@ -52,9 +52,7 @@ public class SettingsService {
         Map<String, Object> values = fieldsValues.get(0);
 
         generalSettings.setEmail(SecureUtils.secureEmail((String) values.get(User.EMAIL)));
-        generalSettings.setEmailVerified((Boolean) values.get(User.EMAIL_VERIFIED));
         generalSettings.setPhone(SecureUtils.securePhone((String) values.get(User.PHONE)));
-        generalSettings.setPhoneVerified((Boolean) values.get(User.PHONE_VERIFIED));
 
         return generalSettings;
     }

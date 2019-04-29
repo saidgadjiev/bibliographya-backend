@@ -21,10 +21,6 @@ public class User implements UserDetails, CredentialsContainer {
 
     public static final String PHONE = "phone";
 
-    public static final String PHONE_VERIFIED = "phone_verified";
-
-    public static final String EMAIL_VERIFIED = "email_verified";
-
     public static final String PASSWORD = "password";
 
     private int id;
@@ -33,18 +29,12 @@ public class User implements UserDetails, CredentialsContainer {
     private String email;
 
     @JsonIgnore
-    private boolean emailVerified;
-
-    @JsonIgnore
     private String password;
 
     private Biography biography;
 
     @JsonIgnore
     private String phone;
-
-    @JsonIgnore
-    private boolean phoneVerified;
 
     private Set<Role> roles;
 
@@ -120,14 +110,6 @@ public class User implements UserDetails, CredentialsContainer {
         this.email = email;
     }
 
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
     public void setPassword(String password) {
         this.password = password;
     }
@@ -170,13 +152,5 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public boolean isPhoneVerified() {
-        return phoneVerified;
-    }
-
-    public void setPhoneVerified(boolean phoneVerified) {
-        this.phoneVerified = phoneVerified;
     }
 }

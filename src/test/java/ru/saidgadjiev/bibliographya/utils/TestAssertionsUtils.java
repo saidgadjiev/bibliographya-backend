@@ -37,7 +37,6 @@ public class TestAssertionsUtils {
         Assertions.assertEquals(expected.getId(), actual.getId());
 
         Assertions.assertEquals(expected.getEmail(), actual.getEmail());
-        Assertions.assertEquals(expected.isEmailVerified(), actual.isEmailVerified());
 
         Assertions.assertEquals(expected.getRoles(), actual.getRoles());
         Assertions.assertEquals(expected.getBiography().getId(), actual.getBiography().getId());

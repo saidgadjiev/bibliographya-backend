@@ -295,6 +295,11 @@
             <version>1.6</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>7.37.3</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -1,7 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.api.VerificationDao;
@@ -35,14 +35,18 @@ public class PhoneVerificationService extends AbstractVerificationService {
 
     private VerificationProperties verificationProperties;
 
+    private MessageSource messageSource;
+
     public PhoneVerificationService(PhoneService phoneService,
                                     VerificationDao verificationDao,
                                     @Qualifier("inMemory") VerificationStorage verificationStorage,
                                     CodeGenerator codeGenerator,
-                                    VerificationProperties verificationProperties) {
+                                    VerificationProperties verificationProperties,
+                                    MessageSource messageSource) {
         super(verificationStorage, verificationDao);
         this.phoneService = phoneService;
         this.verificationProperties = verificationProperties;
+        this.messageSource = messageSource;
         this.verificationDao = verificationDao;
         this.verificationStorage = verificationStorage;
         this.codeGenerator = codeGenerator;
@@ -68,7 +72,7 @@ public class PhoneVerificationService extends AbstractVerificationService {
 
             phoneService.sendSms(
                     authKey.formattedNumber(),
-                    "Ваш код " + code
+                    getSms(request, locale, String.valueOf(code))
             );
 
             Timer timer = new Timer();
@@ -149,5 +153,36 @@ public class PhoneVerificationService extends AbstractVerificationService {
         }
 
         return true;
+    }
+
+    private String getSms(HttpServletRequest request, Locale locale, String code) {
+        SessionState sessionState = (SessionState) verificationStorage.getAttr(request, VerificationStorage.STATE, SessionState.NONE);
+
+        if (Objects.equals(sessionState, SessionState.NONE)) {
+            return null;
+        }
+
+        switch (sessionState) {
+            case RESTORE_PASSWORD:
+                return messageSource.getMessage(
+                        "confirm.restorePassword.phone.message",
+                        new Object[]{code},
+                        locale
+                );
+            case CHANGE_PHONE:
+                return messageSource.getMessage(
+                    "confirm.changePhone.phone.message",
+                    new Object[]{code},
+                    locale
+                );
+            case SIGN_UP_CONFIRM:
+                return messageSource.getMessage(
+                    "confirm.signUp.phone.message",
+                    new Object[]{code},
+                    locale
+            );
+        }
+
+        return null;
     }
 }

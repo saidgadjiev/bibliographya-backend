@@ -79,7 +79,6 @@ class UserDaoTest {
 
                         user.setId(resultSet.getInt("id"));
                         user.setEmail(resultSet.getString("email"));
-                        user.setEmailVerified(resultSet.getBoolean("email_verified"));
                         user.setPassword(resultSet.getString("password"));
 
                         user.setBiography(new Biography());
@@ -151,16 +150,6 @@ class UserDaoTest {
                         .build()
         );
 
-        criteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .needPreparedSet(true)
-                        .propertyName(User.EMAIL_VERIFIED)
-                        .filterValue(true)
-                        .filterOperation(FilterOperation.EQ)
-                        .build()
-        );
-
         User user = userDao.getUniqueUser(criteria);
 
         User expected = new User();
@@ -168,7 +157,6 @@ class UserDaoTest {
         expected.setId(TestModelsUtils.TEST_USER_ID);
         expected.setEmail(TestModelsUtils.TEST_EMAIL);
         expected.setPassword("Test");
-        expected.setEmailVerified(true);
 
         expected.setBiography(new Biography());
         expected.getBiography().setId(1);
@@ -249,7 +237,6 @@ class UserDaoTest {
         expected.setId(TestModelsUtils.TEST_USER_ID);
         expected.setEmail(TestModelsUtils.TEST_EMAIL);
         expected.setPassword("Test");
-        expected.setEmailVerified(true);
 
         expected.setBiography(new Biography());
         expected.getBiography().setId(1);

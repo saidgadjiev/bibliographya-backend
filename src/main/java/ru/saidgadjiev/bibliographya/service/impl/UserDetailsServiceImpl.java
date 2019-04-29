@@ -32,6 +32,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -82,27 +83,27 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public List<User> loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException {
-        List<User> users = null;
+    public User loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException {
+        User user = null;
 
         switch (authKey.getType()) {
             case PHONE: {
-                users = retrieveByPhone(authKey.formattedNumber());
+                user = userDao.getByPhone(authKey.formattedNumber());
                 break;
             }
             case EMAIL: {
-                users = retrieveByEmail(authKey.getEmail());
+                user = userDao.getByPhone(authKey.getEmail());
                 break;
             }
         }
 
-        if (users == null || users.isEmpty()) {
+        if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
 
-        users.forEach(user -> user.setRoles(userRoleDao.getRoles(user.getId())));
+        user.setRoles(userRoleDao.getRoles(user.getId()));
 
-        return users;
+        return user;
     }
 
     @Override
@@ -114,7 +115,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         User user = new User();
 
         user.setPhone(saveUser.getPhone());
-        user.setPhoneVerified(true);
         user.setPassword(passwordEncoder.encode(saveUser.getPassword()));
 
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
@@ -213,50 +213,16 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public SendVerificationResult restorePasswordStart(HttpServletRequest request,
                                            Locale locale,
                                            AuthKey authKey) throws MessagingException {
-        Collection<FilterCriteria> userCriteria = new ArrayList<>();
+        User actual = null;
 
         switch (authKey.getType()) {
             case PHONE:
-                userCriteria.add(
-                        new FilterCriteria.Builder<String>()
-                                .propertyName(User.PHONE)
-                                .valueSetter(PreparedStatement::setString)
-                                .filterOperation(FilterOperation.EQ)
-                                .filterValue(authKey.formattedNumber())
-                                .build()
-
-                );
+                actual = userDao.getByPhone(authKey.formattedNumber());
                 break;
             case EMAIL:
-                userCriteria.add(
-                        new FilterCriteria.Builder<String>()
-                                .propertyName(User.EMAIL)
-                                .valueSetter(PreparedStatement::setString)
-                                .filterOperation(FilterOperation.EQ)
-                                .filterValue(authKey.getEmail())
-                                .build()
-
-                );
-                userCriteria.add(
-                        new FilterCriteria.Builder<Boolean>()
-                                .propertyName(User.EMAIL_VERIFIED)
-                                .valueSetter(PreparedStatement::setBoolean)
-                                .filterOperation(FilterOperation.EQ)
-                                .filterValue(true)
-                                .build()
-                );
+                actual = userDao.getByEmail(authKey.getEmail());
                 break;
         }
-        userCriteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .propertyName(User.PHONE_VERIFIED)
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(true)
-                        .build()
-        );
-
-        User actual = userDao.getUniqueUser(userCriteria);
 
         if (actual == null) {
             return new SendVerificationResult(HttpStatus.NOT_FOUND, null, null);
@@ -305,15 +271,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                             .valueSetter(PreparedStatement::setString)
                             .build()
             );
-            criteria.add(
-                    new FilterCriteria.Builder<Boolean>()
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(true)
-                            .needPreparedSet(true)
-                            .propertyName(User.PHONE_VERIFIED)
-                            .valueSetter(PreparedStatement::setBoolean)
-                            .build()
-            );
 
             int updated = generalDao.update(User.TABLE, values, criteria, null);
 
@@ -360,14 +317,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                     )
             );
 
-            values.add(
-                    new UpdateValue<>(
-                            User.EMAIL_VERIFIED,
-                            true,
-                            PreparedStatement::setBoolean
-                    )
-            );
-
             List<FilterCriteria> criteria = new ArrayList<>();
 
             criteria.add(
@@ -385,7 +334,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             verificationStorage.expire(request);
 
             actual.setEmail(authKey.getEmail());
-            actual.setEmailVerified(true);
 
             eventPublisher.publishEvent(new ChangeEmailEvent(actual));
 
@@ -446,14 +394,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                     )
             );
 
-            values.add(
-                    new UpdateValue<>(
-                            User.PHONE_VERIFIED,
-                            true,
-                            PreparedStatement::setBoolean
-                    )
-            );
-
             List<FilterCriteria> criteria = new ArrayList<>();
 
             criteria.add(
@@ -471,7 +411,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             verificationStorage.expire(request);
 
             actual.setPhone(authKey.formattedNumber());
-            actual.setPhoneVerified(true);
 
             eventPublisher.publishEvent(new ChangePhoneEvent(actual));
 
@@ -524,9 +463,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
-                        User.EMAIL_VERIFIED,
-                        false,
-                        PreparedStatement::setBoolean
+                        User.EMAIL,
+                        null,
+                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
@@ -552,15 +491,15 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
-                        User.PHONE_VERIFIED,
-                        false,
-                        PreparedStatement::setBoolean
+                        User.PHONE,
+                        null,
+                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        List<FilterCriteria> criteriaRemoveEmailsVerification = new ArrayList<>();
+        List<FilterCriteria> criteriaRemoveVerification = new ArrayList<>();
 
-        criteriaRemoveEmailsVerification.add(
+        criteriaRemoveVerification.add(
                 new FilterCriteria.Builder<String>()
                         .filterOperation(FilterOperation.EQ)
                         .filterValue(phone)
@@ -570,38 +509,8 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                         .build()
         );
 
-        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification, null);
+        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveVerification, null);
 
         eventPublisher.publishEvent(new UnverifyPhonesEvent(phone));
-    }
-
-    private List<User> retrieveByEmail(String email) {
-        Collection<FilterCriteria> userCriteria = new ArrayList<>();
-
-        userCriteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName(User.EMAIL)
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(email)
-                        .build()
-        );
-
-        return userDao.getUsers(userCriteria);
-    }
-
-    private List<User> retrieveByPhone(String phone) {
-        Collection<FilterCriteria> userCriteria = new ArrayList<>();
-
-        userCriteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName(User.PHONE)
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(phone)
-                        .build()
-        );
-
-        return userDao.getUsers(userCriteria);
     }
 }

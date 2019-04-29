@@ -90,7 +90,6 @@ class GeneralDaoTest {
 
                         user.setId(resultSet.getInt("id"));
                         user.setEmail(resultSet.getString("email"));
-                        user.setEmailVerified(resultSet.getBoolean("email_verified"));
                         user.setPassword(resultSet.getString("password"));
 
                         return user;
@@ -132,10 +131,9 @@ class GeneralDaoTest {
                         .build()
         );
 
-        List<Map<String, Object>> values = generalDao.getFields(User.TABLE, Arrays.asList(User.EMAIL, User.EMAIL_VERIFIED), criteria);
+        List<Map<String, Object>> values = generalDao.getFields(User.TABLE, Arrays.asList(User.EMAIL), criteria);
 
         Assertions.assertEquals(1, values.size());
         Assertions.assertEquals(values.get(0).get(User.EMAIL), "Test1");
-        Assertions.assertTrue((Boolean) values.get(0).get(User.EMAIL_VERIFIED));
     }
 }

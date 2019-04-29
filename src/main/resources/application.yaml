@@ -37,6 +37,10 @@ app:
       appId: ${VK_APP_ID}
       appSecret: ${VK_APP_SECRET}
       appToken: ${VK_APP_TOKEN}
+  twilio:
+    accountSid: AC50c893d103643487ed4a28c9a9eeb962
+    authToken: f24a350db43956462c06b0a1f0ad57de
+    number: +18603563942
   jwt:
     secret: ${JWT_SECRET}
   storage:

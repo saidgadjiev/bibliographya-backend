@@ -160,7 +160,6 @@ class AuthServiceTest {
             User user = new User();
 
             user.setPassword(req.getPassword());
-            user.setEmailVerified(true);
             user.setEmail(req.getEmail());
             user.setId(1);
 
@@ -209,7 +208,6 @@ class AuthServiceTest {
         expected.setId(TestModelsUtils.TEST_USER_ID);
         expected.setEmail(TestModelsUtils.TEST_EMAIL);
         expected.setPassword("Test");
-        expected.setEmailVerified(true);
 
         expected.setRoles(Collections.singleton(new Role(Role.ROLE_USER)));
         expected.setBiography(new Biography());

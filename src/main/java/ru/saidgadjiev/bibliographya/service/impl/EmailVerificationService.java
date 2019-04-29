@@ -120,11 +120,11 @@ public class EmailVerificationService extends AbstractVerificationService {
         }
         switch (sessionState) {
             case RESTORE_PASSWORD:
-                return messageSource.getMessage("confirm.restorePassword.subject", new Object[]{}, locale);
+                return messageSource.getMessage("confirm.restorePassword.email.subject", new Object[]{}, locale);
             case CHANGE_EMAIL:
-                return messageSource.getMessage("confirm.changeEmail.subject", new Object[]{}, locale);
+                return messageSource.getMessage("confirm.changeEmail.email.subject", new Object[]{}, locale);
             case SIGN_UP_CONFIRM:
-                return messageSource.getMessage("confirm.signUp.subject", new Object[]{}, locale);
+                return messageSource.getMessage("confirm.signUp.email.subject", new Object[]{}, locale);
             case NONE:
                 break;
         }
@@ -144,7 +144,7 @@ public class EmailVerificationService extends AbstractVerificationService {
                 String firstName = (String) coldVerificationStorage.getAttr(request, VerificationStorage.FIRST_NAME);
 
                 return messageSource.getMessage(
-                        "confirm.restorePassword.message",
+                        "confirm.restorePassword.email.message",
                         new Object[]{firstName, code},
                         locale
                 );
@@ -153,7 +153,7 @@ public class EmailVerificationService extends AbstractVerificationService {
                 User user = (User) securityService.findLoggedInUser();
 
                 return messageSource.getMessage(
-                        "confirm.changeEmail.message",
+                        "confirm.changeEmail.email.message",
                         new Object[]{user.getBiography().getFirstName(), code},
                         locale
                 );
@@ -162,7 +162,7 @@ public class EmailVerificationService extends AbstractVerificationService {
                 SignUpRequest signUpRequest = (SignUpRequest) coldVerificationStorage.getAttr(request, VerificationStorage.SIGN_UP_REQUEST);
 
                 return messageSource.getMessage(
-                        "confirm.signUp.message",
+                        "confirm.signUp.email.message",
                         new Object[]{signUpRequest.getFirstName(), code},
                         locale
                 );

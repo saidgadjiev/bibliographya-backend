@@ -9,7 +9,6 @@ import ru.saidgadjiev.bibliographya.model.SavePassword;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -20,7 +19,7 @@ public interface BibliographyaUserDetailsService {
 
     User save(User user) throws SQLException;
 
-    List<User> loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException;
+    User loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException;
 
     User loadUserById(int id);
 

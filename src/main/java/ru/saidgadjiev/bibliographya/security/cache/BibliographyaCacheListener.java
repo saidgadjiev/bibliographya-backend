@@ -39,7 +39,7 @@ public class BibliographyaCacheListener {
     public void handle(UnverifyEmailsEvent unverifyEmailsEvent) {
         Collection<User> usersFromCache = userCache.getUsersFromCache(unverifyEmailsEvent.getEmail());
 
-        usersFromCache.forEach(user -> user.setEmailVerified(false));
+        usersFromCache.forEach(user -> user.setEmail(null));
     }
 
     @EventListener
@@ -47,7 +47,6 @@ public class BibliographyaCacheListener {
         User user = userCache.getUserFromCache(changeEmailEvent.getUser().getId());
 
         if (user != null) {
-            user.setEmailVerified(true);
             user.setEmail(changeEmailEvent.getUser().getEmail());
         }
     }

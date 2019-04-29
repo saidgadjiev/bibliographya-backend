@@ -14,9 +14,6 @@ import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private BibliographyaUserDetailsService userDetailsService;
@@ -40,43 +37,17 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         AuthKey authKey = (AuthKey) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
 
-        List<User> users = userDetailsService.loadUserByUsername(authKey);
-        List<User> found = new ArrayList<>();
+        User user = userDetailsService.loadUserByUsername(authKey);
 
-        for (User user: users) {
-            if (passwordEncoder.matches(password, user.getPassword())) {
-                found.add(user);
-            }
-        }
-
-        if (found.isEmpty()) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException(messages.getMessage(
                     "AbstractUserDetailsAuthenticationProvider.badCredentials",
                     "Bad credentials"));
         }
 
-        User toAuthenticate;
-
-        if (found.size() == 1) {
-            toAuthenticate = found.get(0);
-        } else {
-            toAuthenticate = found.stream().filter(user -> {
-                switch (authKey.getType()) {
-                    case PHONE:
-                        return user.isPhoneVerified();
-                    case EMAIL:
-                        return user.isEmailVerified();
-                }
-
-                return false;
-            }).findAny().orElseThrow(() -> new BadCredentialsException(messages.getMessage(
-                    "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                    "Bad credentials")));
-        }
-
         return new UsernamePasswordAuthenticationToken(
-                toAuthenticate, authentication.getCredentials(),
-                authoritiesMapper.mapAuthorities(toAuthenticate.getAuthorities()));
+                user, authentication.getCredentials(),
+                authoritiesMapper.mapAuthorities(user.getAuthorities()));
     }
 
     @Override

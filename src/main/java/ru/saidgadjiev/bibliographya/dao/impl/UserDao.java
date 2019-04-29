@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
@@ -16,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +41,12 @@ public class UserDao {
         jdbcTemplate.update(
                 con -> {
                     PreparedStatement ps = con.prepareStatement(
-                            "INSERT INTO \"user\"(email, email_verified, phone, phone_verified, password) VALUES (?, ?, ?, ?, ?)",
+                            "INSERT INTO \"user\"(email, phone, password) VALUES (?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS
                     );
 
                     ps.setString(1, user.getUsername());
-                    ps.setBoolean(2, user.isEmailVerified());
                     ps.setString(3, user.getPhone());
-                    ps.setBoolean(4, user.isPhoneVerified());
                     ps.setString(5, user.getPassword());
 
                     return ps;
@@ -60,6 +60,38 @@ public class UserDao {
         }
 
         return user;
+    }
+
+    public User getByEmail(String email) {
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria.Builder<String>()
+                        .propertyName(User.EMAIL)
+                        .valueSetter(PreparedStatement::setString)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(email)
+                        .build()
+
+        );
+
+        return getUniqueUser(criteria);
+    }
+
+    public User getByPhone(String phone) {
+        List<FilterCriteria> criteria = new ArrayList<>();
+
+        criteria.add(
+                new FilterCriteria.Builder<String>()
+                        .propertyName(User.PHONE)
+                        .valueSetter(PreparedStatement::setString)
+                        .filterOperation(FilterOperation.EQ)
+                        .filterValue(phone)
+                        .build()
+
+        );
+
+        return getUniqueUser(criteria);
     }
 
     public User getUniqueUser(Collection<FilterCriteria> userCriteria) {
@@ -182,10 +214,8 @@ public class UserDao {
 
         user.setId(rs.getInt("u_id"));
 
-        user.setEmailVerified(rs.getBoolean("u_verified"));
         user.setEmail(rs.getString("u_email"));
         user.setPhone(rs.getString("u_phone"));
-        user.setPhoneVerified(rs.getBoolean("u_phone_verified"));
         user.setPassword(rs.getString("u_password"));
 
         Biography biography = new Biography();
@@ -201,10 +231,8 @@ public class UserDao {
 
     private String selectList() {
         return "  u.id AS u_id,\n" +
-                "  u.email_verified as u_verified,\n" +
                 "  u.email AS u_email,\n" +
                 "  u.phone AS u_phone,\n" +
-                "  u.phone_verified as u_phone_verified,\n" +
                 "  u.password AS u_password,\n" +
                 "  b.id AS b_id,\n" +
                 "  b.first_name AS b_first_name,\n" +
