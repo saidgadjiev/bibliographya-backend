@@ -23,10 +23,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
 import ru.saidgadjiev.bibliographya.security.filter.AuthenticationFilter;
-import ru.saidgadjiev.bibliographya.security.handler.*;
+import ru.saidgadjiev.bibliographya.security.handler.AuthenticationFailureHandlerImpl;
+import ru.saidgadjiev.bibliographya.security.handler.AuthenticationSuccessHandlerImpl;
+import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
+import ru.saidgadjiev.bibliographya.security.handler.LogoutSuccessHandlerImpl;
 import ru.saidgadjiev.bibliographya.security.provider.CustomAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
@@ -52,8 +54,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private UserCache userCache;
 
-    private UIProperties uiProperties;
-
     private JwtProperties jwtProperties;
 
     private ApplicationEventPublisher eventPublisher;
@@ -67,7 +67,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                  PasswordEncoder passwordEncoder,
                                  ObjectMapper objectMapper,
                                  UserCache userCache,
-                                 UIProperties uiProperties,
                                  JwtProperties jwtProperties,
                                  ApplicationEventPublisher eventPublisher,
                                  AuthTokenService tokenService) {
@@ -77,7 +76,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.tokenService = tokenService;
         this.objectMapper = objectMapper;
         this.userCache = userCache;
-        this.uiProperties = uiProperties;
         this.jwtProperties = jwtProperties;
     }
 
@@ -151,13 +149,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         AuthenticationFilter authenticationFilter = new AuthenticationFilter(objectMapper);
 
         authenticationFilter.setAuthenticationSuccessHandler(
-                new AuthenticationSuccessHandlerImpl(
-                        objectMapper,
-                        tokenService,
-                        uiProperties,
-                        jwtProperties,
-                        eventPublisher
-                )
+                new AuthenticationSuccessHandlerImpl(objectMapper, tokenService, jwtProperties, eventPublisher)
         );
         authenticationFilter.setAuthenticationFailureHandler(new AuthenticationFailureHandlerImpl());
         authenticationFilter.setAuthenticationManager(authenticationManager());

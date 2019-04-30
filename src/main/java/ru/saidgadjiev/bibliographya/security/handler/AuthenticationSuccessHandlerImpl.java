@@ -9,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.utils.ResponseUtils;
 
@@ -29,20 +28,16 @@ public class AuthenticationSuccessHandlerImpl extends SimpleUrlAuthenticationSuc
 
     private AuthTokenService tokenService;
 
-    private UIProperties uiProperties;
-
     private final JwtProperties jwtProperties;
 
     private ApplicationEventPublisher eventPublisher;
 
     public AuthenticationSuccessHandlerImpl(ObjectMapper objectMapper,
                                             AuthTokenService tokenService,
-                                            UIProperties uiProperties,
                                             JwtProperties jwtProperties,
                                             ApplicationEventPublisher eventPublisher) {
         this.objectMapper = objectMapper;
         this.tokenService = tokenService;
-        this.uiProperties = uiProperties;
         this.jwtProperties = jwtProperties;
         this.eventPublisher = eventPublisher;
     }

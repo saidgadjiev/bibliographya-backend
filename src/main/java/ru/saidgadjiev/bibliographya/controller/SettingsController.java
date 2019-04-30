@@ -1,6 +1,5 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +24,13 @@ import java.util.Locale;
 @RequestMapping("/api/settings")
 public class SettingsController {
 
-    private ObjectMapper objectMapper;
-
     private SettingsService settingsService;
 
     private BibliographyaUserDetailsService userDetailsService;
 
     @Autowired
-    public SettingsController(ObjectMapper objectMapper,
-                              SettingsService settingsService,
+    public SettingsController(SettingsService settingsService,
                               BibliographyaUserDetailsService userDetailsService) {
-        this.objectMapper = objectMapper;
         this.settingsService = settingsService;
         this.userDetailsService = userDetailsService;
     }

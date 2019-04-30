@@ -14,7 +14,6 @@ import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
 import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.service.api.*;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -40,13 +39,11 @@ public class AuthService {
 
     private VerificationService verificationService;
 
-    private UIProperties uiProperties;
-
     private VerificationStorage verificationStorage;
 
     private JwtProperties jwtProperties;
 
-    private ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService;
+    private BruteForceService bruteForceService;
 
     @Autowired
     public AuthService(SocialServiceFactory socialServiceFactory,
@@ -54,16 +51,14 @@ public class AuthService {
                        AuthTokenService tokenService,
                        SecurityService securityService,
                        @Qualifier("wrapper") VerificationService verificationService,
-                       UIProperties uiProperties,
                        @Qualifier("inMemory") VerificationStorage verificationStorage,
                        JwtProperties jwtProperties,
-                       ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService) {
+                       BruteForceService bruteForceService) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
         this.verificationService = verificationService;
-        this.uiProperties = uiProperties;
         this.verificationStorage = verificationStorage;
         this.jwtProperties = jwtProperties;
         this.bruteForceService = bruteForceService;
@@ -172,7 +167,7 @@ public class AuthService {
         if (bruteForceService.isBlocked(request, BruteForceService.Type.SIGN_UP)) {
             return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null, null);
         }
-        bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SIGN_UP);
+        bruteForceService.count(request, BruteForceService.Type.SIGN_UP);
 
         return verificationService.sendVerification(request, locale, authKey);
     }

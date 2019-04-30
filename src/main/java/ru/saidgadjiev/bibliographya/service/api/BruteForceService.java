@@ -10,7 +10,7 @@ public interface BruteForceService {
 
     boolean isBlocked(HttpServletRequest request, Type type);
 
-    public enum Type {
+    enum Type {
 
         SIGN_UP(3),
 

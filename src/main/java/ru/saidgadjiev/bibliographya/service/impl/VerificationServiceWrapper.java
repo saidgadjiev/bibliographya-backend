@@ -28,7 +28,7 @@ public class VerificationServiceWrapper implements VerificationService {
 
     private VerificationService phoneVerificationService;
 
-    private ru.saidgadjiev.bibliographya.service.api.BruteForceService bruteForceService;
+    private BruteForceService bruteForceService;
 
     @Autowired
     public VerificationServiceWrapper(@Qualifier("inMemory") VerificationStorage verificationStorage,
@@ -45,11 +45,11 @@ public class VerificationServiceWrapper implements VerificationService {
     public SendVerificationResult sendVerification(HttpServletRequest request,
                                                    Locale locale,
                                                    AuthKey authKey) throws MessagingException {
-        if (bruteForceService.isBlocked(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE)) {
+        if (bruteForceService.isBlocked(request, BruteForceService.Type.SEND_VERIFICATION_CODE)) {
             return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null, null);
         }
 
-        bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE);
+        bruteForceService.count(request, BruteForceService.Type.SEND_VERIFICATION_CODE);
 
         switch (authKey.getType()) {
             case PHONE:
@@ -63,11 +63,11 @@ public class VerificationServiceWrapper implements VerificationService {
 
     @Override
     public SendVerificationResult resendVerification(HttpServletRequest request, Locale locale) throws MessagingException {
-        if (bruteForceService.isBlocked(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE)) {
+        if (bruteForceService.isBlocked(request, BruteForceService.Type.SEND_VERIFICATION_CODE)) {
             return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null, null);
         }
 
-        bruteForceService.count(request, ru.saidgadjiev.bibliographya.service.api.BruteForceService.Type.SEND_VERIFICATION_CODE);
+        bruteForceService.count(request, BruteForceService.Type.SEND_VERIFICATION_CODE);
 
         AuthKey authKey = (AuthKey) verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null);
 

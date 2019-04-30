@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.service.api.PhoneService;
 
-//@Service
-//@Profile(BibliographyaConfiguration.PROFILE_DEV)
+@Service
+@Profile(BibliographyaConfiguration.PROFILE_DEV)
 public class DummyPhoneService implements PhoneService {
 
     @Override
