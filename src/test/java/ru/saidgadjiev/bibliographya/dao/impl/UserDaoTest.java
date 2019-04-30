@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -80,7 +79,6 @@ class UserDaoTest {
 
                         user.setId(resultSet.getInt("id"));
                         user.setEmail(resultSet.getString("email"));
-                        user.setEmailVerified(resultSet.getBoolean("email_verified"));
                         user.setPassword(resultSet.getString("password"));
 
                         user.setBiography(new Biography());
@@ -152,24 +150,13 @@ class UserDaoTest {
                         .build()
         );
 
-        criteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .valueSetter(PreparedStatement::setBoolean)
-                        .needPreparedSet(true)
-                        .propertyName(User.EMAIL_VERIFIED)
-                        .filterValue(true)
-                        .filterOperation(FilterOperation.EQ)
-                        .build()
-        );
-
-        User user = userDao.get(criteria);
+        User user = userDao.getUniqueUser(criteria);
 
         User expected = new User();
 
         expected.setId(TestModelsUtils.TEST_USER_ID);
         expected.setEmail(TestModelsUtils.TEST_EMAIL);
         expected.setPassword("Test");
-        expected.setEmailVerified(true);
 
         expected.setBiography(new Biography());
         expected.getBiography().setId(1);
@@ -250,7 +237,6 @@ class UserDaoTest {
         expected.setId(TestModelsUtils.TEST_USER_ID);
         expected.setEmail(TestModelsUtils.TEST_EMAIL);
         expected.setPassword("Test");
-        expected.setEmailVerified(true);
 
         expected.setBiography(new Biography());
         expected.getBiography().setId(1);

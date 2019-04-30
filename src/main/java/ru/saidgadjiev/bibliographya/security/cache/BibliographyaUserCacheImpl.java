@@ -6,6 +6,7 @@ import ru.saidgadjiev.bibliographya.domain.User;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
@@ -34,7 +35,7 @@ public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
     public Collection<User> getUsersFromCache(String email) {
         com.github.benmanes.caffeine.cache.Cache<Integer, User> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Integer, User>) cache.getNativeCache();
 
-        return nativeCache.asMap().values().stream().filter(user -> user.getEmail().equals(email)).collect(Collectors.toList());
+        return nativeCache.asMap().values().stream().filter(user -> Objects.equals(user.getEmail(), email)).collect(Collectors.toList());
     }
 
     @Override

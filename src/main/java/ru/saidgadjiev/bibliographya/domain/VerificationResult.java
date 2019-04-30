@@ -3,7 +3,7 @@ package ru.saidgadjiev.bibliographya.domain;
 /**
  * Created by said on 11.02.2019.
  */
-public class EmailVerificationResult {
+public class VerificationResult {
 
     private Status status;
 
@@ -11,7 +11,7 @@ public class EmailVerificationResult {
         return status;
     }
 
-    public EmailVerificationResult setStatus(Status status) {
+    public VerificationResult setStatus(Status status) {
         this.status = status;
 
         return this;

@@ -16,9 +16,14 @@ import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.properties.UIProperties;
-import ru.saidgadjiev.bibliographya.service.impl.*;
+import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
+import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
+import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
+import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
+import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
+import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
@@ -54,13 +59,13 @@ class AuthServiceTest {
     private UserDetailsServiceImpl userDetailsService;
 
     @MockBean
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     @MockBean
-    private HttpSessionEmailVerificationService emailVerificationService;
+    private VerificationServiceWrapper emailVerificationService;
 
     @MockBean
-    private HttpSessionManager sessionManager;
+    private SessionVerificationStorage sessionManager;
 
     @MockBean
     private UIProperties uiProperties;
@@ -101,7 +106,7 @@ class AuthServiceTest {
 
         authService.signUp(authContext, null);
 
-        Mockito.verify(sessionManager, Mockito.times(1)).setSignUp(request, signUpRequest);
+        Mockito.verify(sessionManager, Mockito.times(1)).setAttr(request, VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
     }
 
     @Test
@@ -110,12 +115,12 @@ class AuthServiceTest {
 
         Locale locale = new Locale("ru", "RU");
 
-        Mockito.when(userDetailsService.isExistEmail(TestModelsUtils.TEST_EMAIL)).thenReturn(false);
+        Mockito.when(userDetailsService.isExist(TestModelsUtils.TEST_AUTHENTICATION_KEY)).thenReturn(false);
 
-        HttpStatus status = authService.confirmSignUpStart(request, locale, TestModelsUtils.TEST_EMAIL);
+        SendVerificationResult status = authService.confirmSignUpStart(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
 
-        Assertions.assertEquals(status, HttpStatus.OK);
-        Mockito.verify(emailVerificationService, Mockito.times(1)).sendVerification(request, locale, TestModelsUtils.TEST_EMAIL);
+        Assertions.assertEquals(status.getStatus(), HttpStatus.OK);
+        Mockito.verify(emailVerificationService, Mockito.times(1)).sendVerification(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
     }
 
     @Test
@@ -124,12 +129,12 @@ class AuthServiceTest {
 
         Locale locale = new Locale("ru", "RU");
 
-        Mockito.when(userDetailsService.isExistEmail(TestModelsUtils.TEST_EMAIL)).thenReturn(true);
+        Mockito.when(userDetailsService.isExist(TestModelsUtils.TEST_AUTHENTICATION_KEY)).thenReturn(true);
 
-        HttpStatus status = authService.confirmSignUpStart(request, Locale.ENGLISH, TestModelsUtils.TEST_EMAIL);
+        SendVerificationResult status = authService.confirmSignUpStart(request, Locale.ENGLISH, TestModelsUtils.TEST_AUTHENTICATION_KEY);
 
-        Assertions.assertEquals(status, HttpStatus.CONFLICT);
-        Mockito.verify(emailVerificationService, Mockito.times(0)).sendVerification(request, locale, TestModelsUtils.TEST_EMAIL);
+        Assertions.assertEquals(status.getStatus(), HttpStatus.CONFLICT);
+        Mockito.verify(emailVerificationService, Mockito.times(0)).sendVerification(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
     }
 
     @Test
@@ -143,9 +148,9 @@ class AuthServiceTest {
         signUpRequest.setLastName(TestModelsUtils.TEST_LAST_NAME);
         signUpRequest.setMiddleName(TestModelsUtils.TEST_MIDDLE_NAME);
 
-        Mockito.when(sessionManager.getSignUp(any())).thenReturn(signUpRequest);
-        Mockito.when(emailVerificationService.verify(any(), eq(TestModelsUtils.TEST_EMAIL), eq(1234)))
-                .thenReturn(new EmailVerificationResult().setStatus(EmailVerificationResult.Status.VALID));
+        Mockito.when(sessionManager.getAttr(request, VerificationStorage.SIGN_UP_REQUEST)).thenReturn(signUpRequest);
+        Mockito.when(emailVerificationService.verify(any(), eq(1234), false))
+                .thenReturn(new VerificationResult().setStatus(VerificationResult.Status.VALID));
 
         List<User> db = new ArrayList<>();
 
@@ -155,7 +160,6 @@ class AuthServiceTest {
             User user = new User();
 
             user.setPassword(req.getPassword());
-            user.setEmailVerified(true);
             user.setEmail(req.getEmail());
             user.setId(1);
 
@@ -191,7 +195,6 @@ class AuthServiceTest {
 
         signUpConfirmation.setPassword("test");
         signUpConfirmation.setCode(1234);
-        signUpConfirmation.setEmail(TestModelsUtils.TEST_EMAIL);
 
         authContext.setBody(signUpConfirmation);
 
@@ -205,7 +208,6 @@ class AuthServiceTest {
         expected.setId(TestModelsUtils.TEST_USER_ID);
         expected.setEmail(TestModelsUtils.TEST_EMAIL);
         expected.setPassword("Test");
-        expected.setEmailVerified(true);
 
         expected.setRoles(Collections.singleton(new Role(Role.ROLE_USER)));
         expected.setBiography(new Biography());

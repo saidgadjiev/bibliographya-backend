@@ -1,13 +1,14 @@
 package ru.saidgadjiev.bibliographya.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
 import ru.saidgadjiev.bibliographya.domain.UserAccount;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
-import java.sql.SQLException;
 import java.util.TimeZone;
 
 /**
@@ -25,15 +26,6 @@ public class UserAccountController {
                                  BibliographyaMapper bibliographyaMapper) {
         this.userAccountDetailsService = userAccountDetailsService;
         this.bibliographyaMapper = bibliographyaMapper;
-    }
-
-    @RequestMapping(value = "/{email}", method = RequestMethod.HEAD)
-    public ResponseEntity checkEmail(@PathVariable(value = "email") String email) throws SQLException {
-        if (userAccountDetailsService.isExistEmail(email)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
-
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id:[\\d]+}")

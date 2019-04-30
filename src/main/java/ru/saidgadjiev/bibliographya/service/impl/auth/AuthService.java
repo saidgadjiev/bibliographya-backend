@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
@@ -10,16 +11,12 @@ import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
+import ru.saidgadjiev.bibliographya.model.SessionState;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
-import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
-import ru.saidgadjiev.bibliographya.service.api.SocialService;
-import ru.saidgadjiev.bibliographya.service.impl.HttpSessionEmailVerificationService;
-import ru.saidgadjiev.bibliographya.service.impl.HttpSessionManager;
+import ru.saidgadjiev.bibliographya.service.api.*;
+import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
-import ru.saidgadjiev.bibliographya.service.impl.TokenService;
-import ru.saidgadjiev.bibliographya.utils.CookieUtils;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -36,35 +33,35 @@ public class AuthService {
 
     private BibliographyaUserDetailsService userAccountDetailsService;
 
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     private SecurityService securityService;
 
-    private HttpSessionEmailVerificationService emailVerificationService;
+    private VerificationService verificationService;
 
-    private UIProperties uiProperties;
-
-    private HttpSessionManager httpSessionManager;
+    private VerificationStorage verificationStorage;
 
     private JwtProperties jwtProperties;
+
+    private BruteForceService bruteForceService;
 
     @Autowired
     public AuthService(SocialServiceFactory socialServiceFactory,
                        BibliographyaUserDetailsService userAccountDetailsService,
-                       TokenService tokenService,
+                       AuthTokenService tokenService,
                        SecurityService securityService,
-                       HttpSessionEmailVerificationService emailVerificationService,
-                       UIProperties uiProperties,
-                       HttpSessionManager httpSessionManager,
-                       JwtProperties jwtProperties) {
+                       @Qualifier("wrapper") VerificationService verificationService,
+                       @Qualifier("inMemory") VerificationStorage verificationStorage,
+                       JwtProperties jwtProperties,
+                       BruteForceService bruteForceService) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
         this.securityService = securityService;
-        this.emailVerificationService = emailVerificationService;
-        this.uiProperties = uiProperties;
-        this.httpSessionManager = httpSessionManager;
+        this.verificationService = verificationService;
+        this.verificationStorage = verificationStorage;
         this.jwtProperties = jwtProperties;
+        this.bruteForceService = bruteForceService;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri, ResponseType responseType) {
@@ -101,26 +98,34 @@ public class AuthService {
                 break;
         }
 
-        httpSessionManager.setSignUp(authContext.getRequest(), signUpRequest);
+        verificationStorage.expire(authContext.getRequest());
+        verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.STATE, SessionState.SIGN_UP_CONFIRM);
+        verificationStorage.setAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
 
         return HttpStatus.OK;
     }
 
     public SignUpResult confirmSignUpFinish(AuthContext authContext) throws SQLException {
-        SignUpRequest signUpRequest = httpSessionManager.getSignUp(authContext.getRequest());
+        SignUpRequest signUpRequest = (SignUpRequest) verificationStorage.getAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST);
         SignUpConfirmation signUpConfirmation = (SignUpConfirmation) authContext.getBody();
 
         if (signUpRequest != null) {
-            EmailVerificationResult result = emailVerificationService.verify(
+            VerificationResult result = verificationService.verify(
                     authContext.getRequest(),
-                    signUpConfirmation.getEmail(),
-                    signUpConfirmation.getCode()
+                    signUpConfirmation.getCode(),
+                    true
             );
 
             if (result.isValid()) {
+                AuthKey authKey = (AuthKey) verificationStorage.getAttr(authContext.getRequest(), VerificationStorage.AUTH_KEY, null);
+
+                if (authKey == null) {
+                    return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
+                }
+
                 User saveUser = new User();
 
-                saveUser.setEmail(signUpConfirmation.getEmail());
+                saveUser.setPhone(authKey.formattedNumber());
                 saveUser.setPassword(signUpConfirmation.getPassword());
 
                 Biography biography = new Biography();
@@ -135,23 +140,15 @@ public class AuthService {
 
                 user.setIsNew(true);
 
-                httpSessionManager.removeState(authContext.getRequest());
+                verificationStorage.expire(authContext.getRequest());
 
                 securityService.autoLogin(user);
 
                 String token = tokenService.createToken(user);
 
-                CookieUtils.addCookie(
-                        authContext.getResponse(),
-                        uiProperties.getHost(),
-                        jwtProperties.tokenName(),
-                        token
-                );
+                //CookieUtils.addCookie(authContext.getResponse(), uiProperties.getHost(), jwtProperties.tokenName(), token);
 
-                authContext.getResponse().addHeader(
-                        jwtProperties.tokenName(),
-                        token
-                );
+                authContext.getResponse().addHeader(jwtProperties.tokenName(), token);
 
                 return new SignUpResult().setStatus(HttpStatus.OK).setUser(user);
             }
@@ -162,22 +159,25 @@ public class AuthService {
         return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
     }
 
-    public HttpStatus confirmSignUpStart(HttpServletRequest request, Locale locale, String email) throws MessagingException {
-        if (userAccountDetailsService.isExistEmail(email)) {
-            return HttpStatus.CONFLICT;
+    public SendVerificationResult confirmSignUpStart(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
+        if (userAccountDetailsService.isExist(authKey)) {
+            return new SendVerificationResult(HttpStatus.CONFLICT, null, null);
         }
 
-        emailVerificationService.sendVerification(request, locale, email);
+        if (bruteForceService.isBlocked(request, BruteForceService.Type.SIGN_UP)) {
+            return new SendVerificationResult(HttpStatus.TOO_MANY_REQUESTS, null, null);
+        }
+        bruteForceService.count(request, BruteForceService.Type.SIGN_UP);
 
-        return HttpStatus.OK;
+        return verificationService.sendVerification(request, locale, authKey);
     }
 
     public void cancelSignUp(HttpServletRequest request) {
-        httpSessionManager.removeState(request);
+        verificationStorage.expire(request);
     }
 
     public HttpStatus confirmation(HttpServletRequest request) {
-        SignUpRequest signUpRequest = httpSessionManager.getSignUp(request);
+        SignUpRequest signUpRequest = (SignUpRequest) verificationStorage.getAttr(request, VerificationStorage.SIGN_UP_REQUEST);
 
         if (signUpRequest == null) {
             return HttpStatus.FOUND;

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
@@ -90,5 +91,10 @@ public class BibliographyaConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
     public BibliographyaUserCache userCache(Cache cache) {
         return new BibliographyaUserCacheImpl(cache);
+    }
+
+    @Bean
+    public RequestContextListener requestContextListener() {
+        return new RequestContextListener();
     }
 }

@@ -7,6 +7,7 @@ import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.GeneralSettings;
+import ru.saidgadjiev.bibliographya.utils.SecureUtils;
 
 import java.sql.PreparedStatement;
 import java.util.Arrays;
@@ -37,7 +38,7 @@ public class SettingsService {
 
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
                 User.TABLE,
-                Arrays.asList(User.EMAIL, User.EMAIL_VERIFIED),
+                Arrays.asList(User.EMAIL, User.PHONE),
                 Collections.singletonList(
                         new FilterCriteria.Builder<Integer>()
                                 .propertyName(User.ID)
@@ -50,8 +51,8 @@ public class SettingsService {
         );
         Map<String, Object> values = fieldsValues.get(0);
 
-        generalSettings.setEmail((String) values.get(User.EMAIL));
-        generalSettings.setEmailVerified((Boolean) values.get(User.EMAIL_VERIFIED));
+        generalSettings.setEmail(SecureUtils.secureEmail((String) values.get(User.EMAIL)));
+        generalSettings.setPhone(SecureUtils.securePhone((String) values.get(User.PHONE)));
 
         return generalSettings;
     }

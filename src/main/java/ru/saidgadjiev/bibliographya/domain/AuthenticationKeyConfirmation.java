@@ -1,24 +1,11 @@
 package ru.saidgadjiev.bibliographya.domain;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 
-public class EmailConfirmation {
-
-    @NotNull
-    @Email
-    private String email;
+public class AuthenticationKeyConfirmation {
 
     @NotNull
     private Integer code;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public Integer getCode() {
         return code;

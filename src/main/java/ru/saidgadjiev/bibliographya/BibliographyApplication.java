@@ -16,7 +16,9 @@ import ru.saidgadjiev.bibliographya.service.api.StorageService;
 		VKProperties.class,
         StorageProperties.class,
 		UIProperties.class,
-		AppProperties.class
+		AppProperties.class,
+		VerificationProperties.class,
+		TwilioProperties.class
 })
 @EnableScheduling
 @EnableAsync

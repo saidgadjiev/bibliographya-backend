@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -17,7 +16,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserCache;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -25,13 +23,16 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
 import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
 import ru.saidgadjiev.bibliographya.security.filter.AuthenticationFilter;
-import ru.saidgadjiev.bibliographya.security.handler.*;
+import ru.saidgadjiev.bibliographya.security.handler.AuthenticationFailureHandlerImpl;
+import ru.saidgadjiev.bibliographya.security.handler.AuthenticationSuccessHandlerImpl;
+import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
+import ru.saidgadjiev.bibliographya.security.handler.LogoutSuccessHandlerImpl;
+import ru.saidgadjiev.bibliographya.security.provider.CustomAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
-import ru.saidgadjiev.bibliographya.service.impl.TokenService;
+import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 
 import javax.servlet.Filter;
 import java.util.Arrays;
@@ -45,7 +46,7 @@ import java.util.Collections;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private UserDetailsService userDetailsService;
+    private BibliographyaUserDetailsService userDetailsService;
 
     private PasswordEncoder passwordEncoder;
 
@@ -53,32 +54,28 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private UserCache userCache;
 
-    private UIProperties uiProperties;
-
     private JwtProperties jwtProperties;
 
     private ApplicationEventPublisher eventPublisher;
 
-    private TokenService tokenService;
+    private AuthTokenService tokenService;
 
     private SecurityContextRepository securityContextRepository;
 
     @Autowired
-    public SecurityConfiguration(UserDetailsService userDetailsService,
+    public SecurityConfiguration(BibliographyaUserDetailsService userDetailsService,
                                  PasswordEncoder passwordEncoder,
                                  ObjectMapper objectMapper,
                                  UserCache userCache,
-                                 UIProperties uiProperties,
                                  JwtProperties jwtProperties,
                                  ApplicationEventPublisher eventPublisher,
-                                 TokenService tokenService) {
+                                 AuthTokenService tokenService) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
         this.tokenService = tokenService;
         this.objectMapper = objectMapper;
         this.userCache = userCache;
-        this.uiProperties = uiProperties;
         this.jwtProperties = jwtProperties;
     }
 
@@ -89,7 +86,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(jwtAuthenticationProvider()).authenticationProvider(daoAuthenticationProvider());
+        auth.authenticationProvider(jwtAuthenticationProvider()).authenticationProvider(authenticationProvider());
     }
 
     @Override
@@ -117,7 +114,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .logoutSuccessHandler(new LogoutSuccessHandlerImpl(eventPublisher))
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")
-                    .addLogoutHandler(new JwtCookieClearingLogoutHandler(uiProperties, jwtProperties))
+                    //.addLogoutHandler(new JwtCookieClearingLogoutHandler(uiProperties, jwtProperties))
                     .permitAll();
     }
 
@@ -127,8 +124,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    private AuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    private AuthenticationProvider authenticationProvider() {
+        CustomAuthenticationProvider authProvider = new CustomAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
@@ -140,7 +137,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private AuthenticationProvider jwtAuthenticationProvider() {
         JwtTokenAuthenticationProvider authProvider = new JwtTokenAuthenticationProvider();
 
-        authProvider.setUserDetailsService((BibliographyaUserDetailsService) userDetailsService);
+        authProvider.setUserDetailsService(userDetailsService);
         authProvider.setUserCache((BibliographyaUserCache) userCache);
 
         return authProvider;
@@ -152,13 +149,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         AuthenticationFilter authenticationFilter = new AuthenticationFilter(objectMapper);
 
         authenticationFilter.setAuthenticationSuccessHandler(
-                new AuthenticationSuccessHandlerImpl(
-                        objectMapper,
-                        tokenService,
-                        uiProperties,
-                        jwtProperties,
-                        eventPublisher
-                )
+                new AuthenticationSuccessHandlerImpl(objectMapper, tokenService, jwtProperties, eventPublisher)
         );
         authenticationFilter.setAuthenticationFailureHandler(new AuthenticationFailureHandlerImpl());
         authenticationFilter.setAuthenticationManager(authenticationManager());

@@ -2,9 +2,9 @@ package ru.saidgadjiev.bibliographya.model;
 
 public class GeneralSettings {
 
-    private String email;
+    private String phone;
 
-    private boolean emailVerified;
+    private String email;
 
     public String getEmail() {
         return email;
@@ -14,11 +14,11 @@ public class GeneralSettings {
         this.email = email;
     }
 
-    public boolean isEmailVerified() {
-        return emailVerified;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setEmailVerified(boolean emailVerified) {
-        this.emailVerified = emailVerified;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

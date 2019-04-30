@@ -1,10 +1,8 @@
 package ru.saidgadjiev.bibliographya.service.api;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import ru.saidgadjiev.bibliographya.domain.EmailConfirmation;
-import ru.saidgadjiev.bibliographya.domain.User;
-import ru.saidgadjiev.bibliographya.domain.UserAccount;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 
@@ -17,23 +15,36 @@ import java.util.TimeZone;
 /**
  * Created by said on 22.10.2018.
  */
-public interface BibliographyaUserDetailsService extends UserDetailsService {
+public interface BibliographyaUserDetailsService {
 
     User save(User user) throws SQLException;
 
+    User loadUserByUsername(AuthKey authKey) throws UsernameNotFoundException;
+
     User loadUserById(int id);
 
-    boolean isExistEmail(String username);
+    boolean isExist(AuthKey authKey);
 
     HttpStatus savePassword(SavePassword savePassword);
 
-    HttpStatus restorePasswordStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
+    SendVerificationResult restorePasswordStart(HttpServletRequest request,
+                                    Locale locale,
+                                    AuthKey authKey) throws MessagingException;
 
     HttpStatus restorePasswordFinish(HttpServletRequest request, RestorePassword restorePassword);
 
-    HttpStatus saveEmailFinish(HttpServletRequest request, EmailConfirmation emailConfirmation);
+    HttpStatus saveEmailFinish(HttpServletRequest request, AuthenticationKeyConfirmation authenticationKeyConfirmation);
 
-    HttpStatus saveEmailStart(HttpServletRequest request, Locale locale, String email) throws MessagingException;
+    SendVerificationResult saveEmailStart(HttpServletRequest request,
+                              Locale locale,
+                              AuthKey authKey) throws MessagingException;
+
+    SendVerificationResult savePhoneStart(HttpServletRequest request,
+                              Locale locale,
+                              AuthKey authKey) throws MessagingException;
+
+    HttpStatus savePhoneFinish(HttpServletRequest request,
+                               AuthenticationKeyConfirmation authenticationKeyConfirmation);
 
     UserAccount getAccount(TimeZone timeZone, int userId);
 }

@@ -2,6 +2,7 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.service.api.TokenService;
 import ru.saidgadjiev.bibliographya.utils.TimeUtils;
 
 import java.util.HashMap;
@@ -11,11 +12,11 @@ import java.util.Map;
  * Created by said on 26.12.2018.
  */
 @Service
-public class TokenService {
+public class AuthTokenService {
 
-    private final JwtTokenServiceImpl jwtTokenService;
+    private final TokenService jwtTokenService;
 
-    public TokenService(JwtTokenServiceImpl jwtTokenService) {
+    public AuthTokenService(TokenService jwtTokenService) {
         this.jwtTokenService = jwtTokenService;
     }
 
