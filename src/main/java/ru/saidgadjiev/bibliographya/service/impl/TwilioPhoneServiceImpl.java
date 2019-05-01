@@ -13,7 +13,6 @@ import ru.saidgadjiev.bibliographya.service.api.PhoneService;
 
 @Service
 @Profile(BibliographyaConfiguration.PROFILE_PROD)
-//TODO: рскомментить
 public class TwilioPhoneServiceImpl implements PhoneService, InitializingBean {
 
     private TwilioProperties twilioProperties;

@@ -41,13 +41,13 @@ public class UserDao {
         jdbcTemplate.update(
                 con -> {
                     PreparedStatement ps = con.prepareStatement(
-                            "INSERT INTO \"user\"(email, phone, password) VALUES (?, ?, ?, ?, ?)",
+                            "INSERT INTO \"user\"(email, phone, password) VALUES (?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS
                     );
 
                     ps.setString(1, user.getUsername());
-                    ps.setString(3, user.getPhone());
-                    ps.setString(5, user.getPassword());
+                    ps.setString(2, user.getPhone());
+                    ps.setString(3, user.getPassword());
 
                     return ps;
                 },
@@ -130,10 +130,9 @@ public class UserDao {
 
     public boolean isExistEmail(String email) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM \"user\" WHERE email = ? AND email_verified = ?",
+                "SELECT COUNT(*) as cnt FROM \"user\" WHERE email = ?",
                 preparedStatement -> {
                     preparedStatement.setString(1, email);
-                    preparedStatement.setBoolean(2, true);
                 },
                 rs -> rs.next() && rs.getLong("cnt") > 0
         );
@@ -141,10 +140,9 @@ public class UserDao {
 
     public boolean isExistPhone(String phone) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM \"user\" WHERE phone = ? AND phone_verified = ?",
+                "SELECT COUNT(*) as cnt FROM \"user\" WHERE phone = ?",
                 preparedStatement -> {
                     preparedStatement.setString(1, phone);
-                    preparedStatement.setBoolean(2, true);
                 },
                 rs -> rs.next() && rs.getLong("cnt") > 0
         );
