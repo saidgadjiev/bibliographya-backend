@@ -84,9 +84,17 @@ public class BiographyCategoryController {
             @PathVariable("id") Integer id,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "autobiographies", required = false) Boolean autobiographies,
-            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize,
+            @RequestParam(value = "query", required = false) String query
     ) throws ScriptException, NoSuchMethodException {
-        Page<Biography> page = biographyService.getBiographies(timeZone, pageRequest, id, autobiographies, biographyClampSize);
+        Page<Biography> page = biographyService.getBiographies(
+                timeZone,
+                pageRequest,
+                id,
+                autobiographies,
+                biographyClampSize,
+                query
+        );
 
         if (page.getContent().size() == 0) {
             return ResponseEntity.noContent().build();

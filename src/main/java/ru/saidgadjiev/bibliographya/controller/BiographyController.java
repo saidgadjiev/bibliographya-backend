@@ -72,14 +72,16 @@ public class BiographyController {
             TimeZone timeZone,
             OffsetLimitPageRequest pageRequest,
             @RequestParam(value = "autobiographies", required = false) Boolean autobiographies,
-            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize
+            @RequestParam(value = "biographyClampSize", required = false) Integer biographyClampSize,
+            @RequestParam(value = "query", required = false) String query
     ) throws ScriptException, NoSuchMethodException {
         Page<Biography> page = biographyService.getBiographies(
                 timeZone,
                 pageRequest,
                 null,
                 autobiographies,
-                biographyClampSize
+                biographyClampSize,
+                query
         );
 
         if (page.getContent().size() == 0) {

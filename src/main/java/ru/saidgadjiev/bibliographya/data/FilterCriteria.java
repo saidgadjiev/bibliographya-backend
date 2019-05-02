@@ -1,5 +1,7 @@
 package ru.saidgadjiev.bibliographya.data;
 
+import ru.saidgadjiev.bibliographya.data.operator.Operator;
+
 import java.util.Objects;
 
 /**
@@ -9,7 +11,7 @@ public class FilterCriteria<T> {
 
     private String propertyName;
 
-    private FilterOperation filterOperation;
+    private Operator filterOperation;
 
     private LogicOperator logicOperator = LogicOperator.AND;
 
@@ -23,7 +25,7 @@ public class FilterCriteria<T> {
     }
 
     public FilterCriteria(String propertyName,
-                          FilterOperation filterOperation,
+                          Operator filterOperation,
                           PreparedSetter<T> valueSetter,
                           T filterValue,
                           boolean needPreparedSet) {
@@ -35,7 +37,7 @@ public class FilterCriteria<T> {
     }
 
     public FilterCriteria(String propertyName,
-                          FilterOperation filterOperation,
+                          Operator filterOperation,
                           PreparedSetter<T> valueSetter,
                           T filterValue,
                           LogicOperator logicOperator,
@@ -48,7 +50,7 @@ public class FilterCriteria<T> {
         this.needPreparedSet = needPreparedSet;
     }
 
-    public FilterOperation getFilterOperation() {
+    public Operator getFilterOperation() {
         return filterOperation;
     }
 
@@ -115,7 +117,7 @@ public class FilterCriteria<T> {
 
         private String propertyName;
 
-        private FilterOperation filterOperation;
+        private Operator filterOperation;
 
         private LogicOperator logicOperator = LogicOperator.AND;
 
@@ -131,7 +133,7 @@ public class FilterCriteria<T> {
             return this;
         }
 
-        public Builder<T> filterOperation(FilterOperation filterOperation) {
+        public Builder<T> filterOperation(Operator filterOperation) {
             this.filterOperation = filterOperation;
 
             return this;

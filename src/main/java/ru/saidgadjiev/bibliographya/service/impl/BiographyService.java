@@ -11,7 +11,9 @@ import ru.saidgadjiev.bibliographya.dao.impl.BiographyDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.LogicOperator;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.operator.Similar;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
@@ -181,8 +183,40 @@ public class BiographyService {
                                           OffsetLimitPageRequest pageRequest,
                                           Integer categoryId,
                                           Boolean autobiographies,
-                                          Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
+                                          Integer biographyClampSize,
+                                          String query) throws ScriptException, NoSuchMethodException {
         List<FilterCriteria> criteria = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(query)) {
+            String terms[] = query.split(" ");
+
+            criteria.add(
+                    new FilterCriteria.Builder<>()
+                            .filterOperation(new Similar(false, true))
+                            .filterValue(Arrays.asList(terms))
+                            .propertyName(Biography.FIRST_NAME)
+                            .logicOperator(LogicOperator.OR)
+                            .needPreparedSet(false)
+                            .build()
+            );
+            criteria.add(
+                    new FilterCriteria.Builder<>()
+                            .filterOperation(new Similar(false, true))
+                            .filterValue(Arrays.asList(terms))
+                            .propertyName(Biography.LAST_NAME)
+                            .logicOperator(LogicOperator.OR)
+                            .needPreparedSet(false)
+                            .build()
+            );
+            criteria.add(
+                    new FilterCriteria.Builder<>()
+                            .filterOperation(new Similar(false, true))
+                            .filterValue(Arrays.asList(terms))
+                            .propertyName(Biography.MIDDLE_NAME)
+                            .needPreparedSet(false)
+                            .build()
+            );
+        }
 
         if (autobiographies != null) {
             criteria.add(
@@ -562,7 +596,7 @@ public class BiographyService {
     private Collection<String> normalizeFields(Collection<String> fields) {
         Collection<String> normalizedFields = new ArrayList<>();
 
-        for (String field: fields) {
+        for (String field : fields) {
             switch (field) {
                 case BiographyBaseResponse.ANONYMOUS_CREATOR:
                     normalizedFields.add(Biography.ANONYMOUS_CREATOR);

@@ -1,30 +1,63 @@
 package ru.saidgadjiev.bibliographya.data;
 
+import ru.saidgadjiev.bibliographya.data.operator.Operator;
+
 /**
  * Created by said on 24.11.2018.
  */
-public enum FilterOperation {
+public enum FilterOperation implements Operator {
 
-    EQ ("eq"),
-    FIELDS_EQ("fields_eq"),
-    FIELDS_NOT_EQ("fields_not_eq"),
-    NOT_EQ("not_eq"),
-    IS_NOT_NULL("is_not_null"),
-    IS_NULL ("is_null");
-
-    private final String desc;
-
-    FilterOperation(String desc) {
-        this.desc = desc;
-    }
-
-    public static FilterOperation from(String value) {
-        for (FilterOperation operation: values()) {
-            if (operation.desc.equals(value)) {
-                return operation;
-            }
+    EQ {
+        @Override
+        public FilterOperation getType() {
+            return EQ;
         }
+    },
+    FIELDS_EQ {
+        @Override
+        public FilterOperation getType() {
+            return FIELDS_EQ;
+        }
+    },
+    FIELDS_NOT_EQ {
+        @Override
+        public FilterOperation getType() {
+            return FIELDS_NOT_EQ;
+        }
+    },
+    NOT_EQ {
+        @Override
+        public FilterOperation getType() {
+            return NOT_EQ;
+        }
+    },
+    LIKE {
+        @Override
+        public FilterOperation getType() {
+            return LIKE;
+        }
+    },
+    IS_NOT_NULL {
+        @Override
+        public FilterOperation getType() {
+            return IS_NOT_NULL;
+        }
+    },
+    IS_NULL {
+        @Override
+        public FilterOperation getType() {
+            return IS_NULL;
+        }
+    },
+    SIMILAR {
+        @Override
+        public FilterOperation getType() {
+            return SIMILAR;
+        }
+    };
 
-        throw new UnsupportedOperationException();
+    @Override
+    public String getClause(FilterCriteria criteria) {
+        return null;
     }
 }

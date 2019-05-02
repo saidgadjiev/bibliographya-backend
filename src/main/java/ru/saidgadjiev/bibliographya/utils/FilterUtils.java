@@ -24,7 +24,7 @@ public class FilterUtils {
             for (Iterator<FilterCriteria> iterator = criteria.iterator(); iterator.hasNext(); ) {
                 FilterCriteria criterion = iterator.next();
 
-                switch (criterion.getFilterOperation()) {
+                switch (criterion.getFilterOperation().getType()) {
                     case EQ:
                         if (alias != null) {
                             clause.append(alias).append(".").append(criterion.getPropertyName()).append("=").append("?");
@@ -64,11 +64,34 @@ public class FilterUtils {
                             clause.append(criterion.getPropertyName()).append(" IS NULL");
                         }
                         break;
+                    case LIKE:
+                        if (alias != null) {
+                            clause
+                                    .append(alias).append(".").append(criterion.getPropertyName())
+                                    .append(criterion.getFilterOperation().getClause(null));
+                        } else {
+                            clause
+                                    .append(criterion.getPropertyName())
+                                    .append(criterion.getFilterOperation().getClause(null));
+                        }
+                        break;
                     case IS_NOT_NULL:
                         if (alias != null) {
                             clause.append(alias).append(".").append(criterion.getPropertyName()).append(" IS NOT NULL");
                         } else {
                             clause.append(criterion.getPropertyName()).append(" IS NOT NULL");
+                        }
+                        break;
+                    case SIMILAR:
+                        if (alias != null) {
+                            clause
+                                    .append(alias).append(".").append(criterion.getPropertyName()).append(" ")
+                                    .append(criterion.getFilterOperation().getClause(criterion));
+                        } else {
+                            clause
+                                    .append(criterion.getPropertyName())
+                                    .append(" ")
+                                    .append(criterion.getFilterOperation().getClause(criterion));
                         }
                         break;
                 }
