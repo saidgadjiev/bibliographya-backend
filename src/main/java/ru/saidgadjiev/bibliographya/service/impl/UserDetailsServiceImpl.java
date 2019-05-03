@@ -94,7 +94,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                 break;
             }
             case EMAIL: {
-                user = userDao.getByPhone(authKey.getEmail());
+                user = userDao.getByEmail(authKey.getEmail());
                 break;
             }
         }

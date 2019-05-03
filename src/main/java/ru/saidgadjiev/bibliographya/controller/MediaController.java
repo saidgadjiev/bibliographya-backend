@@ -20,7 +20,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/api/media")
-@PreAuthorize("hasAnyRole('ROLE_MODERATOR')")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
 public class MediaController {
 
     private StashMediaService stashMediaService;
