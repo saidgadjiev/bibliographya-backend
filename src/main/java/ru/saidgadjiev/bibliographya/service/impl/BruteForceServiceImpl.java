@@ -24,7 +24,7 @@ public class BruteForceServiceImpl implements ru.saidgadjiev.bibliographya.servi
     private VerificationStorage verificationStorage;
 
     private LoadingCache<String, AtomicLong> bruteCache = Caffeine.newBuilder()
-            .expireAfterWrite(Duration.ofHours(1))
+            .expireAfterWrite(Duration.ofHours(3))
             .build(s -> new AtomicLong());
 
     @Autowired

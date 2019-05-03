@@ -313,7 +313,7 @@ public class BiographyService {
                 criteria,
                 isLikedCriteria(),
                 Arrays.asList(Biography.CREATOR_ID, Biography.IS_LIKED),
-                null
+                pageRequest.getSort()
         );
 
         if (biographies.isEmpty()) {

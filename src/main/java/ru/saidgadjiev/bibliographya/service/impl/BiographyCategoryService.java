@@ -15,6 +15,7 @@ import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
+import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 import ru.saidgadjiev.bibliographya.utils.FileNameUtils;
 
@@ -67,16 +68,16 @@ public class BiographyCategoryService {
         KeyHolder keyHolder = generalDao.create(BiographyCategory.TABLE, values);
         int id = (int) keyHolder.getKeys().get(BiographyCategory.ID);
 
-        String filePath = FileNameUtils.categoryUploadPath(id, file);
+        String fileName = FileNameUtils.categoryUploadFileName(id, file);
 
-        storageService.store(filePath, file);
+        storageService.store(StorageProperties.CATEGORY_ROOT + "/" + fileName, file);
 
         Collection<UpdateValue> filePathUpdateValues = new ArrayList<>();
 
         filePathUpdateValues.add(
                 new UpdateValue<>(
                         BiographyCategory.IMAGE_PATH,
-                        filePath,
+                        fileName,
                         PreparedStatement::setString
                 )
         );
@@ -99,7 +100,7 @@ public class BiographyCategoryService {
 
         category.setId(id);
         category.setName(categoryRequest.getName());
-        category.setImagePath(filePath);
+        category.setImagePath(fileName);
 
         return category;
     }
@@ -132,20 +133,20 @@ public class BiographyCategoryService {
         }
 
         if (file != null) {
-            storageService.deleteResource(actual.getImagePath());
-            String filePath = FileNameUtils.categoryUploadPath(id, file);
+            storageService.deleteResource(StorageProperties.CATEGORY_ROOT + "/" + actual.getImagePath());
+            String fileName = FileNameUtils.categoryUploadFileName(id, file);
 
-            storageService.store(filePath, file);
+            storageService.store(StorageProperties.CATEGORY_ROOT + "/" + fileName, file);
 
             values.add(
                     new UpdateValue<>(
                             BiographyCategory.IMAGE_PATH,
-                            filePath,
+                            fileName,
                             PreparedStatement::setString
                     )
             );
 
-            actual.setImagePath(filePath);
+            actual.setImagePath(fileName);
         }
 
         Collection<FilterCriteria> criteria = new ArrayList<>();
