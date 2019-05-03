@@ -112,7 +112,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Transactional(rollbackFor = Exception.class)
     public User save(User saveUser) throws SQLException {
         Biography saveBiography = saveUser.getBiography();
-        unverifyEmails(saveUser.getEmail());
+        unverifyPhones(saveUser.getPhone());
 
         User user = new User();
 

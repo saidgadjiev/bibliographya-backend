@@ -1,14 +1,12 @@
 package ru.saidgadjiev.bibliographya.service.impl.verification;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-@Service
-@Qualifier("session")
+@Service("session")
 public class SessionVerificationStorage implements VerificationStorage {
 
     @Override

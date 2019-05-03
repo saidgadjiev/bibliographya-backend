@@ -49,9 +49,9 @@ public class TestModelsUtils {
     public static final Cookie TEST_TOKEN_REMOVE_COOKIE = new Cookie("X-TOKEN", null);
 
     static {
-
-        TEST_AUTHENTICATION_KEY.setEmail(TEST_EMAIL);
-        TEST_AUTHENTICATION_KEY.setType(AuthKey.Type.EMAIL);
+        TEST_AUTHENTICATION_KEY.setCountryCode("7");
+        TEST_AUTHENTICATION_KEY.setPhone("9032691377");
+        TEST_AUTHENTICATION_KEY.setType(AuthKey.Type.PHONE);
 
         TEST_TOKEN_COOKIE.setMaxAge(60 * 60 * 24 * 30);
         TEST_TOKEN_COOKIE.setDomain(TEST_SERVER_NAME);

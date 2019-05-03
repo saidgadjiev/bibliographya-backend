@@ -9,3 +9,10 @@ spring:
 app:
   jwt:
     secret: test
+logging:
+  level:
+    org:
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: DEBUG

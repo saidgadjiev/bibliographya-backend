@@ -379,7 +379,7 @@ class BugServiceTest {
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
-                        eq(any()),
+                        any(),
                         eq(Collections.emptyList()),
                         eq(Collections.emptySet())
                 )
@@ -435,7 +435,7 @@ class BugServiceTest {
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
-                        eq(any()),
+                        any(),
                         eq(Collections.emptyList()),
                         eq(Collections.singleton("fixer"))
                 )
@@ -472,7 +472,7 @@ class BugServiceTest {
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
-                        eq(any()),
+                        any(),
                         eq(Collections.emptyList()),
                         eq(Collections.emptySet())
                 )

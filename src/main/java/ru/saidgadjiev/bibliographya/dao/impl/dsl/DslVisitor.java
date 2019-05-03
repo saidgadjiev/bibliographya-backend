@@ -24,6 +24,8 @@ public class DslVisitor implements QueryVisitor {
 
     private String alias;
 
+    private String escapeLiteral = "\"";
+
     public DslVisitor(String alias) {
         this.alias = alias;
     }
@@ -33,7 +35,7 @@ public class DslVisitor implements QueryVisitor {
         if (stringLiteral.getOriginal() == null) {
             clause.append("null");
         } else {
-            clause.append("'").append(stringLiteral.getOriginal()).append("'");
+            clause.append(escapeLiteral).append(stringLiteral.getOriginal()).append(escapeLiteral);
         }
     }
 
@@ -92,7 +94,7 @@ public class DslVisitor implements QueryVisitor {
         if (StringUtils.isNotBlank(alias)) {
             clause.append(alias).append(".");
         }
-        clause.append("'").append(columnSpec.getName()).append("'");
+        clause.append(escapeLiteral).append(columnSpec.getName()).append(escapeLiteral);
 
         return false;
     }

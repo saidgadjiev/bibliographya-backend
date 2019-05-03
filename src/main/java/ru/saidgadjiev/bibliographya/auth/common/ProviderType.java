@@ -7,7 +7,7 @@ public enum ProviderType {
 
     FACEBOOK("facebook"),
     VK("vk"),
-    EMAIL_PASSWORD("email_password");
+    PHONE_PASSWORD("phone_password");
 
     private final String id;
 

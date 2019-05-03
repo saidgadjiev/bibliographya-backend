@@ -47,17 +47,19 @@ class GeneralDaoTest {
     @Test
     void update() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, "Test");
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, "Test");
                 }
         );
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, "Test");
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, "Test");
                 }
         );
 
@@ -101,17 +103,19 @@ class GeneralDaoTest {
     @Test
     void getFields() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, "Test1");
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, "Test");
                 }
         );
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, "Test2");
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, "Test");
                 }
         );
 

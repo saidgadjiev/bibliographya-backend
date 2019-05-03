@@ -181,10 +181,11 @@ class BiographyLikeDaoTest {
 
     private void createTestUser() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password) VALUES(?, ?)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, "Test");
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, "Test");
                 }
         );
     }

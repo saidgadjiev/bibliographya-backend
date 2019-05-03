@@ -92,7 +92,7 @@ public class AuthService {
                 signUpRequest.setMiddleName(userInfo.getMiddleName());
 
                 break;
-            case EMAIL_PASSWORD:
+            case PHONE_PASSWORD:
                 signUpRequest = (SignUpRequest) authContext.getBody();
 
                 break;

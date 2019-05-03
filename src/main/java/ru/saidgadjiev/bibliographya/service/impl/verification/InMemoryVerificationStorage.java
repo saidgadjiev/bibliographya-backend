@@ -14,8 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by said on 23/04/2019.
  */
-@Service
-@Qualifier("inMemory")
+@Service("inMemory")
 public class InMemoryVerificationStorage implements VerificationStorage {
 
     private LoadingCache<String, Map<String, Object>> coldCache = Caffeine.newBuilder()

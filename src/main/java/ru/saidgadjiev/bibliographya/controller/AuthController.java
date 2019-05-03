@@ -53,7 +53,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (providerType.equals(ProviderType.EMAIL_PASSWORD)) {
+        if (providerType.equals(ProviderType.PHONE_PASSWORD)) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -104,7 +104,7 @@ public class AuthController {
         }
 
         AuthContext authContext = new AuthContext()
-                .setProviderType(ProviderType.EMAIL_PASSWORD)
+                .setProviderType(ProviderType.PHONE_PASSWORD)
                 .setRequest(request)
                 .setBody(signUpRequest);
 

@@ -14,8 +14,7 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
-import ru.saidgadjiev.bibliographya.properties.JwtProperties;
-import ru.saidgadjiev.bibliographya.properties.UIProperties;
+import ru.saidgadjiev.bibliographya.service.api.BruteForceService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 import ru.saidgadjiev.bibliographya.service.impl.SecurityService;
@@ -23,11 +22,9 @@ import ru.saidgadjiev.bibliographya.service.impl.UserDetailsServiceImpl;
 import ru.saidgadjiev.bibliographya.service.impl.VerificationServiceWrapper;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.FacebookService;
 import ru.saidgadjiev.bibliographya.service.impl.auth.social.VKService;
-import ru.saidgadjiev.bibliographya.service.impl.verification.SessionVerificationStorage;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
@@ -42,6 +39,12 @@ import static org.mockito.ArgumentMatchers.eq;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class AuthServiceTest {
+
+    @MockBean(name = "inMemory")
+    private VerificationStorage verificationStorage;
+
+    @MockBean
+    private BruteForceService bruteForceService;
 
     @Autowired
     private AuthService authService;
@@ -62,17 +65,7 @@ class AuthServiceTest {
     private AuthTokenService tokenService;
 
     @MockBean
-    private VerificationServiceWrapper emailVerificationService;
-
-    @MockBean
-    private SessionVerificationStorage sessionManager;
-
-    @MockBean
-    private UIProperties uiProperties;
-
-    @MockBean
-    private JwtProperties jwtProperties;
-
+    private VerificationServiceWrapper verificationService;
 
     @Test
     void getFacebookOauthUrl() {
@@ -100,13 +93,13 @@ class AuthServiceTest {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
         AuthContext authContext = new AuthContext()
-                .setProviderType(ProviderType.EMAIL_PASSWORD)
+                .setProviderType(ProviderType.PHONE_PASSWORD)
                 .setRequest(request)
                 .setBody(signUpRequest);
 
         authService.signUp(authContext, null);
 
-        Mockito.verify(sessionManager, Mockito.times(1)).setAttr(request, VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
+        Mockito.verify(verificationStorage, Mockito.times(1)).setAttr(request, VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
     }
 
     @Test
@@ -116,15 +109,17 @@ class AuthServiceTest {
         Locale locale = new Locale("ru", "RU");
 
         Mockito.when(userDetailsService.isExist(TestModelsUtils.TEST_AUTHENTICATION_KEY)).thenReturn(false);
+        Mockito
+                .when(verificationService.sendVerification(eq(request), eq(locale), eq(TestModelsUtils.TEST_AUTHENTICATION_KEY)))
+                .thenReturn(new SendVerificationResult(HttpStatus.OK, null, null));
 
         SendVerificationResult status = authService.confirmSignUpStart(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
 
         Assertions.assertEquals(status.getStatus(), HttpStatus.OK);
-        Mockito.verify(emailVerificationService, Mockito.times(1)).sendVerification(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
     }
 
     @Test
-    void confirmSignUpStartEmailConflict() throws Exception {
+    void confirmSignUpStartPhoneConflict() throws Exception {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
         Locale locale = new Locale("ru", "RU");
@@ -134,7 +129,7 @@ class AuthServiceTest {
         SendVerificationResult status = authService.confirmSignUpStart(request, Locale.ENGLISH, TestModelsUtils.TEST_AUTHENTICATION_KEY);
 
         Assertions.assertEquals(status.getStatus(), HttpStatus.CONFLICT);
-        Mockito.verify(emailVerificationService, Mockito.times(0)).sendVerification(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
+        Mockito.verify(verificationService, Mockito.times(0)).sendVerification(request, locale, TestModelsUtils.TEST_AUTHENTICATION_KEY);
     }
 
     @Test
@@ -148,8 +143,9 @@ class AuthServiceTest {
         signUpRequest.setLastName(TestModelsUtils.TEST_LAST_NAME);
         signUpRequest.setMiddleName(TestModelsUtils.TEST_MIDDLE_NAME);
 
-        Mockito.when(sessionManager.getAttr(request, VerificationStorage.SIGN_UP_REQUEST)).thenReturn(signUpRequest);
-        Mockito.when(emailVerificationService.verify(any(), eq(1234), false))
+        Mockito.when(verificationStorage.getAttr(request, VerificationStorage.SIGN_UP_REQUEST)).thenReturn(signUpRequest);
+        Mockito.when(verificationStorage.getAttr(request, VerificationStorage.AUTH_KEY, null)).thenReturn(TestModelsUtils.TEST_AUTHENTICATION_KEY);
+        Mockito.when(verificationService.verify(any(), eq(1234), eq(true)))
                 .thenReturn(new VerificationResult().setStatus(VerificationResult.Status.VALID));
 
         List<User> db = new ArrayList<>();
@@ -161,6 +157,7 @@ class AuthServiceTest {
 
             user.setPassword(req.getPassword());
             user.setEmail(req.getEmail());
+            user.setPhone(req.getPhone());
             user.setId(1);
 
             user.setBiography(req.getBiography());
@@ -172,19 +169,7 @@ class AuthServiceTest {
             return user;
         }).when(userDetailsService).save(any(User.class));
 
-        Mockito.when(uiProperties.getHost()).thenReturn(TestModelsUtils.TEST_SERVER_NAME);
-        Mockito.when(jwtProperties.tokenName()).thenReturn(TestModelsUtils.TEST_TOKEN_COOKIE.getName());
         Mockito.when(tokenService.createToken(any())).thenReturn(TestModelsUtils.TEST_JWT_TOKEN);
-
-        List<Cookie> cookies = new ArrayList<>();
-
-        Mockito.doAnswer(invocation -> {
-            Cookie cookie = (Cookie) invocation.getArguments()[0];
-
-            cookies.add(cookie);
-
-            return null;
-        }).when(response).addCookie(any());
 
         AuthContext authContext = new AuthContext();
 
@@ -206,7 +191,7 @@ class AuthServiceTest {
         User expected = new User();
 
         expected.setId(TestModelsUtils.TEST_USER_ID);
-        expected.setEmail(TestModelsUtils.TEST_EMAIL);
+        expected.setPhone(TestModelsUtils.TEST_PHONE);
         expected.setPassword("Test");
 
         expected.setRoles(Collections.singleton(new Role(Role.ROLE_USER)));
@@ -218,7 +203,6 @@ class AuthServiceTest {
 
         TestAssertionsUtils.assertUserEquals(expected, signUpResult.getUser());
         TestAssertionsUtils.assertUserEquals(expected, db.get(0));
-        TestAssertionsUtils.assertCookieEquals(TestModelsUtils.TEST_TOKEN_COOKIE, cookies.get(0));
         Mockito.verify(securityService, Mockito.times(1)).autoLogin(db.get(0));
     }
 }

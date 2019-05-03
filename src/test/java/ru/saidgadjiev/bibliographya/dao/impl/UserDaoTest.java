@@ -56,6 +56,7 @@ class UserDaoTest {
 
         saveUser.setEmail(TestModelsUtils.TEST_EMAIL);
         saveUser.setPassword("Test");
+        saveUser.setPhone(TestModelsUtils.TEST_PHONE);
 
         userDao.save(saveUser);
 
@@ -103,17 +104,19 @@ class UserDaoTest {
     @Test
     void get() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL);
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL + "2");
                     preparedStatement.setString(2, "Test2");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
 
@@ -230,17 +233,19 @@ class UserDaoTest {
     @Test
     void getStats() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL);
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL + "2");
                     preparedStatement.setString(2, "Test2");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
 
@@ -266,10 +271,11 @@ class UserDaoTest {
     @Test
     void isExistEmail() {
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL);
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
 
