@@ -42,7 +42,7 @@ public class AssignMeOperation {
             add(new Equals(new ColumnSpec(Biography.ID), new Param()));
             add(new IsNull(new ColumnSpec(Biography.MODERATOR_ID)));
         }}, Collections.singletonList(
-                ((preparedStatement, index) -> preparedStatement.setInt(index, biographyId))
+                (preparedStatement, index) -> preparedStatement.setInt(index, biographyId)
         ));
     }
 }

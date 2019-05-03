@@ -8,11 +8,8 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.IsNull;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by said on 04.01.2019.
