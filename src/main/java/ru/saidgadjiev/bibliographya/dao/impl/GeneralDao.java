@@ -10,6 +10,7 @@ import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
 import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
@@ -73,7 +74,9 @@ public class GeneralDao {
     public int update(String table, Collection<UpdateValue> values, AndCondition criteria, List<PreparedSetter> setValues, Map<String, Object> returnValues) {
         DslVisitor visitor = new DslVisitor(null);
 
-        criteria.accept(visitor);
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
 
         String clause = visitor.getClause();
         StringBuilder sql = new StringBuilder();
@@ -145,7 +148,9 @@ public class GeneralDao {
 
         DslVisitor visitor = new DslVisitor(null);
 
-        criteria.accept(visitor);
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
 
         String clause = visitor.getClause();
 

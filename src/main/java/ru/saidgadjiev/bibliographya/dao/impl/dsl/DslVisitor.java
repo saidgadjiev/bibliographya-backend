@@ -5,6 +5,7 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.Alias;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.QueryVisitor;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.*;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.function.Lower;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.BooleanLiteral;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.IntLiteral;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
@@ -176,6 +177,13 @@ public class DslVisitor implements QueryVisitor {
     @Override
     public void visit(Alias alias) {
         clause.append("'").append(alias.getAlias()).append("'");
+    }
+
+    @Override
+    public void visit(Lower lower) {
+        clause.append("lower(");
+        lower.getOperand().accept(this);
+        clause.append(")");
     }
 
     public String getClause() {

@@ -3,6 +3,7 @@ package ru.saidgadjiev.bibliographya.data.query.dsl.core;
 
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.*;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.function.Lower;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.BooleanLiteral;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.IntLiteral;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
@@ -155,4 +156,6 @@ public interface QueryVisitor {
     void visit(Similar similar);
 
     void visit(Alias alias);
+
+    void visit(Lower lower);
 }

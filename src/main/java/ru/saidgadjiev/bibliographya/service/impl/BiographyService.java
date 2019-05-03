@@ -13,6 +13,7 @@ import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.*;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.function.Lower;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
@@ -186,10 +187,10 @@ public class BiographyService {
             List<String> terms = Arrays.asList(query.split(" "));
             StringBuilder pattern = new StringBuilder();
 
-            pattern.append("%(");
+            pattern.append("(");
 
             for (Iterator<String> iterator = terms.iterator(); iterator.hasNext(); ) {
-                pattern.append(iterator.next());
+                pattern.append(iterator.next().toLowerCase());
 
                 if (iterator.hasNext()) {
                     pattern.append("|");
@@ -202,13 +203,13 @@ public class BiographyService {
                 add(
                         new Expression() {{
                             add(new AndCondition() {{
-                                add(new Similar(new ColumnSpec(Biography.FIRST_NAME), pattern.toString()));
+                                add(new Similar(new Lower(new ColumnSpec(Biography.FIRST_NAME)), pattern.toString()));
                             }});
                             add(new AndCondition() {{
-                                add(new Similar(new ColumnSpec(Biography.LAST_NAME), pattern.toString()));
+                                add(new Similar(new Lower(new ColumnSpec(Biography.LAST_NAME)), pattern.toString()));
                             }});
                             add(new AndCondition() {{
-                                add(new Similar(new ColumnSpec(Biography.MIDDLE_NAME), pattern.toString()));
+                                add(new Similar(new Lower(new ColumnSpec(Biography.MIDDLE_NAME)), pattern.toString()));
                             }});
                         }}
                 );

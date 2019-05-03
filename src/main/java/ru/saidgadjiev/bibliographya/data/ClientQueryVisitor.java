@@ -56,7 +56,7 @@ public class ClientQueryVisitor<R, A> implements RSQLVisitor<R, A> {
             String argument = arguments.iterator().next();
 
             if (argument.equals("null")) {
-                condition.add(new IsNull(new ColumnSpec(comparisonNode.getSelector())));
+                condition.add(new IsNull(new ColumnSpec(field)));
             } else {
                 switch (fieldsMapper.getType(comparisonNode.getSelector())) {
                     case INTEGER: {

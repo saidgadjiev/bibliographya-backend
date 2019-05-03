@@ -77,7 +77,6 @@ public class BiographyFixService {
             parsed.accept(visitor);
             andCondition = visitor.getCondition();
             values.addAll(visitor.getValues());
-
         }
         User user = (User) securityService.findLoggedInUser();
 

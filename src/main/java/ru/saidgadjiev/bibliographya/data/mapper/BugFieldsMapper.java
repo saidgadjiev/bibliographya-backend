@@ -12,7 +12,7 @@ import java.util.Collection;
  */
 public class BugFieldsMapper implements FieldsMapper {
 
-    private final Collection<String> fields = Arrays.asList(Bug.FIXER_ID, Bug.STATUS);
+    private final Collection<String> fields = Arrays.asList(BugResponse.FIXER_ID, BugResponse.STATUS);
 
     @Override
     public boolean has(String field) {
