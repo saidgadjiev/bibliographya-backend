@@ -9,13 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.utils.TableUtils;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -90,31 +92,21 @@ class BugDaoTest {
         values.add(
                 new UpdateValue<>(
                         "theme",
-                        "ТемаО1",
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, "ТемаО1")
                 )
         );
         values.add(
                 new UpdateValue<>(
                         "bug_case",
-                        "БагО1",
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, "БагО1")
                 )
         );
-        Collection<FilterCriteria> criteria = new ArrayList<>();
 
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName("id")
-                        .filterValue(1)
-                        .needPreparedSet(true)
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-        );
-
-
-        bugDao.update(values, criteria);
+        bugDao.update(values, new AndCondition() {{
+            add(new Equals(new ColumnSpec("id"), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, 1));
+        }});
 
         Bug actual = jdbcTemplate.query(
                 "SELECT * FROM bug WHERE id = 1",

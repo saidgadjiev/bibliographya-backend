@@ -10,6 +10,10 @@ import java.util.Collection;
  */
 public class BiographyFixResponse {
 
+    public static final String FIXER_ID = "fixerId";
+
+    public static final String STATUS = "status";
+
     private Integer id;
 
     private Integer status;

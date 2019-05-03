@@ -7,13 +7,10 @@ public class UpdateValue<T> {
 
     private String name;
 
-    private T value;
-
     private PreparedSetter<T> setter;
 
-    public UpdateValue(String name, T value, PreparedSetter<T> setter) {
+    public UpdateValue(String name, PreparedSetter<T> setter) {
         this.name = name;
-        this.value = value;
         this.setter = setter;
     }
 
@@ -31,14 +28,6 @@ public class UpdateValue<T> {
 
     public void setSetter(PreparedSetter<T> setter) {
         this.setter = setter;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(T value) {
-        this.value = value;
     }
 
 }

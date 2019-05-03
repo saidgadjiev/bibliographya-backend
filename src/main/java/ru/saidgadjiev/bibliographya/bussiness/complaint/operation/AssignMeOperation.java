@@ -1,13 +1,7 @@
 package ru.saidgadjiev.bibliographya.bussiness.complaint.operation;
 
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyReportDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.data.UpdateValue;
 
-import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +16,7 @@ public class AssignMeOperation {
     }
 
     public void execute(Map<String, Object> args) {
-        List<UpdateValue> updateValues = new ArrayList<>();
+        /*List<UpdateValue> updateValues = new ArrayList<>();
         Integer considerId = (Integer) args.get("considerId");
 
         updateValues.add(
@@ -45,6 +39,6 @@ public class AssignMeOperation {
                 )
         );
 
-        reportDao.update(updateValues, criteria);
+        reportDao.update(updateValues, criteria);*/
     }
 }

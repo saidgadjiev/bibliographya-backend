@@ -6,8 +6,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
@@ -16,13 +19,9 @@ import ru.saidgadjiev.bibliographya.utils.SortUtils;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
-
-import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
 /**
  * Created by said on 15.12.2018.
@@ -39,10 +38,17 @@ public class BiographyFixDao {
     public List<BiographyFix> getFixesList(TimeZone timeZone,
                                            int limit,
                                            long offset,
-                                           Collection<FilterCriteria> criteria,
-                                           Collection<FilterCriteria> isLikedCriteria,
+                                           AndCondition criteria,
+                                           AndCondition isLikedCriteria,
+                                           List<PreparedSetter> values,
                                            Sort sort) {
-        String clause = toClause(criteria, "bf");
+        DslVisitor visitor = new DslVisitor("bf");
+
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
+
+        String clause = visitor.getClause();
         String sortClause = SortUtils.toSql(sort, "b");
 
         StringBuilder sql = new StringBuilder();
@@ -55,7 +61,13 @@ public class BiographyFixDao {
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON bf.biography_id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ");
 
-        String isLikedClause = toClause(isLikedCriteria, null);
+        visitor = new DslVisitor(null);
+
+        new Expression() {{
+            add(isLikedCriteria);
+        }}.accept(visitor);
+
+        String isLikedClause = visitor.getClause();
 
         sql
                 .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");
@@ -79,20 +91,8 @@ public class BiographyFixDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion
-                            : isLikedCriteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                    }
-
-                    for (FilterCriteria criterion
-                            : criteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 (rs, rowNum) -> map(rs)
@@ -127,8 +127,14 @@ public class BiographyFixDao {
         );
     }
 
-    public BiographyFix update(List<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
-        String clause = toClause(criteria, null);
+    public BiographyFix update(List<UpdateValue> updateValues, AndCondition andCondition, List<PreparedSetter> values) {
+        DslVisitor visitor = new DslVisitor(null);
+
+        new Expression() {{
+            add(andCondition);
+        }}.accept(visitor);
+
+        String clause = visitor.getClause();
 
         StringBuilder sql = new StringBuilder();
 
@@ -154,12 +160,10 @@ public class BiographyFixDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : updateValues) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        updateValue.getSetter().set(ps, ++i);
                     }
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
 
                     ps.execute();

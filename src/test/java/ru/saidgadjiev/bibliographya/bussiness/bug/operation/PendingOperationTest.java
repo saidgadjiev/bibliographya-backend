@@ -34,7 +34,7 @@ class PendingOperationTest {
         current.setId(1);
         current.setCreatedAt(new Timestamp(new Date().getTime()));
 
-        Mockito.when(bugDao.update(any(), any())).thenAnswer(new Answer<Bug>() {
+        Mockito.when(bugDao.update(any(), any(), any())).thenAnswer(new Answer<Bug>() {
             @Override
             public Bug answer(InvocationOnMock invocationOnMock) throws Throwable {
                 current.setStatus(Bug.BugStatus.PENDING);

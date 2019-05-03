@@ -6,7 +6,7 @@ import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.service.api.PhoneService;
 
 @Service
-@Profile(BibliographyaConfiguration.PROFILE_DEV)
+@Profile({BibliographyaConfiguration.PROFILE_DEV, BibliographyaConfiguration.PROFILE_TEST})
 public class DummyPhoneService implements PhoneService {
 
     @Override

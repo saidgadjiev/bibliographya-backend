@@ -38,6 +38,8 @@ public class Biography {
 
     public static final String MODERATED_AT = "moderated_at";
 
+    public static final String MODERATOR_ID = "moderator_id";
+
     public static final String ANONYMOUS_CREATOR = "anonymous_creator";
 
     public static final String DISABLE_COMMENTS = "disable_comments";

@@ -9,8 +9,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliographya.data.ClientQueryVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.mapper.GetUsersFieldsMapper;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
@@ -37,17 +39,19 @@ public class UserService {
     }
 
     public Page<User> getUsers(OffsetLimitPageRequest pageRequest, String roleQuery) {
-        List<FilterCriteria> roleCriteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(roleQuery)) {
             Node node = new RSQLParser().parse(roleQuery);
+            ClientQueryVisitor<Void, Void> visitor = new ClientQueryVisitor<>(new GetUsersFieldsMapper());
 
-            node.accept(new FilterCriteriaVisitor<>(roleCriteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
-                put("role_name", FilterCriteriaVisitor.Type.STRING);
-            }}));
+            node.accept(visitor);
+            andCondition = visitor.getCondition();
+            values = visitor.getValues();
         }
 
-        List<User> userList = userDao.getUsers(pageRequest.getPageSize(), pageRequest.getOffset(), roleCriteria);
+        List<User> userList = userDao.getUsers(pageRequest.getPageSize(), pageRequest.getOffset(), andCondition, values);
         Collection<Integer> userIds = userList.stream().map(User::getId).collect(Collectors.toList());
         Map<Integer, Set<Role>> roles = userRoleDao.getRoles(userIds);
 

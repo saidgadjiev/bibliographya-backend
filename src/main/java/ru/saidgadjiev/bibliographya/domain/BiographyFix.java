@@ -5,6 +5,12 @@ package ru.saidgadjiev.bibliographya.domain;
  */
 public class BiographyFix {
 
+    public static final String FIXER_ID = "fixer_id";
+
+    public static final String ID = "id";
+
+    public static final String STATUS = "status";
+
     private Integer id;
 
     private String fixText;

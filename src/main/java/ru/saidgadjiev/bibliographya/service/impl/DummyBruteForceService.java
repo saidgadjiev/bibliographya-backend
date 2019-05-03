@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
  * Created by said on 28/04/2019.
  */
 @Service
-@Profile(BibliographyaConfiguration.PROFILE_DEV)
+@Profile({BibliographyaConfiguration.PROFILE_DEV, BibliographyaConfiguration.PROFILE_TEST})
 public class DummyBruteForceService implements BruteForceService {
 
     @Override

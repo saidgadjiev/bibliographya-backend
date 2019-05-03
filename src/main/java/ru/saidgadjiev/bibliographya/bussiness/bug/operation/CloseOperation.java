@@ -2,12 +2,14 @@ package ru.saidgadjiev.bibliographya.bussiness.bug.operation;
 
 import ru.saidgadjiev.bibliographya.bussiness.common.BusinessOperation;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 
-import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,44 +30,28 @@ public class CloseOperation implements BusinessOperation<Bug> {
         values.add(
                 new UpdateValue<>(
                         "status",
-                        Bug.BugStatus.CLOSED.getCode(),
-                        PreparedStatement::setInt
+                        (preparedStatement, index) -> preparedStatement.setInt(index, Bug.BugStatus.CLOSED.getCode())
                 )
         );
 
         values.add(
                 new UpdateValue<>(
                         "info",
-                        null,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
+                        (preparedStatement, index) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        List<FilterCriteria> criteria = new ArrayList<>();
         int fixerId = (Integer) args.get("fixerId");
 
-        criteria.add(
-                new FilterCriteria<>(
-                        "fixer_id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        fixerId,
-                        true
-                )
-        );
         int id = (int) args.get("bugId");
 
-        criteria.add(
-                new FilterCriteria<>(
-                        "id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        id,
-                        true
-                )
-        );
-
-        Bug bug = bugDao.update(values, criteria);
+        Bug bug = bugDao.update(values, new AndCondition() {{
+            add(new Equals(new ColumnSpec(Bug.FIXER_ID), new Param()));
+            add(new Equals(new ColumnSpec(Bug.ID), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, fixerId));
+            add((preparedStatement, index) -> preparedStatement.setInt(index, id));
+        }});
 
         if (bug == null) {
             return null;

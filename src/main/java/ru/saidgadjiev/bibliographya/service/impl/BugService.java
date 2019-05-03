@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
 import ru.saidgadjiev.bibliographya.bussiness.bug.Handler;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliographya.data.ClientQueryVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.mapper.BugFieldsMapper;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -67,15 +69,17 @@ public class BugService {
     }
 
     public Page<Bug> getBugsTracks(TimeZone timeZone, OffsetLimitPageRequest pageRequest, String query) {
-        List<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
             Node node = new RSQLParser().parse(query);
 
-            node.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
-                put("status", FilterCriteriaVisitor.Type.INTEGER);
-                put("fixer_id", FilterCriteriaVisitor.Type.INTEGER);
-            }}));
+            ClientQueryVisitor<Void, Void> visitor = new ClientQueryVisitor<>(new BugFieldsMapper());
+
+            node.accept(visitor);
+            andCondition = visitor.getCondition();
+            values = visitor.getValues();
         }
 
         List<Bug> bugs = bugDao.getList(
@@ -83,7 +87,8 @@ public class BugService {
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 Sort.by(Sort.Order.asc("created_at")),
-                criteria,
+                andCondition,
+                values,
                 Collections.singleton("fixer")
         );
 
@@ -91,14 +96,17 @@ public class BugService {
     }
 
     public Page<Bug> getBugs(TimeZone timeZone, OffsetLimitPageRequest pageRequest, String query) {
-        List<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
             Node node = new RSQLParser().parse(query);
 
-            node.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
-                put("status", FilterCriteriaVisitor.Type.INTEGER);
-            }}));
+            ClientQueryVisitor<Void, Void> visitor = new ClientQueryVisitor<>(new BugFieldsMapper());
+
+            node.accept(visitor);
+            andCondition = visitor.getCondition();
+            values = visitor.getValues();
         }
 
         List<Bug> bugs = bugDao.getList(
@@ -106,7 +114,8 @@ public class BugService {
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 Sort.by(Sort.Order.asc("created_at")),
-                criteria,
+                andCondition,
+                values,
                 Collections.emptySet()
         );
 

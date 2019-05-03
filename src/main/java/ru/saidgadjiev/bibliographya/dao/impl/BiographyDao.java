@@ -8,8 +8,10 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
@@ -17,9 +19,6 @@ import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
 /**
  * Created by said on 22.10.2018.
@@ -102,8 +101,9 @@ public class BiographyDao {
                                               int limit,
                                               long offset,
                                               Integer categoryId,
-                                              Collection<FilterCriteria> biographyCriteria,
-                                              Collection<FilterCriteria> isLikedCriteria,
+                                              AndCondition biographyCriteria,
+                                              AndCondition isLikedCriteria,
+                                              List<PreparedSetter> values,
                                               Collection<String> fields,
                                               Sort sort
     ) {
@@ -116,7 +116,11 @@ public class BiographyDao {
                     .append("')");
         }
 
-        String biographyClause = toClause(biographyCriteria, "b");
+        DslVisitor visitor = new DslVisitor("b");
+
+        biographyCriteria.accept(visitor);
+
+        String biographyClause = visitor.getClause();
 
         if (biographyClause.length() > 0) {
             if (clause.length() > 0) {
@@ -154,21 +158,8 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion
-                            : isLikedCriteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                            ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                    }
-                    for (FilterCriteria criterion
-                            : biographyCriteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                            ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 (resultSet, i) -> mapFull(resultSet, fields)
@@ -185,27 +176,7 @@ public class BiographyDao {
         });
     }
 
-    public Biography getShortBiographyById(int id) {
-        return jdbcTemplate.query(
-                "SELECT id, first_name, last_name, middle_name FROM biography WHERE id =" + id,
-                rs -> {
-                    if (rs.next()) {
-                        Biography biography = new Biography();
-
-                        biography.setId(rs.getInt("id"));
-                        biography.setFirstName(rs.getString(Biography.FIRST_NAME));
-                        biography.setLastName(rs.getString(Biography.LAST_NAME));
-                        biography.setMiddleName(rs.getString(Biography.MIDDLE_NAME));
-
-                        return biography;
-                    }
-
-                    return null;
-                }
-        );
-    }
-
-    public Biography getById(TimeZone timeZone, int id, Collection<FilterCriteria> isLikedCriteria, Collection<String> fields) {
+    public Biography getById(TimeZone timeZone, int id, AndCondition isLikedCriteria, List<PreparedSetter> values, Collection<String> fields) {
         StringBuilder sql = new StringBuilder();
 
         sql
@@ -220,13 +191,8 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion
-                            : isLikedCriteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                            ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 rs -> {
@@ -240,8 +206,9 @@ public class BiographyDao {
     }
 
     public Biography getByCriteria(TimeZone timeZone,
-                         Collection<FilterCriteria> criteria,
-                         Collection<FilterCriteria> isLikedCriteria,
+                         AndCondition criteria,
+                         AndCondition isLikedCriteria,
+                         List<PreparedSetter> values,
                          Collection<String> fields) {
         StringBuilder sql = new StringBuilder();
 
@@ -250,7 +217,11 @@ public class BiographyDao {
 
         appendJoins(sql, fields, isLikedCriteria);
 
-        String clause = toClause(criteria, "b");
+        DslVisitor visitor = new DslVisitor("b");
+
+        criteria.accept(visitor);
+
+        String clause = visitor.getClause();
 
         sql.append("WHERE ").append(clause);
 
@@ -259,21 +230,8 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion
-                            : isLikedCriteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                            ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                    }
-                    for (FilterCriteria criterion
-                            : criteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                            ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 rs -> {
@@ -286,7 +244,7 @@ public class BiographyDao {
         );
     }
 
-    public Collection<Biography> getFields(TimeZone timeZone, Collection<String> fields, Collection<FilterCriteria> criteria) {
+    public Collection<Biography> getFields(TimeZone timeZone, Collection<String> fields, AndCondition criteria, List<PreparedSetter> values) {
         StringBuilder sql = new StringBuilder();
         StringBuilder join = new StringBuilder();
 
@@ -322,7 +280,11 @@ public class BiographyDao {
             sql.append(join.toString()).append(" ");
         }
 
-        String clause = toClause(criteria, "b");
+        DslVisitor visitor = new DslVisitor("b");
+
+        criteria.accept(visitor);
+
+        String clause = visitor.getClause();
 
         if (StringUtils.isNotBlank(clause)) {
             sql.append("WHERE ").append(clause).append(" ");
@@ -333,13 +295,8 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion
-                            : criteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                            ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 (rs, index) -> {
@@ -374,8 +331,15 @@ public class BiographyDao {
     public BiographyUpdateStatus updateValues(
             TimeZone timeZone,
             Collection<UpdateValue> updateValues,
-            Collection<FilterCriteria> criteria) {
-        String clause = toClause(criteria, null);
+            AndCondition criteria,
+            List<PreparedSetter> values
+    ) {
+        DslVisitor visitor = new DslVisitor(null);
+
+        criteria.accept(visitor);
+
+        String clause = visitor.getClause();
+
 
         StringBuilder sql = new StringBuilder();
 
@@ -401,12 +365,10 @@ public class BiographyDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : updateValues) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        updateValue.getSetter().set(ps, ++i);
                     }
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter : values) {
+                        preparedSetter.set(ps, ++i);
                     }
 
                     ps.execute();
@@ -533,13 +495,17 @@ public class BiographyDao {
         return biography;
     }
 
-    private void appendJoins(StringBuilder sql, Collection<String> fields, Collection<FilterCriteria> isLikedCriteria) {
+    private void appendJoins(StringBuilder sql, Collection<String> fields, AndCondition isLikedCriteria) {
         sql.append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, views_count as cnt FROM biography_view_count) bvc ON b.id = bvc.biography_id ");
         if (fields.contains(Biography.IS_LIKED)) {
-            String isLikedClause = toClause(isLikedCriteria, null);
+            DslVisitor visitor = new DslVisitor(null);
+
+            isLikedCriteria.accept(visitor);
+
+            String isLikedClause = visitor.getClause();
 
             sql
                     .append(" LEFT JOIN (SELECT biography_id FROM biography_like ");

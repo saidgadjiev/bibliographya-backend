@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -19,9 +21,6 @@ import ru.saidgadjiev.bibliographya.utils.TableUtils;
 import ru.saidgadjiev.bibliographya.utils.TestAssertionsUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
-import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -138,19 +137,9 @@ class UserDaoTest {
                 }
         );
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<String>()
-                        .valueSetter(PreparedStatement::setString)
-                        .needPreparedSet(true)
-                        .propertyName(User.EMAIL)
-                        .filterValue(TestModelsUtils.TEST_EMAIL)
-                        .filterOperation(FilterOperation.EQ)
-                        .build()
-        );
-
-        User user = userDao.getUniqueUser(criteria);
+        User user = userDao.getUniqueUser(new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.EMAIL), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, TestModelsUtils.TEST_EMAIL)));
 
         User expected = new User();
 
@@ -169,20 +158,22 @@ class UserDaoTest {
 
     @Test
     void getUsers() {
-        Assertions.assertTrue(userDao.getUsers(10, 0L, Collections.emptyList()).isEmpty());
+        Assertions.assertTrue(userDao.getUsers(10, 0L, new AndCondition(), Collections.emptyList()).isEmpty());
 
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, true)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL);
                     preparedStatement.setString(2, "Test");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
         jdbcTemplate.update(
-                "INSERT INTO \"user\"(email, password, email_verified) VALUES(?, ?, false)",
+                "INSERT INTO \"user\"(email, password, phone) VALUES(?, ?, ?)",
                 preparedStatement -> {
                     preparedStatement.setString(1, TestModelsUtils.TEST_EMAIL + "2");
                     preparedStatement.setString(2, "Test2");
+                    preparedStatement.setString(3, TestModelsUtils.TEST_PHONE);
                 }
         );
         jdbcTemplate.update(
@@ -217,19 +208,9 @@ class UserDaoTest {
                 "INSERT INTO user_role(user_id, role_name) VALUES(2, 'ROLE_ADMIN')"
         );
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<String>()
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .needPreparedSet(true)
-                        .propertyName("role_name")
-                        .filterValue(Role.ROLE_USER)
-                        .build()
-        );
-
-        List<User> users = userDao.getUsers(10, 0L, criteria);
+        List<User> users = userDao.getUsers(10, 0L, new AndCondition() {{
+            add(new Equals(new ColumnSpec("role_name"), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, Role.ROLE_USER)));
 
         Assertions.assertEquals(1, users.size());
         User expected = new User();

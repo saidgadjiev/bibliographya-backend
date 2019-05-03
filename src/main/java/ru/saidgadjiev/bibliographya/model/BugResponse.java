@@ -9,6 +9,10 @@ import java.util.Collection;
 
 public class BugResponse {
 
+    public static final String FIXER_ID = "fixerId";
+
+    public static final String STATUS = "status";
+
     private Integer id;
 
     private String theme;

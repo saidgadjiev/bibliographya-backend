@@ -10,16 +10,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCategoryDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
-import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 import ru.saidgadjiev.bibliographya.utils.FileNameUtils;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -60,47 +61,37 @@ public class BiographyCategoryService {
         values.add(
                 new UpdateValue<>(
                         BiographyCategory.NAME,
-                        categoryRequest.getName(),
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, categoryRequest.getName())
                 )
         );
 
         KeyHolder keyHolder = generalDao.create(BiographyCategory.TABLE, values);
         int id = (int) keyHolder.getKeys().get(BiographyCategory.ID);
 
-        String fileName = FileNameUtils.categoryUploadFileName(id, file);
+        String filePath = FileNameUtils.categoryUploadFileName(id, file);
 
-        storageService.store(StorageProperties.CATEGORY_ROOT + "/" + fileName, file);
+        storageService.store(filePath, file);
 
         Collection<UpdateValue> filePathUpdateValues = new ArrayList<>();
 
         filePathUpdateValues.add(
                 new UpdateValue<>(
                         BiographyCategory.IMAGE_PATH,
-                        fileName,
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, filePath)
                 )
         );
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(BiographyCategory.ID)
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .filterValue(id)
-                        .filterOperation(FilterOperation.EQ)
-                        .build()
-        );
-
-        generalDao.update(BiographyCategory.TABLE, filePathUpdateValues, criteria, null);
+        generalDao.update(BiographyCategory.TABLE, filePathUpdateValues,  new AndCondition() {{
+            add(new Equals(new ColumnSpec(BiographyCategory.ID), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, id));
+        }}, null);
 
         BiographyCategory category = new BiographyCategory();
 
         category.setId(id);
         category.setName(categoryRequest.getName());
-        category.setImagePath(fileName);
+        category.setImagePath(filePath);
 
         return category;
     }
@@ -125,43 +116,33 @@ public class BiographyCategoryService {
             values.add(
                     new UpdateValue<>(
                             BiographyCategory.NAME,
-                            categoryRequest.getName(),
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, categoryRequest.getName())
                     )
             );
             actual.setName(categoryRequest.getName());
         }
 
         if (file != null) {
-            storageService.deleteResource(StorageProperties.CATEGORY_ROOT + "/" + actual.getImagePath());
-            String fileName = FileNameUtils.categoryUploadFileName(id, file);
+            storageService.deleteResource(actual.getImagePath());
+            String filePath = FileNameUtils.categoryUploadFileName(id, file);
 
-            storageService.store(StorageProperties.CATEGORY_ROOT + "/" + fileName, file);
+            storageService.store(filePath, file);
 
             values.add(
                     new UpdateValue<>(
                             BiographyCategory.IMAGE_PATH,
-                            fileName,
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, filePath)
                     )
             );
 
-            actual.setImagePath(fileName);
+            actual.setImagePath(filePath);
         }
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(BiographyCategory.ID)
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .filterValue(id)
-                        .filterOperation(FilterOperation.EQ)
-                        .build()
-        );
-
-        generalDao.update(BiographyCategory.TABLE, values, criteria, null);
+        generalDao.update(BiographyCategory.TABLE, values,  new AndCondition() {{
+            add(new Equals(new ColumnSpec(BiographyCategory.ID), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, id));
+        }}, null);
 
         return actual;
     }

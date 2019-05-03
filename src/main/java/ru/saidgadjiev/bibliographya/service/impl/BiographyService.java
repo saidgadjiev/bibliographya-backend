@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
-import ru.saidgadjiev.bibliographya.data.LogicOperator;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
-import ru.saidgadjiev.bibliographya.data.operator.Similar;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.*;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
 import ru.saidgadjiev.bibliographya.model.BiographyBaseResponse;
@@ -24,7 +24,6 @@ import ru.saidgadjiev.bibliographya.utils.RoleUtils;
 
 import javax.script.ScriptException;
 import java.net.MalformedURLException;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -99,24 +98,18 @@ public class BiographyService {
             updateValues.add(
                     new UpdateValue<>(
                             Biography.BIO,
-                            bio,
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, bio)
                     )
             );
 
-            List<FilterCriteria> criteria = new ArrayList<>();
+            AndCondition andCondition = new AndCondition();
 
-            criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                            .propertyName(Biography.ID)
-                            .filterValue(biography.getId())
-                            .filterOperation(FilterOperation.EQ)
-                            .needPreparedSet(true)
-                            .valueSetter(PreparedStatement::setInt)
-                            .build()
-            );
+            andCondition.add(new Equals(new ColumnSpec(Biography.ID), new Param()));
+            List<PreparedSetter> values = new ArrayList<>();
 
-            biographyDao.updateValues(timeZone, updateValues, criteria);
+            values.add((preparedStatement, index) -> preparedStatement.setInt(index, biography.getId()));
+
+            biographyDao.updateValues(timeZone, updateValues, andCondition, values);
         }
     }
 
@@ -140,15 +133,16 @@ public class BiographyService {
         Collection<String> fields = new ArrayList<>();
 
         fields.add(Biography.CREATOR_ID);
-        Collection<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (user != null) {
             fields.add(Biography.IS_LIKED);
 
-            criteria.addAll(isLikedCriteria());
+            andCondition.add(isLikedCriteria(values));
         }
 
-        Biography biography = biographyDao.getById(timeZone, id, criteria, fields);
+        Biography biography = biographyDao.getById(timeZone, id, andCondition, values, fields);
 
         if (biography == null) {
             return null;
@@ -157,20 +151,20 @@ public class BiographyService {
         return biographyBuilder.builder(biography).buildCategories().build();
     }
 
-    public Biography getBiographyByCriteria(TimeZone timeZone, Collection<FilterCriteria> criteria) {
+    public Biography getBiographyByCriteria(TimeZone timeZone, AndCondition andCondition, List<PreparedSetter> values) {
         User user = (User) securityService.findLoggedInUser();
         Collection<String> fields = new ArrayList<>();
 
         fields.add(Biography.CREATOR_ID);
-        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+        AndCondition isLikedCondition = new AndCondition();
 
         if (user != null) {
             fields.add(Biography.IS_LIKED);
 
-            isLikedCriteria.addAll(isLikedCriteria());
+            isLikedCondition.add(isLikedCriteria(values));
         }
 
-        Biography biography = biographyDao.getByCriteria(timeZone, criteria, isLikedCriteria, fields);
+        Biography biography = biographyDao.getByCriteria(timeZone, andCondition, isLikedCondition, values, fields);
 
         if (biography == null) {
             return null;
@@ -185,79 +179,71 @@ public class BiographyService {
                                           Boolean autobiographies,
                                           Integer biographyClampSize,
                                           String query) throws ScriptException, NoSuchMethodException {
-        List<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
-            String terms[] = query.split(" ");
+            List<String> terms = Arrays.asList(query.split(" "));
+            StringBuilder pattern = new StringBuilder();
 
-            criteria.add(
-                    new FilterCriteria.Builder<>()
-                            .filterOperation(new Similar(false, true))
-                            .filterValue(Arrays.asList(terms))
-                            .propertyName(Biography.FIRST_NAME)
-                            .logicOperator(LogicOperator.OR)
-                            .needPreparedSet(false)
-                            .build()
-            );
-            criteria.add(
-                    new FilterCriteria.Builder<>()
-                            .filterOperation(new Similar(false, true))
-                            .filterValue(Arrays.asList(terms))
-                            .propertyName(Biography.LAST_NAME)
-                            .logicOperator(LogicOperator.OR)
-                            .needPreparedSet(false)
-                            .build()
-            );
-            criteria.add(
-                    new FilterCriteria.Builder<>()
-                            .filterOperation(new Similar(false, true))
-                            .filterValue(Arrays.asList(terms))
-                            .propertyName(Biography.MIDDLE_NAME)
-                            .needPreparedSet(false)
-                            .build()
-            );
+            pattern.append("%(");
+
+            for (Iterator<String> iterator = terms.iterator(); iterator.hasNext(); ) {
+                pattern.append(iterator.next());
+
+                if (iterator.hasNext()) {
+                    pattern.append("|");
+                }
+            }
+
+            pattern.append(")%");
+
+            andCondition = new AndCondition() {{
+                add(
+                        new Expression() {{
+                            add(new AndCondition() {{
+                                add(new Similar(new ColumnSpec(Biography.FIRST_NAME), pattern.toString()));
+                            }});
+                            add(new AndCondition() {{
+                                add(new Similar(new ColumnSpec(Biography.LAST_NAME), pattern.toString()));
+                            }});
+                            add(new AndCondition() {{
+                                add(new Similar(new ColumnSpec(Biography.MIDDLE_NAME), pattern.toString()));
+                            }});
+                        }}
+                );
+            }};
         }
+
+        andCondition.add(new Equals(new ColumnSpec(Biography.PUBLISH_STATUS), new Param()));
 
         if (autobiographies != null) {
-            criteria.add(
-                    new FilterCriteria<>(
-                            Biography.USER_ID,
-                            FilterOperation.IS_NOT_NULL,
-                            null,
-                            null,
-                            false
-                    )
-            );
+            andCondition.add(new NotNull(new ColumnSpec(Biography.USER_ID)));
         }
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.PUBLISH_STATUS)
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setInt)
-                        .filterValue(Biography.PublishStatus.PUBLISHED.getCode())
-                        .needPreparedSet(true)
-                        .build()
-        );
 
-        return getBiographies(timeZone, pageRequest, criteria, categoryId, biographyClampSize);
+        values.add((preparedStatement, index) -> preparedStatement.setInt(index, Biography.PublishStatus.PUBLISHED.getCode()));
+
+        return getBiographies(timeZone, pageRequest, andCondition, values, categoryId, biographyClampSize);
     }
 
 
     public Page<Biography> getBiographies(TimeZone timeZone,
                                           OffsetLimitPageRequest pageRequest,
-                                          Collection<FilterCriteria> criteria,
+                                          AndCondition condition,
+                                          List<PreparedSetter> values,
                                           Integer categoryId,
-                                          Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
+                                          Integer biographyClampSize
+    ) throws ScriptException, NoSuchMethodException {
         Collection<String> fields = new ArrayList<>();
 
         fields.add(Biography.CREATOR_ID);
         User userDetails = (User) securityService.findLoggedInUser();
-        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+        AndCondition likeCondition = new AndCondition();
 
         if (userDetails != null) {
             fields.add(Biography.IS_LIKED);
 
-            isLikedCriteria.addAll(isLikedCriteria());
+            likeCondition.add(isLikedCriteria(values));
         }
 
         List<Biography> biographies = biographyDao.getBiographiesList(
@@ -265,8 +251,9 @@ public class BiographyService {
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
                 categoryId,
-                criteria,
-                isLikedCriteria,
+                condition,
+                likeCondition,
+                values,
                 fields,
                 pageRequest.getSort()
         );
@@ -286,24 +273,15 @@ public class BiographyService {
 
     public Page<Biography> getMyBiographies(TimeZone timeZone, OffsetLimitPageRequest pageRequest, Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
         User user = (User) securityService.findLoggedInUser();
-        List<FilterCriteria> criteria = new ArrayList<>();
+        List<PreparedSetter> values = new ArrayList<>();
 
-        criteria.add(
-                new FilterCriteria<>(
-                        Biography.CREATOR_ID,
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        user.getId(),
-                        true
-                )
-        );
-        criteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .propertyName(Biography.USER_ID)
-                        .filterOperation(FilterOperation.IS_NULL)
-                        .needPreparedSet(false)
-                        .build()
-        );
+        AndCondition criteria = new AndCondition() {{
+            add(new Equals(new ColumnSpec(Biography.CREATOR_ID), new Param()));
+
+            values.add((preparedStatement, index) -> preparedStatement.setInt(index, user.getId()));
+
+            add(new IsNull(new ColumnSpec(Biography.USER_ID)));
+        }};
 
         List<Biography> biographies = biographyDao.getBiographiesList(
                 timeZone,
@@ -311,7 +289,10 @@ public class BiographyService {
                 pageRequest.getOffset(),
                 null,
                 criteria,
-                isLikedCriteria(),
+                new AndCondition() {{
+                    add(isLikedCriteria(values));
+                }},
+                values,
                 Arrays.asList(Biography.CREATOR_ID, Biography.IS_LIKED),
                 pageRequest.getSort()
         );
@@ -339,22 +320,19 @@ public class BiographyService {
         updateValues.add(
                 new UpdateValue<>(
                         Biography.FIRST_NAME,
-                        updateBiographyRequest.getFirstName(),
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, updateBiographyRequest.getFirstName())
                 )
         );
         updateValues.add(
                 new UpdateValue<>(
                         Biography.LAST_NAME,
-                        updateBiographyRequest.getLastName(),
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, updateBiographyRequest.getLastName())
                 )
         );
         updateValues.add(
                 new UpdateValue<>(
                         Biography.MIDDLE_NAME,
-                        updateBiographyRequest.getMiddleName(),
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, updateBiographyRequest.getMiddleName())
                 )
         );
         User user = (User) securityService.findLoggedInUser();
@@ -366,8 +344,7 @@ public class BiographyService {
         updateValues.add(
                 new UpdateValue<>(
                         Biography.BIO,
-                        updateBiographyRequest.getBio(),
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, updateBiographyRequest.getBio())
                 )
         );
 
@@ -375,39 +352,29 @@ public class BiographyService {
             updateValues.add(
                     new UpdateValue<>(
                             Biography.PUBLISH_STATUS,
-                            Biography.PublishStatus.NOT_PUBLISHED.getCode(),
-                            PreparedStatement::setInt
+                            (preparedStatement, index) -> preparedStatement.setInt(index, Biography.PublishStatus.NOT_PUBLISHED.getCode())
                     )
             );
         }
-        List<FilterCriteria> criteria = new ArrayList<>();
 
         LocalDateTime updatedAt = updateBiographyRequest.getUpdatedAt().toLocalDateTime();
 
         ZonedDateTime zonedUpdatedAtDateTime = updatedAt.atZone(timeZone.toZoneId());
 
         LocalDateTime utcUpdatedAt = zonedUpdatedAtDateTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        List<PreparedSetter> values = new ArrayList<>();
 
-        criteria.add(
-                new FilterCriteria.Builder<Timestamp>()
-                        .propertyName(Biography.UPDATED_AT)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(Timestamp.valueOf(utcUpdatedAt))
-                        .needPreparedSet(true)
-                        .valueSetter(PreparedStatement::setTimestamp)
-                        .build()
-        );
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.ID)
-                        .filterValue(id)
-                        .filterOperation(FilterOperation.EQ)
-                        .needPreparedSet(true)
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-        );
+        AndCondition criteria = new AndCondition() {{
+            add(new Equals(new ColumnSpec(Biography.UPDATED_AT), new Param()));
+            values.add((preparedStatement, index) -> preparedStatement.setTimestamp(index, Timestamp.valueOf(utcUpdatedAt)));
 
-        BiographyUpdateStatus status = biographyDao.updateValues(timeZone, updateValues, criteria);
+            add(new Equals(new ColumnSpec(Biography.ID), new Param()));
+            values.add((preparedStatement, index) -> preparedStatement.setInt(index, id));
+
+
+        }};
+
+        BiographyUpdateStatus status = biographyDao.updateValues(timeZone, updateValues, criteria, values);
 
         if (status.getUpdated() > 0) {
             status.setBio(updateBiographyRequest.getBio());
@@ -446,14 +413,11 @@ public class BiographyService {
         List<Map<String, Object>> result = generalDao.getFields(
                 Biography.TABLE,
                 Collections.singletonList(Biography.CREATOR_ID),
-                Collections.singletonList(
-                        new FilterCriteria.Builder<Integer>()
-                                .propertyName(Biography.ID)
-                                .filterOperation(FilterOperation.EQ)
-                                .valueSetter(PreparedStatement::setInt)
-                                .filterValue(biographyId)
-                                .build()
-                ));
+                new AndCondition() {{
+                    add(new Equals(new ColumnSpec(Biography.ID), new Param()));
+                }},
+                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, biographyId))
+        );
 
         if (result.isEmpty()) {
             return false;
@@ -475,41 +439,39 @@ public class BiographyService {
 
     public RequestResult<Biography> partialUpdate(TimeZone timeZone, int biographyId, BiographyUpdateRequest updateRequest) {
         List<UpdateValue> updateValues = new ArrayList<>();
-        Collection<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition condition = new AndCondition();
 
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(Biography.ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(biographyId)
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .build()
-        );
+        condition.add(new Equals(new ColumnSpec(Biography.ID), new Param()));
 
         if (updateRequest.getAnonymousCreator() != null) {
             updateValues.add(
-                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, updateRequest.getAnonymousCreator(), PreparedStatement::setBoolean)
+                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, (preparedStatement, index) -> preparedStatement.setBoolean(index, updateRequest.getAnonymousCreator()))
             );
         }
 
         if (updateRequest.getDisableComments() != null) {
             updateValues.add(
-                    new UpdateValue<>(Biography.DISABLE_COMMENTS, updateRequest.getDisableComments(), PreparedStatement::setBoolean)
+                    new UpdateValue<>(Biography.ANONYMOUS_CREATOR, (preparedStatement, index) -> preparedStatement.setBoolean(index, updateRequest.getDisableComments()))
             );
         }
 
         int update = generalDao.update(
                 Biography.TABLE,
                 updateValues,
-                criteria,
+                condition,
+                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, biographyId)),
                 null
         );
 
         Biography biography = null;
 
         if (updateRequest.getReturnFields() != null && !updateRequest.getReturnFields().isEmpty()) {
-            Collection<Biography> biographies = biographyDao.getFields(timeZone, normalizeFields(updateRequest.getReturnFields()), criteria);
+            Collection<Biography> biographies = biographyDao.getFields(
+                    timeZone,
+                    normalizeFields(updateRequest.getReturnFields()),
+                    condition,
+                    Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, biographyId))
+            );
 
             if (!biographies.isEmpty()) {
                 biography = biographies.iterator().next();
@@ -525,72 +487,39 @@ public class BiographyService {
         updateValues.add(
                 new UpdateValue<>(
                         Biography.PUBLISH_STATUS,
-                        publishStatus.getCode(),
-                        PreparedStatement::setInt
+                        (preparedStatement, index) -> preparedStatement.setInt(index, publishStatus.getCode())
                 )
         );
 
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria<>(
-                        Biography.ID,
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        biographyId,
-                        true
-                )
-        );
+        List<PreparedSetter> values = new ArrayList<>();
+        AndCondition criteria = new AndCondition() {{
+            add(new Equals(new ColumnSpec(Biography.ID), new Param()));
+            values.add((preparedStatement, index) -> preparedStatement.setInt(index, biographyId));
+        }};
 
         if (publishStatus == Biography.PublishStatus.PUBLISHED) {
             criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                            .propertyName(Biography.MODERATION_STATUS)
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(Biography.ModerationStatus.APPROVED.getCode())
-                            .valueSetter(PreparedStatement::setInt)
-                            .build()
+                    new Equals(new ColumnSpec(Biography.MODERATION_STATUS), new Param())
             );
+            values.add((preparedStatement, index) -> preparedStatement.setInt(index, Biography.ModerationStatus.APPROVED.getCode()));
 
             if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {
-                criteria.add(
-                        new FilterCriteria.Builder<String>()
-                                .propertyName(Biography.BIO)
-                                .filterOperation(FilterOperation.IS_NOT_NULL)
-                                .needPreparedSet(false)
-                                .build()
-                );
-                criteria.add(
-                        new FilterCriteria.Builder<String>()
-                                .propertyName(Biography.BIO)
-                                .filterOperation(FilterOperation.NOT_EQ)
-                                .filterValue("")
-                                .needPreparedSet(true)
-                                .valueSetter(PreparedStatement::setString)
-                                .build()
-                );
+                criteria.add(new NotNull(new ColumnSpec(Biography.BIO)));
+                criteria.add(new NotEquals(new ColumnSpec(Biography.BIO), new Param()));
+
+                values.add((preparedStatement, index) -> preparedStatement.setString(index, ""));
             }
         }
 
-        return biographyDao.updateValues(timeZone, updateValues, criteria).getUpdated();
+        return biographyDao.updateValues(timeZone, updateValues, criteria, values).getUpdated();
     }
 
-    private Collection<FilterCriteria> isLikedCriteria() {
+    private Condition isLikedCriteria(List<PreparedSetter> values) {
         User user = (User) securityService.findLoggedInUser();
 
-        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
+        values.add((preparedStatement, index) -> preparedStatement.setInt(index, user.getId()));
 
-        isLikedCriteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(BiographyLike.USER_ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(user.getId())
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .build()
-        );
-
-        return isLikedCriteria;
+        return new Equals(new ColumnSpec(Biography.USER_ID), new Param());
     }
 
     private Collection<String> normalizeFields(Collection<String> fields) {

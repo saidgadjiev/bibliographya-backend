@@ -10,12 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.bussiness.bug.*;
+import ru.saidgadjiev.bibliographya.bussiness.bug.BugAction;
+import ru.saidgadjiev.bibliographya.bussiness.bug.ClosedIgnoredHandler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.Handler;
+import ru.saidgadjiev.bibliographya.bussiness.bug.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.impl.BugDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
@@ -25,7 +25,6 @@ import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -36,9 +35,6 @@ import static org.mockito.ArgumentMatchers.eq;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class BugServiceTest {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private BugService bugService;
@@ -383,6 +379,7 @@ class BugServiceTest {
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
+                        eq(any()),
                         eq(Collections.emptyList()),
                         eq(Collections.emptySet())
                 )
@@ -438,6 +435,7 @@ class BugServiceTest {
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
+                        eq(any()),
                         eq(Collections.emptyList()),
                         eq(Collections.singleton("fixer"))
                 )
@@ -468,24 +466,14 @@ class BugServiceTest {
 
         bugs.add(bug1);
 
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName("status")
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setInt)
-                        .filterValue(0)
-                        .build()
-        );
-
         Mockito.when(
                 bugDao.getList(
                         any(),
                         eq(10),
                         eq(0L),
                         eq(Sort.by(Sort.Order.asc("created_at"))),
-                        eq(criteria),
+                        eq(any()),
+                        eq(Collections.emptyList()),
                         eq(Collections.emptySet())
                 )
         ).thenReturn(bugs);

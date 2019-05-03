@@ -51,8 +51,8 @@ public class TableUtils {
                         "  id SERIAL PRIMARY KEY,\n" +
                         "  created_at TIMESTAMP(3) DEFAULT NOW(),\n" +
                         "  password VARCHAR(1024) NOT NULL,\n" +
-                        "  email VARCHAR(512) NOT NULL,\n" +
-                        "  email_verified BOOLEAN DEFAULT FALSE,\n" +
+                        "  email VARCHAR(512),\n" +
+                        "  phone VARCHAR(512) NOT NULL,\n" +
                         "  deleted BOOLEAN NOT NULL DEFAULT FALSE,\n" +
                         ")");
     }

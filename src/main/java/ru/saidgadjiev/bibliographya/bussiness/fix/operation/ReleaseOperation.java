@@ -1,12 +1,14 @@
 package ru.saidgadjiev.bibliographya.bussiness.fix.operation;
 
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 
-import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,42 +31,26 @@ public class ReleaseOperation {
         values.add(
                 new UpdateValue<>(
                         "status",
-                        BiographyFix.FixStatus.PENDING.getCode(),
-                        PreparedStatement::setInt
+                        (preparedStatement, index) -> preparedStatement.setInt(index, BiographyFix.FixStatus.PENDING.getCode())
                 )
         );
         values.add(
                 new UpdateValue<>(
                         "fixer_id",
-                        null,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.INTEGER)
+                        (preparedStatement, index) -> preparedStatement.setNull(index, Types.INTEGER)
                 )
         );
 
-        List<FilterCriteria> criteria = new ArrayList<>();
         int fixerId = (Integer) args.get("fixerId");
 
-        criteria.add(
-                new FilterCriteria<>(
-                        "fixer_id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        fixerId,
-                        true
-                )
-        );
         int id = (int) args.get("fixId");
 
-        criteria.add(
-                new FilterCriteria<>(
-                        "id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        id,
-                        true
-                )
-        );
-
-        return biographyFixDao.update(values, criteria);
+        return biographyFixDao.update(values, new AndCondition() {{
+            add(new Equals(new ColumnSpec(BiographyFix.FIXER_ID), new Param()));
+            add(new Equals(new ColumnSpec(BiographyFix.ID),  new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, fixerId));
+            add((preparedStatement, index) -> preparedStatement.setInt(index, id));
+        }});
     }
 }

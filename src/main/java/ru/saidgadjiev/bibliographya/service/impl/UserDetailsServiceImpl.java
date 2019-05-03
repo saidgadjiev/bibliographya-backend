@@ -12,9 +12,12 @@ import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
@@ -30,7 +33,6 @@ import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
@@ -127,18 +129,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public User loadUserById(int id) {
-        Collection<FilterCriteria> userCriteria = new ArrayList<>();
-
-        userCriteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(User.ID)
-                        .valueSetter(PreparedStatement::setInt)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(id)
-                        .build()
-        );
-
-        User user = userDao.getUniqueUser(userCriteria);
+        User user = userDao.getUniqueUser(new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.ID), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, id)));
 
         if (user != null) {
             user.setRoles(userRoleDao.getRoles(user.getId()));
@@ -166,15 +159,10 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
                 User.TABLE,
                 Collections.singletonList(User.PASSWORD),
-                Collections.singletonList(
-                        new FilterCriteria.Builder<Integer>()
-                                .propertyName(User.ID)
-                                .filterOperation(FilterOperation.EQ)
-                                .filterValue(user.getId())
-                                .needPreparedSet(true)
-                                .valueSetter(PreparedStatement::setInt)
-                                .build()
-                )
+                new AndCondition() {{
+                    new Equals(new ColumnSpec(User.ID), new Param());
+                }},
+                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, user.getId()))
         );
         Map<String, Object> row = fieldsValues.get(0);
         String password = (String) row.get(User.PASSWORD);
@@ -185,23 +173,13 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             values.add(
                     new UpdateValue<>(
                             User.PASSWORD,
-                            passwordEncoder.encode(savePassword.getNewPassword()),
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, savePassword.getNewPassword())
                     )
             );
-            List<FilterCriteria> criteria = new ArrayList<>();
 
-            criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(user.getId())
-                            .needPreparedSet(true)
-                            .propertyName(User.ID)
-                            .valueSetter(PreparedStatement::setInt)
-                            .build()
-            );
-
-            generalDao.update(User.TABLE, values, criteria, null);
+            generalDao.update(User.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(User.ID), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, user.getId())), null);
 
             return HttpStatus.OK;
         }
@@ -256,23 +234,12 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             values.add(
                     new UpdateValue<>(
                             User.PASSWORD,
-                            passwordEncoder.encode(restorePassword.getPassword()),
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, passwordEncoder.encode(restorePassword.getPassword()))
                     )
             );
-            List<FilterCriteria> criteria = new ArrayList<>();
-
-            criteria.add(
-                    new FilterCriteria.Builder<String>()
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(authKey.formattedNumber())
-                            .needPreparedSet(true)
-                            .propertyName(User.PHONE)
-                            .valueSetter(PreparedStatement::setString)
-                            .build()
-            );
-
-            int updated = generalDao.update(User.TABLE, values, criteria, null);
+            int updated = generalDao.update(User.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(User.PHONE), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, authKey.formattedNumber())), null);
 
             if (updated == 0) {
                 return HttpStatus.NOT_FOUND;
@@ -312,24 +279,13 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             values.add(
                     new UpdateValue<>(
                             User.EMAIL,
-                            authKey.getEmail(),
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, authKey.getEmail())
                     )
             );
 
-            List<FilterCriteria> criteria = new ArrayList<>();
-
-            criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(actual.getId())
-                            .needPreparedSet(true)
-                            .propertyName(User.ID)
-                            .valueSetter(PreparedStatement::setInt)
-                            .build()
-            );
-
-            generalDao.update(User.TABLE, values, criteria, null);
+            generalDao.update(User.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(User.ID), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, actual.getId())), null);
 
             verificationStorage.expire(request);
 
@@ -389,24 +345,13 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
             values.add(
                     new UpdateValue<>(
                             User.PHONE,
-                            authKey.formattedNumber(),
-                            PreparedStatement::setString
+                            (preparedStatement, index) -> preparedStatement.setString(index, authKey.formattedNumber())
                     )
             );
 
-            List<FilterCriteria> criteria = new ArrayList<>();
-
-            criteria.add(
-                    new FilterCriteria.Builder<Integer>()
-                            .filterOperation(FilterOperation.EQ)
-                            .filterValue(actual.getId())
-                            .needPreparedSet(true)
-                            .propertyName(User.ID)
-                            .valueSetter(PreparedStatement::setInt)
-                            .build()
-            );
-
-            generalDao.update(User.TABLE, values, criteria, null);
+            generalDao.update(User.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(User.ID), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, actual.getId())), null);
 
             verificationStorage.expire(request);
 
@@ -422,19 +367,15 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public UserAccount getAccount(TimeZone timeZone, int userId) {
-        List<FilterCriteria> criteria = new ArrayList<>();
+        List<PreparedSetter> values = new ArrayList<>();
 
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(userId)
-                        .needPreparedSet(true)
-                        .propertyName(Biography.USER_ID)
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-        );
+        AndCondition andCondition = new AndCondition() {{
+            add(new Equals(new ColumnSpec(Biography.USER_ID), new Param()));
+        }};
 
-        Biography biography = biographyService.getBiographyByCriteria(timeZone, criteria);
+        values.add((preparedStatement, index) -> preparedStatement.setInt(index, userId));
+
+        Biography biography = biographyService.getBiographyByCriteria(timeZone, andCondition, values);
 
         UserAccount userAccount = new UserAccount();
 
@@ -464,24 +405,13 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
                         User.EMAIL,
-                        null,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
+                        (preparedStatement, index) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        List<FilterCriteria> criteriaRemoveEmailsVerification = new ArrayList<>();
-
-        criteriaRemoveEmailsVerification.add(
-                new FilterCriteria.Builder<String>()
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(email)
-                        .needPreparedSet(true)
-                        .propertyName(User.EMAIL)
-                        .valueSetter(PreparedStatement::setString)
-                        .build()
-        );
-
-        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveEmailsVerification, null);
+        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.EMAIL), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, email)), null);
 
         eventPublisher.publishEvent(new UnverifyEmailsEvent(email));
     }
@@ -492,24 +422,13 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
                         User.PHONE,
-                        null,
-                        (preparedStatement, index, value) -> preparedStatement.setNull(index, Types.VARCHAR)
+                        (preparedStatement, index) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        List<FilterCriteria> criteriaRemoveVerification = new ArrayList<>();
-
-        criteriaRemoveVerification.add(
-                new FilterCriteria.Builder<String>()
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(phone)
-                        .needPreparedSet(true)
-                        .propertyName(User.PHONE)
-                        .valueSetter(PreparedStatement::setString)
-                        .build()
-        );
-
-        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, criteriaRemoveVerification, null);
+        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.PHONE), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, phone)), null);
 
         eventPublisher.publishEvent(new UnverifyPhonesEvent(phone));
     }

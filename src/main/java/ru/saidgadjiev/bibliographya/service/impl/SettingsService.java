@@ -3,13 +3,14 @@ package ru.saidgadjiev.bibliographya.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.GeneralSettings;
 import ru.saidgadjiev.bibliographya.utils.SecureUtils;
 
-import java.sql.PreparedStatement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -39,15 +40,10 @@ public class SettingsService {
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
                 User.TABLE,
                 Arrays.asList(User.EMAIL, User.PHONE),
-                Collections.singletonList(
-                        new FilterCriteria.Builder<Integer>()
-                                .propertyName(User.ID)
-                                .filterOperation(FilterOperation.EQ)
-                                .filterValue(loggedInUser.getId())
-                                .needPreparedSet(true)
-                                .valueSetter(PreparedStatement::setInt)
-                                .build()
-                )
+                new AndCondition() {{
+                    add(new Equals(new ColumnSpec(User.ID), new Param()));
+                }},
+                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, loggedInUser.getId()))
         );
         Map<String, Object> values = fieldsValues.get(0);
 

@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.data.query.dsl.core.literals;
 
-import ru.saidgadjiev.ormnext.core.query.visitor.element.Operand;
+
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.Operand;
 
 /**
  * This is the abstract class for implement literal.

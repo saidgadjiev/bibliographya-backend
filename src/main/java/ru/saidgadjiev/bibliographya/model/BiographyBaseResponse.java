@@ -16,6 +16,8 @@ public class BiographyBaseResponse {
 
     public static final String CREATOR_ID = "creatorId";
 
+    public static final String MODERATION_STATUS = "moderationStatus";
+
     private Integer id;
 
     private String firstName;

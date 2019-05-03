@@ -14,9 +14,13 @@ import ru.saidgadjiev.bibliographya.bussiness.fix.FixAction;
 import ru.saidgadjiev.bibliographya.bussiness.fix.Handler;
 import ru.saidgadjiev.bibliographya.bussiness.fix.PendingHandler;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.ClientQueryVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.mapper.BiographyFixFieldsMapper;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 import ru.saidgadjiev.bibliographya.domain.BiographyLike;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
@@ -27,7 +31,6 @@ import ru.saidgadjiev.bibliographya.model.CompleteRequest;
 import ru.saidgadjiev.bibliographya.model.OffsetLimitPageRequest;
 
 import javax.script.ScriptException;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,38 +64,33 @@ public class BiographyFixService {
                                            OffsetLimitPageRequest pageRequest,
                                            String query,
                                            Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
-        List<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
             Node parsed = new RSQLParser(new HashSet<ComparisonOperator>() {{
                 add(RSQLOperators.EQUAL);
             }}).parse(query);
 
-            parsed.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
-                put("fixer_id", FilterCriteriaVisitor.Type.INTEGER);
-                put("status", FilterCriteriaVisitor.Type.INTEGER);
-            }}));
+            ClientQueryVisitor<Void, Void> visitor = new ClientQueryVisitor<>(new BiographyFixFieldsMapper());
+
+            parsed.accept(visitor);
+            andCondition = visitor.getCondition();
+            values.addAll(visitor.getValues());
+
         }
         User user = (User) securityService.findLoggedInUser();
-
-        Collection<FilterCriteria> isLikedCriteria = new ArrayList<>();
-
-        isLikedCriteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(BiographyLike.USER_ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(user.getId())
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .build()
-        );
 
         List<BiographyFix> biographyFixes = biographyFixDao.getFixesList(
                 timeZone,
                 pageRequest.getPageSize(),
                 pageRequest.getOffset(),
-                criteria,
-                isLikedCriteria,
+                andCondition,
+                new AndCondition() {{
+                    add(new Equals(new ColumnSpec(BiographyLike.USER_ID), new Param()));
+                    values.add((preparedStatement, index) -> preparedStatement.setInt(index, user.getId()));
+                }},
+                values,
                 pageRequest.getSort()
         );
 

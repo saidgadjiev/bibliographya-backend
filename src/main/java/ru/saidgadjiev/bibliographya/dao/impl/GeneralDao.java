@@ -6,16 +6,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
 @Repository
 public class GeneralDao {
@@ -59,7 +59,7 @@ public class GeneralDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : values) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        updateValue.getSetter().set(ps, ++i);
                     }
 
                     return ps;
@@ -70,8 +70,12 @@ public class GeneralDao {
         return keyHolder;
     }
 
-    public int update(String table, Collection<UpdateValue> values, Collection<FilterCriteria> criteria, Map<String, Object> returnValues) {
-        String clause = toClause(criteria, null);
+    public int update(String table, Collection<UpdateValue> values, AndCondition criteria, List<PreparedSetter> setValues, Map<String, Object> returnValues) {
+        DslVisitor visitor = new DslVisitor(null);
+
+        criteria.accept(visitor);
+
+        String clause = visitor.getClause();
         StringBuilder sql = new StringBuilder();
 
         sql.append("UPDATE \"").append(table).append("\" SET ");
@@ -103,12 +107,10 @@ public class GeneralDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : values) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        updateValue.getSetter().set(ps, ++i);
                     }
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter: setValues) {
+                        preparedSetter.set(ps, ++i);
                     }
 
                     return ps;
@@ -123,7 +125,7 @@ public class GeneralDao {
         return update;
     }
 
-    public List<Map<String, Object>> getFields(String table, Collection<String> fields, Collection<FilterCriteria> criteria) {
+    public List<Map<String, Object>> getFields(String table, Collection<String> fields, AndCondition criteria, List<PreparedSetter> values) {
         StringBuilder builder = new StringBuilder();
 
         builder.append("SELECT ");
@@ -141,7 +143,11 @@ public class GeneralDao {
         }
         builder.append(" ").append("FROM \"").append(table).append("\" ");
 
-        String clause = toClause(criteria, null);
+        DslVisitor visitor = new DslVisitor(null);
+
+        criteria.accept(visitor);
+
+        String clause = visitor.getClause();
 
         if (StringUtils.isNotBlank(clause)) {
             builder.append("WHERE ").append(clause);
@@ -152,10 +158,8 @@ public class GeneralDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 rs -> {
@@ -177,8 +181,8 @@ public class GeneralDao {
         );
     }
 
-    public Map<String, Object> uniqueValue(String table, Collection<String> fields, Collection<FilterCriteria> criteria) {
-        List<Map<String, Object>> values = getFields(table, fields, criteria);
+    public Map<String, Object> uniqueValue(String table, Collection<String> fields, AndCondition criteria, List<PreparedSetter> vals) {
+        List<Map<String, Object>> values = getFields(table, fields, criteria, vals);
 
         return values.isEmpty() ? null : values.iterator().next();
     }

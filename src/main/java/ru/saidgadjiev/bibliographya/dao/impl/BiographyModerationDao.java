@@ -4,18 +4,18 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
-import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
 /**
  * Created by said on 25.11.2018.
@@ -43,8 +43,14 @@ public class BiographyModerationDao {
         );
     }
 
-    public Biography update(List<UpdateValue> updateValues, Collection<FilterCriteria> criteria) throws SQLException {
-        String clause = toClause(criteria, null);
+    public Biography update(List<UpdateValue> updateValues, AndCondition criteria, List<PreparedSetter> values) throws SQLException {
+        DslVisitor visitor = new DslVisitor(null);
+
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
+
+        String clause = visitor.getClause();
 
         StringBuilder sql = new StringBuilder();
 
@@ -70,12 +76,10 @@ public class BiographyModerationDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : updateValues) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        updateValue.getSetter().set(ps, ++i);
                     }
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
 
                     ps.execute();

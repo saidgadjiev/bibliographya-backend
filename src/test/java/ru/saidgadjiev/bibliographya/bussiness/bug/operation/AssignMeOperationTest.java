@@ -33,7 +33,7 @@ class AssignMeOperationTest {
         current.setId(1);
         current.setCreatedAt(new Timestamp(new Date().getTime()));
 
-        Mockito.when(bugDao.update(any(), any())).thenAnswer(invocationOnMock -> {
+        Mockito.when(bugDao.update(any(), any(), any())).thenAnswer(invocationOnMock -> {
             current.setFixerId(1);
 
             return current;

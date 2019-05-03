@@ -6,19 +6,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,45 +66,31 @@ public class UserDao {
     }
 
     public User getByEmail(String email) {
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName(User.EMAIL)
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(email)
-                        .build()
-
-        );
-
-        return getUniqueUser(criteria);
+        return getUniqueUser(new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.EMAIL), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, email)));
     }
 
     public User getByPhone(String phone) {
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<String>()
-                        .propertyName(User.PHONE)
-                        .valueSetter(PreparedStatement::setString)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(phone)
-                        .build()
-
-        );
-
-        return getUniqueUser(criteria);
+        return getUniqueUser(new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.PHONE), new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, phone)));
     }
 
-    public User getUniqueUser(Collection<FilterCriteria> userCriteria) {
-        List<User> users = getUsers(userCriteria);
+    public User getUniqueUser(AndCondition andCondition, List<PreparedSetter> values) {
+        List<User> users = getUsers(andCondition, values);
 
         return users.isEmpty() ? null : users.iterator().next();
     }
 
-    public List<User> getUsers(Collection<FilterCriteria> userCriteria) {
-        String userClause = FilterUtils.toClause(userCriteria, "u");
+    public List<User> getUsers(AndCondition andCondition, List<PreparedSetter> values) {
+        DslVisitor visitor = new DslVisitor("u");
+
+        new Expression() {{
+            add(andCondition);
+        }}.accept(visitor);
+
+        String userClause = visitor.getClause();
 
         StringBuilder sql = new StringBuilder();
 
@@ -118,10 +107,8 @@ public class UserDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion : userCriteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 (rs, rowNum) -> map(rs)
@@ -175,13 +162,19 @@ public class UserDao {
         );
     }
 
-    public List<User> getUsers(Integer limit, Long offset, Collection<FilterCriteria> roleCriteria) {
+    public List<User> getUsers(Integer limit, Long offset, AndCondition roleCriteria, List<PreparedSetter> values) {
         StringBuilder sql = new StringBuilder();
 
         sql.append("SELECT ").append(selectList()).append(" FROM \"user\" u ");
         sql.append("INNER JOIN biography b ON u.id = b.user_id ");
 
-        String clause = FilterUtils.toClause(roleCriteria, null);
+        DslVisitor dslVisitor = new DslVisitor(null);
+
+        new Expression() {{
+            add(roleCriteria);
+        }}.accept(dslVisitor);
+
+        String clause = dslVisitor.getClause();
 
         if (StringUtils.isNotBlank(clause)) {
             sql.append(" WHERE ").append("u.id IN (SELECT user_id FROM user_role WHERE ").append(clause).append(")");
@@ -199,8 +192,8 @@ public class UserDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion: roleCriteria) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 (resultSet, i) -> map(resultSet)

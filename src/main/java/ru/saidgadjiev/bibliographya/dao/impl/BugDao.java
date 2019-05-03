@@ -9,8 +9,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.saidgadjiev.bibliographya.dao.dialect.Dialect;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
+import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.Bug;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
@@ -18,9 +21,6 @@ import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static ru.saidgadjiev.bibliographya.utils.FilterUtils.toClause;
 
 @Repository
 public class BugDao {
@@ -98,8 +98,14 @@ public class BugDao {
         return bug;
     }
 
-    public Bug update(Collection<UpdateValue> values, Collection<FilterCriteria> criteria) {
-        String clause = toClause(criteria, null);
+    public Bug update(Collection<UpdateValue> values, AndCondition criteria, List<PreparedSetter> setValues) {
+        DslVisitor visitor = new DslVisitor(null);
+
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
+
+        String clause = visitor.getClause();
 
         StringBuilder sql = new StringBuilder();
 
@@ -126,12 +132,10 @@ public class BugDao {
                         int i = 0;
 
                         for (UpdateValue updateValue : values) {
-                            updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                            updateValue.getSetter().set(ps, ++i);
                         }
-                        for (FilterCriteria criterion : criteria) {
-                            if (criterion.isNeedPreparedSet()) {
-                                criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                            }
+                        for (PreparedSetter preparedSetter: setValues) {
+                            preparedSetter.set(ps, ++i);
                         }
 
                         ps.execute();
@@ -160,12 +164,10 @@ public class BugDao {
                     int i = 0;
 
                     for (UpdateValue updateValue : values) {
-                        updateValue.getSetter().set(ps, ++i, updateValue.getValue());
+                        updateValue.getSetter().set(ps, ++i);
                     }
-                    for (FilterCriteria criterion : criteria) {
-                        if (criterion.isNeedPreparedSet()) {
-                            criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
-                        }
+                    for (PreparedSetter preparedSetter: setValues) {
+                        preparedSetter.set(ps, ++i);
                     }
                 }
         );
@@ -190,9 +192,16 @@ public class BugDao {
                              int limit,
                              long offset,
                              Sort sort,
-                             List<FilterCriteria> criteria,
+                             AndCondition andCondition,
+                             List<PreparedSetter> values,
                              Set<String> fields) {
-        String clause = toClause(criteria, "b");
+        DslVisitor visitor = new DslVisitor("b");
+
+        new Expression() {{
+            add(andCondition);
+        }}.accept(visitor);
+
+        String clause = visitor.getClause();
 
         StringBuilder sql = new StringBuilder();
 
@@ -223,13 +232,8 @@ public class BugDao {
                 ps -> {
                     int i = 0;
 
-                    for (FilterCriteria criterion
-                            : criteria
-                            .stream()
-                            .filter(FilterCriteria::isNeedPreparedSet)
-                            .collect(Collectors.toList())
-                    ) {
-                        criterion.getValueSetter().set(ps, ++i, criterion.getFilterValue());
+                    for (PreparedSetter preparedSetter: values) {
+                        preparedSetter.set(ps, ++i);
                     }
                 },
                 (resultSet, i) -> mapFull(resultSet, fields)

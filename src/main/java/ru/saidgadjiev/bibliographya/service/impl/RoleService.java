@@ -5,12 +5,13 @@ import cz.jirutka.rsql.parser.ast.Node;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.dao.impl.RoleDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
+import ru.saidgadjiev.bibliographya.data.ClientQueryVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.mapper.RoleFieldsMapper;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 import ru.saidgadjiev.bibliographya.domain.Role;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -23,17 +24,20 @@ public class RoleService {
     }
 
     public List<Role> getRoles(String query) {
-        List<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition andCondition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
             Node node = new RSQLParser().parse(query);
 
-            node.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
-                put("name", FilterCriteriaVisitor.Type.STRING);
-            }}));
+            ClientQueryVisitor<Void, Void> visitor = new ClientQueryVisitor<>(new RoleFieldsMapper());
+
+            node.accept(visitor);
+            andCondition = visitor.getCondition();
+            values = visitor.getValues();
         }
 
-        return roleDao.getRoles(criteria);
+        return roleDao.getRoles(andCondition, values);
     }
 
     public int deleteRole(String role) {

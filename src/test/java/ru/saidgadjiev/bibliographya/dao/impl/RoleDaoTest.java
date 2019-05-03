@@ -8,13 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Role;
 import ru.saidgadjiev.bibliographya.utils.TableUtils;
 
-import java.sql.PreparedStatement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -38,29 +43,21 @@ class RoleDaoTest {
 
     @org.junit.jupiter.api.Test
     void getRoles() {
-        Assertions.assertEquals(roleDao.getRoles(Collections.emptyList()).size(), 0);
+        Assertions.assertEquals(roleDao.getRoles(new AndCondition(), Collections.emptyList()).size(), 0);
 
         jdbcTemplate.update(
                 "INSERT INTO role(name) VALUES('ROLE_ADMIN'), ('ROLE_TEST')"
         );
 
-        List<Role> roleList = roleDao.getRoles(Collections.emptyList());
+        List<Role> roleList = roleDao.getRoles(new AndCondition(), Collections.emptyList());
 
         Assertions.assertIterableEquals(Arrays.asList(new Role("ROLE_ADMIN"), new Role("ROLE_TEST")), roleList);
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<String>()
-                .propertyName("name")
-                .filterValue("ROLE_ADMIN")
-                .filterOperation(FilterOperation.EQ)
-                .valueSetter(PreparedStatement::setString)
-                .needPreparedSet(true)
-                .build()
-        );
-
-        List<Role> filteredRoles = roleDao.getRoles(criteria);
+        List<Role> filteredRoles = roleDao.getRoles(new AndCondition() {{
+            add(new Equals(new ColumnSpec("name"), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setString(index, Role.ROLE_ADMIN));
+        }});
 
         Assertions.assertIterableEquals(Collections.singleton(new Role("ROLE_ADMIN")), filteredRoles);
     }

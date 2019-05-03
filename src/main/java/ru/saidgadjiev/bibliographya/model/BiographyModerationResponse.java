@@ -13,6 +13,8 @@ import java.util.Collection;
  */
 public class BiographyModerationResponse extends BiographyBaseResponse {
 
+    public static final String MODERATOR_ID = "moderatorId";
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BibliographyaConfiguration.DATE_FORMAT)
     private Timestamp moderatedAt;
 

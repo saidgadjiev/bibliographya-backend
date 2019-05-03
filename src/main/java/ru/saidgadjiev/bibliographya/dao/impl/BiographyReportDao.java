@@ -1,14 +1,11 @@
 package ru.saidgadjiev.bibliographya.dao.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyReport;
-import ru.saidgadjiev.bibliographya.utils.FilterUtils;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 
 import java.sql.ResultSet;
@@ -29,7 +26,7 @@ public class BiographyReportDao {
     }
 
     public List<Biography> getReports(int limit, long offset) {
-        return jdbcTemplate.query(
+        /*return jdbcTemplate.query(
                 "SELECT\n" +
                         "  b.*,\n" +
                         "  COUNT(*) AS reportsCount\n" +
@@ -40,7 +37,9 @@ public class BiographyReportDao {
                     ps.setLong(2, offset);
                 },
                 (rs, rowNum) -> mapBiography(rs)
-        );
+                );*/
+
+        return Collections.emptyList();
     }
 
     public Map<Integer, Collection<BiographyReport>> getBiographyReports(Collection<Integer> biographiesIds) {
@@ -71,8 +70,8 @@ public class BiographyReportDao {
         );
     }
 
-    public long countOff(Collection<FilterCriteria> criteria) {
-        String clause = FilterUtils.toClause(criteria, null);
+    public long countOff(Object o) {
+        /*String clause = FilterUtils.toClause(criteria, null);
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM biography_report ");
 
         if (StringUtils.isNotBlank(clause)) {
@@ -99,10 +98,12 @@ public class BiographyReportDao {
 
                     return null;
                 }
-        );
+        );*/
+
+        return 0L;
     }
 
-    public int update(Collection<UpdateValue> updateValues, Collection<FilterCriteria> criteria) {
+    public int update(Collection<UpdateValue> updateValues, Object o) {
         return jdbcTemplate.update(
                 "UPDATE biography_report SET status = ? WHERE id = ?",
                 ps -> {

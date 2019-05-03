@@ -1,14 +1,16 @@
 package ru.saidgadjiev.bibliographya.bussiness.moderation.operation;
 
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyModerationDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -29,15 +31,13 @@ public class RejectOperation {
         values.add(
                 new UpdateValue<>(
                         "moderation_status",
-                        Biography.ModerationStatus.REJECTED.getCode(),
-                        PreparedStatement::setInt
+                        (preparedStatement, index) -> preparedStatement.setInt(index, Biography.ModerationStatus.REJECTED.getCode())
                 )
         );
         values.add(
                 new UpdateValue<>(
                         "publish_status",
-                        Biography.PublishStatus.NOT_PUBLISHED.getCode(),
-                        PreparedStatement::setInt
+                       (preparedStatement, index) -> preparedStatement.setInt(index,  Biography.PublishStatus.NOT_PUBLISHED.getCode())
                 )
         );
 
@@ -46,36 +46,20 @@ public class RejectOperation {
         values.add(
                 new UpdateValue<>(
                         "moderation_info",
-                        rejectText,
-                        PreparedStatement::setString
+                        (preparedStatement, index) -> preparedStatement.setString(index, rejectText)
                 )
         );
 
-        List<FilterCriteria> criteria = new ArrayList<>();
         int biographyId = (int) args.get("biographyId");
-
-        criteria.add(
-                new FilterCriteria<>(
-                        "id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        biographyId,
-                        true
-                )
-        );
 
         int moderatorId = (Integer) args.get("moderatorId");
 
-        criteria.add(
-                new FilterCriteria<>(
-                        "moderator_id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        moderatorId,
-                        true
-                )
-        );
-
-        return biographyModerationDao.update(values, criteria);
+        return biographyModerationDao.update(values, new AndCondition() {{
+            add(new Equals(new ColumnSpec(Biography.ID), new Param()));
+            add(new Equals(new ColumnSpec(Biography.MODERATOR_ID), new Param()));
+        }}, Arrays.asList(
+                ((preparedStatement, index) -> preparedStatement.setInt(index, biographyId)),
+                (preparedStatement, index) -> preparedStatement.setInt(index, moderatorId)
+        ));
     }
 }

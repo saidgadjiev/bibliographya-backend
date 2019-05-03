@@ -1,7 +1,6 @@
 package ru.saidgadjiev.bibliographya.data.query.dsl.core.condition;
 
-import ru.saidgadjiev.ormnext.core.query.visitor.QueryVisitor;
-import ru.saidgadjiev.ormnext.core.query.visitor.element.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.QueryVisitor;
 
 import java.util.ArrayList;
 import java.util.List;

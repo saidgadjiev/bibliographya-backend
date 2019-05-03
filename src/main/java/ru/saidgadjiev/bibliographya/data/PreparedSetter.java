@@ -8,5 +8,5 @@ import java.sql.SQLException;
  */
 public interface PreparedSetter<T> {
 
-    void set(PreparedStatement preparedStatement, int index, T value) throws SQLException;
+    void set(PreparedStatement preparedStatement, int index) throws SQLException;
 }

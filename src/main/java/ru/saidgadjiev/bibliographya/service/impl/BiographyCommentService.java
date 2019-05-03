@@ -9,15 +9,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyCommentDao;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.BiographyComment;
 import ru.saidgadjiev.bibliographya.domain.CommentsStats;
 import ru.saidgadjiev.bibliographya.domain.RequestResult;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.model.BiographyCommentRequest;
 
-import java.sql.PreparedStatement;
 import java.util.*;
 
 /**
@@ -97,14 +99,13 @@ public class BiographyCommentService {
         List<Map<String, Object>> result = generalDao.getFields(
                 BiographyComment.TABLE,
                 Collections.singletonList("user_id"),
-                Collections.singletonList(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName("id")
-                        .filterOperation(FilterOperation.EQ)
-                        .valueSetter(PreparedStatement::setInt)
-                        .filterValue(commentId)
-                        .build()
-        ));
+                new AndCondition() {{
+                    add(new Equals(new ColumnSpec("id"), new Param()));
+                }},
+                new ArrayList<PreparedSetter>() {{
+                    add((preparedStatement, index) -> preparedStatement.setInt(index, commentId));
+                }}
+        );
 
         if (result.isEmpty()) {
             return false;

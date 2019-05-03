@@ -4,6 +4,12 @@ import java.sql.Timestamp;
 
 public class Bug {
 
+    public static final String FIXER_ID = "fixer_id";
+
+    public static final String STATUS = "status";
+
+    public static final String ID = "id";
+
     private Integer id;
 
     private String theme;

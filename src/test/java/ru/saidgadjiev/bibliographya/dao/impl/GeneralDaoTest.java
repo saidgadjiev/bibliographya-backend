@@ -9,15 +9,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.utils.TableUtils;
 import ru.saidgadjiev.bibliographya.utils.TestModelsUtils;
 
-import java.sql.PreparedStatement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -61,24 +66,15 @@ class GeneralDaoTest {
         updateValues.add(
                 new UpdateValue<>(
                         User.EMAIL,
-                        TestModelsUtils.TEST_EMAIL,
-                        PreparedStatement::setString
+                        ((preparedStatement, index) -> preparedStatement.setString(index, TestModelsUtils.TEST_EMAIL))
                 )
         );
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(User.ID)
-                        .filterValue(TestModelsUtils.TEST_USER_ID)
-                        .filterOperation(FilterOperation.EQ)
-                        .needPreparedSet(true)
-                        .valueSetter(PreparedStatement::setInt)
-                        .build()
-        );
-
-        int updated = generalDao.update(User.TABLE, updateValues, criteria, null);
+        int updated = generalDao.update(User.TABLE, updateValues, new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.ID), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, TestModelsUtils.TEST_USER_ID));
+        }},null);
 
         Assertions.assertEquals(1, updated);
 
@@ -119,19 +115,11 @@ class GeneralDaoTest {
                 }
         );
 
-        Collection<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria.Builder<Integer>()
-                        .propertyName(User.ID)
-                        .valueSetter(PreparedStatement::setInt)
-                        .needPreparedSet(true)
-                        .filterOperation(FilterOperation.EQ)
-                        .filterValue(1)
-                        .build()
-        );
-
-        List<Map<String, Object>> values = generalDao.getFields(User.TABLE, Arrays.asList(User.EMAIL), criteria);
+        List<Map<String, Object>> values = generalDao.getFields(User.TABLE, Arrays.asList(User.EMAIL), new AndCondition() {{
+            add(new Equals(new ColumnSpec(User.ID), new Param()));
+        }}, new ArrayList<PreparedSetter>() {{
+            add((preparedStatement, index) -> preparedStatement.setInt(index, TestModelsUtils.TEST_USER_ID));
+        }});
 
         Assertions.assertEquals(1, values.size());
         Assertions.assertEquals(values.get(0).get(User.EMAIL), "Test1");

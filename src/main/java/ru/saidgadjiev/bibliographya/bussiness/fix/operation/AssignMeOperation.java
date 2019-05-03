@@ -1,13 +1,16 @@
 package ru.saidgadjiev.bibliographya.bussiness.fix.operation;
 
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyFixDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.IsNull;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.BiographyFix;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -29,35 +32,15 @@ public class AssignMeOperation {
         values.add(
                 new UpdateValue<>(
                         "fixer_id",
-                        fixerId,
-                        PreparedStatement::setInt
-                )
-        );
-
-        List<FilterCriteria> criteria = new ArrayList<>();
-
-        criteria.add(
-                new FilterCriteria<>(
-                        "fixer_id",
-                        FilterOperation.IS_NULL,
-                        null,
-                        null,
-                        false
+                        (preparedStatement, index) -> preparedStatement.setInt(index, fixerId)
                 )
         );
 
         int id = (int) args.get("fixId");
 
-        criteria.add(
-                new FilterCriteria<>(
-                        "id",
-                        FilterOperation.EQ,
-                        PreparedStatement::setInt,
-                        id,
-                        true
-                )
-        );
-
-        return biographyFixDao.update(values, criteria);
+        return biographyFixDao.update(values, new AndCondition() {{
+            add(new IsNull(new ColumnSpec(BiographyFix.FIXER_ID)));
+            add(new Equals(new ColumnSpec(BiographyFix.ID),  new Param()));
+        }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, id)));
     }
 }

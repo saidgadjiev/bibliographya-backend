@@ -32,6 +32,8 @@ public class TestModelsUtils {
 
     public static final String TEST_EMAIL = "test@mail.ru";
 
+    public static final String TEST_PHONE = "79032691377";
+
     public static final AuthKey TEST_AUTHENTICATION_KEY = new AuthKey();
 
     public static final String TEST_SOCIAL_USER_ID = "socialUserId";

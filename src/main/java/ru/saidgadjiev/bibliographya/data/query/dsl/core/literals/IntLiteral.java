@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.data.query.dsl.core.literals;
 
-import ru.saidgadjiev.ormnext.core.query.visitor.QueryVisitor;
+
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.QueryVisitor;
 
 /**
  * Int literal.

@@ -12,9 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saidgadjiev.bibliographya.bussiness.moderation.*;
 import ru.saidgadjiev.bibliographya.dao.impl.BiographyModerationDao;
-import ru.saidgadjiev.bibliographya.data.FilterCriteria;
-import ru.saidgadjiev.bibliographya.data.FilterCriteriaVisitor;
-import ru.saidgadjiev.bibliographya.data.FilterOperation;
+import ru.saidgadjiev.bibliographya.data.ClientQueryVisitor;
+import ru.saidgadjiev.bibliographya.data.PreparedSetter;
+import ru.saidgadjiev.bibliographya.data.mapper.BiographyModerationFieldsMapper;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.IsNull;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.CompleteResult;
 import ru.saidgadjiev.bibliographya.domain.User;
@@ -60,27 +63,25 @@ public class BiographyModerationService {
                                           OffsetLimitPageRequest pageRequest,
                                           String query,
                                           Integer biographyClampSize) throws ScriptException, NoSuchMethodException {
-        Collection<FilterCriteria> criteria = new ArrayList<>();
+        AndCondition condition = new AndCondition();
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (StringUtils.isNotBlank(query)) {
             Node parsed = new RSQLParser(new HashSet<ComparisonOperator>() {{
                 add(RSQLOperators.EQUAL);
             }}).parse(query);
 
-            parsed.accept(new FilterCriteriaVisitor<>(criteria, new HashMap<String, FilterCriteriaVisitor.Type>() {{
-                put("moderator_id", FilterCriteriaVisitor.Type.INTEGER);
-                put("moderation_status", FilterCriteriaVisitor.Type.INTEGER);
-            }}));
-        }
-        criteria.add(
-                new FilterCriteria.Builder<Boolean>()
-                        .propertyName("user_id")
-                        .filterOperation(FilterOperation.IS_NULL)
-                        .needPreparedSet(false)
-                        .build()
-        );
+            ClientQueryVisitor<AndCondition, Void> filterCriteriaVisitor = new ClientQueryVisitor<>(new BiographyModerationFieldsMapper());
 
-        return biographyService.getBiographies(timeZone, pageRequest, criteria, null, biographyClampSize);
+            parsed.accept(filterCriteriaVisitor);
+
+            condition = filterCriteriaVisitor.getCondition();
+            values = filterCriteriaVisitor.getValues();
+        }
+
+        condition.add(new IsNull(new ColumnSpec(Biography.USER_ID)));
+
+        return biographyService.getBiographies(timeZone, pageRequest, condition, values,null, biographyClampSize);
     }
 
     @Transactional
