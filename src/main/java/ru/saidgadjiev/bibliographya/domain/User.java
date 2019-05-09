@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -25,16 +26,13 @@ public class User implements UserDetails, CredentialsContainer {
 
     private int id;
 
-    @JsonIgnore
-    private String email;
+    private ProviderType providerType;
 
-    @JsonIgnore
-    private String password;
+    private UserAccount userAccount;
+
+    private SocialAccount socialAccount;
 
     private Biography biography;
-
-    @JsonIgnore
-    private String phone;
 
     private Set<Role> roles;
 
@@ -52,13 +50,18 @@ public class User implements UserDetails, CredentialsContainer {
 
     @JsonIgnore
     public String getPassword() {
-        return password;
+        switch (providerType) {
+            case SIMPLE:
+                return userAccount.getPassword();
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 
     @Override
     @JsonIgnore
     public String getUsername() {
-        return email;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -99,19 +102,7 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public void eraseCredentials() {
-        password = null;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+        userAccount.setPassword(null);
     }
 
     public Boolean getNew() {
@@ -146,11 +137,27 @@ public class User implements UserDetails, CredentialsContainer {
         isDeleted = deleted;
     }
 
-    public String getPhone() {
-        return phone;
+    public ProviderType getProviderType() {
+        return providerType;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setProviderType(ProviderType providerType) {
+        this.providerType = providerType;
+    }
+
+    public SocialAccount getSocialAccount() {
+        return socialAccount;
+    }
+
+    public void setSocialAccount(SocialAccount socialAccount) {
+        this.socialAccount = socialAccount;
+    }
+
+    public UserAccount getUserAccount() {
+        return userAccount;
+    }
+
+    public void setUserAccount(UserAccount userAccount) {
+        this.userAccount = userAccount;
     }
 }

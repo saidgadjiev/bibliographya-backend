@@ -22,6 +22,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
 import ru.saidgadjiev.bibliographya.properties.JwtProperties;
 import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
 import ru.saidgadjiev.bibliographya.security.filter.AuthenticationFilter;
@@ -29,8 +30,9 @@ import ru.saidgadjiev.bibliographya.security.handler.AuthenticationFailureHandle
 import ru.saidgadjiev.bibliographya.security.handler.AuthenticationSuccessHandlerImpl;
 import ru.saidgadjiev.bibliographya.security.handler.Http403AccessDeniedEntryPoint;
 import ru.saidgadjiev.bibliographya.security.handler.LogoutSuccessHandlerImpl;
-import ru.saidgadjiev.bibliographya.security.provider.CustomAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.security.provider.JwtTokenAuthenticationProvider;
+import ru.saidgadjiev.bibliographya.security.provider.SimpleAuthenticationProvider;
+import ru.saidgadjiev.bibliographya.security.provider.SocialAuthenticationProvider;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.impl.AuthTokenService;
 
@@ -62,6 +64,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private SecurityContextRepository securityContextRepository;
 
+    private SocialServiceFactory socialServiceFactory;
+
     @Autowired
     public SecurityConfiguration(BibliographyaUserDetailsService userDetailsService,
                                  PasswordEncoder passwordEncoder,
@@ -69,7 +73,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                  UserCache userCache,
                                  JwtProperties jwtProperties,
                                  ApplicationEventPublisher eventPublisher,
-                                 AuthTokenService tokenService) {
+                                 AuthTokenService tokenService,
+                                 SocialServiceFactory socialServiceFactory) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
@@ -77,6 +82,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.objectMapper = objectMapper;
         this.userCache = userCache;
         this.jwtProperties = jwtProperties;
+        this.socialServiceFactory = socialServiceFactory;
     }
 
     @Autowired
@@ -86,7 +92,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(jwtAuthenticationProvider()).authenticationProvider(authenticationProvider());
+        auth
+                .authenticationProvider(jwtAuthenticationProvider())
+                .authenticationProvider(simpleAuthenticationProvider())
+                .authenticationProvider(socialAuthenticationProvider());
     }
 
     @Override
@@ -124,8 +133,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    private AuthenticationProvider authenticationProvider() {
-        CustomAuthenticationProvider authProvider = new CustomAuthenticationProvider();
+    private AuthenticationProvider simpleAuthenticationProvider() {
+        SimpleAuthenticationProvider authProvider = new SimpleAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
@@ -133,6 +142,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return authProvider;
     }
 
+    private AuthenticationProvider socialAuthenticationProvider() {
+        SocialAuthenticationProvider authenticationProvider = new SocialAuthenticationProvider(socialServiceFactory);
+
+        authenticationProvider.setUserDetailsService(userDetailsService);
+
+        return authenticationProvider;
+    }
 
     private AuthenticationProvider jwtAuthenticationProvider() {
         JwtTokenAuthenticationProvider authProvider = new JwtTokenAuthenticationProvider();

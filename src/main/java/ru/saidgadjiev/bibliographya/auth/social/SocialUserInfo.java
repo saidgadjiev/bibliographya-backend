@@ -13,6 +13,8 @@ public class SocialUserInfo {
 
     private String middleName;
 
+    private String providerId;
+
     public String getId() {
         return id;
     }
@@ -43,5 +45,13 @@ public class SocialUserInfo {
 
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
     }
 }

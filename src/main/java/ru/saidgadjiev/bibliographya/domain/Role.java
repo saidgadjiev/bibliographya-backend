@@ -11,6 +11,8 @@ public class Role implements GrantedAuthority {
 
     public static final String ROLE_DEVELOPER = "ROLE_DEVELOPER";
 
+    public static final String ROLE_SOCIAL_USER = "ROLE_SOCIAL_USER";
+
     public static final String ROLE_MODERATOR = "ROLE_MODERATOR";
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";

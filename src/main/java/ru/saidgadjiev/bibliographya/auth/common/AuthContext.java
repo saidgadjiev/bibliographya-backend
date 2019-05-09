@@ -18,6 +18,8 @@ public class AuthContext {
 
     private Object body;
 
+    private String redirectUri;
+
     public HttpServletRequest getRequest() {
         return request;
     }
@@ -64,6 +66,16 @@ public class AuthContext {
 
     public AuthContext setBody(Object body) {
         this.body = body;
+
+        return this;
+    }
+
+    public String getRedirectUri() {
+        return redirectUri;
+    }
+
+    public AuthContext setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
 
         return this;
     }

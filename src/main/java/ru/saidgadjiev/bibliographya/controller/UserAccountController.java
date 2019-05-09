@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.saidgadjiev.bibliographya.data.mapper.BibliographyaMapper;
-import ru.saidgadjiev.bibliographya.domain.UserAccount;
+import ru.saidgadjiev.bibliographya.domain.UserProfile;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 
 import java.util.TimeZone;
@@ -29,8 +29,8 @@ public class UserAccountController {
     }
 
     @GetMapping("/{id:[\\d]+}")
-    public ResponseEntity<?> getAccount(TimeZone timeZone, @PathVariable("id") int userId) {
-        UserAccount userAccount = userAccountDetailsService.getAccount(timeZone, userId);
+    public ResponseEntity<?> getProfile(TimeZone timeZone, @PathVariable("id") int userId) {
+        UserProfile userAccount = userAccountDetailsService.getProfile(timeZone, userId);
 
         if (userAccount.getBiography() == null) {
             return ResponseEntity.notFound().build();

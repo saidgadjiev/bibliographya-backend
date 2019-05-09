@@ -93,11 +93,11 @@ class AuthServiceTest {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
         AuthContext authContext = new AuthContext()
-                .setProviderType(ProviderType.PHONE_PASSWORD)
+                .setProviderType(ProviderType.SIMPLE)
                 .setRequest(request)
                 .setBody(signUpRequest);
 
-        authService.signUp(authContext, null);
+        authService.signUp(authContext);
 
         Mockito.verify(verificationStorage, Mockito.times(1)).setAttr(request, VerificationStorage.SIGN_UP_REQUEST, signUpRequest);
     }
@@ -155,9 +155,11 @@ class AuthServiceTest {
 
             User user = new User();
 
-            user.setPassword(req.getPassword());
-            user.setEmail(req.getEmail());
-            user.setPhone(req.getPhone());
+            UserAccount userAccount = new UserAccount();
+
+            userAccount.setPassword(req.getPassword());
+            userAccount.setEmail(req.getUserAccount().getEmail());
+            userAccount.setPhone(req.getUserAccount().getPhone());
             user.setId(1);
 
             user.setBiography(req.getBiography());
@@ -183,7 +185,7 @@ class AuthServiceTest {
 
         authContext.setBody(signUpConfirmation);
 
-        SignUpResult signUpResult = authService.confirmSignUpFinish(authContext);
+        SignInResult signUpResult = authService.confirmSignUpFinish(authContext);
 
         Assertions.assertEquals(signUpResult.getStatus(), HttpStatus.OK);
         Assertions.assertEquals(1, db.size());
@@ -191,8 +193,13 @@ class AuthServiceTest {
         User expected = new User();
 
         expected.setId(TestModelsUtils.TEST_USER_ID);
-        expected.setPhone(TestModelsUtils.TEST_PHONE);
-        expected.setPassword("Test");
+
+        UserAccount userAccount = new UserAccount();
+
+        userAccount.setPhone(TestModelsUtils.TEST_PHONE);
+        userAccount.setPassword("Test");
+
+        expected.setUserAccount(userAccount);
 
         expected.setRoles(Collections.singleton(new Role(Role.ROLE_USER)));
         expected.setBiography(new Biography());

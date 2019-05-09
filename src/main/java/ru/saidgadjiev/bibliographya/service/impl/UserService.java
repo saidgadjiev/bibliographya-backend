@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
+import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.data.ClientQueryVisitor;
 import ru.saidgadjiev.bibliographya.data.PreparedSetter;
@@ -26,13 +26,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final UserDao userDao;
+    private final UserAccountDao userDao;
 
     private final UserRoleDao userRoleDao;
 
     private ApplicationEventPublisher eventPublisher;
 
-    public UserService(UserDao userDao, UserRoleDao userRoleDao, ApplicationEventPublisher eventPublisher) {
+    public UserService(UserAccountDao userDao, UserRoleDao userRoleDao, ApplicationEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.userRoleDao = userRoleDao;
         this.eventPublisher = eventPublisher;

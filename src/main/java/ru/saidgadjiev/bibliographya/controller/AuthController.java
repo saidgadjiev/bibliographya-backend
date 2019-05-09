@@ -11,8 +11,8 @@ import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.auth.social.ResponseType;
 import ru.saidgadjiev.bibliographya.domain.AuthKey;
 import ru.saidgadjiev.bibliographya.domain.SendVerificationResult;
+import ru.saidgadjiev.bibliographya.domain.SignInResult;
 import ru.saidgadjiev.bibliographya.domain.SignUpConfirmation;
-import ru.saidgadjiev.bibliographya.domain.SignUpResult;
 import ru.saidgadjiev.bibliographya.model.SignUpRequest;
 import ru.saidgadjiev.bibliographya.service.impl.auth.AuthService;
 
@@ -53,7 +53,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (providerType.equals(ProviderType.PHONE_PASSWORD)) {
+        if (providerType.equals(ProviderType.SIMPLE)) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -74,7 +74,7 @@ public class AuthController {
                 .setResponse(response)
                 .setBody(signUpConfirmation);
 
-        SignUpResult signUpResult = authService.confirmSignUpFinish(authContext);
+        SignInResult signUpResult = authService.confirmSignUpFinish(authContext);
 
         return ResponseEntity.status(signUpResult.getStatus()).body(signUpResult.getUser());
     }
@@ -104,11 +104,11 @@ public class AuthController {
         }
 
         AuthContext authContext = new AuthContext()
-                .setProviderType(ProviderType.PHONE_PASSWORD)
+                .setProviderType(ProviderType.SIMPLE)
                 .setRequest(request)
                 .setBody(signUpRequest);
 
-        HttpStatus status = authService.signUp(authContext, null);
+        HttpStatus status = authService.signUp(authContext);
 
         return ResponseEntity.status(status).build();
     }
@@ -129,9 +129,10 @@ public class AuthController {
         AuthContext authContext = new AuthContext()
                 .setProviderType(providerType)
                 .setRequest(request)
+                .setRedirectUri(redirectUri)
                 .setCode(code);
 
-        return ResponseEntity.ok(authService.signUp(authContext, redirectUri));
+        return ResponseEntity.ok(authService.signUp(authContext));
     }
 
     @GetMapping("/signUp/confirmation")

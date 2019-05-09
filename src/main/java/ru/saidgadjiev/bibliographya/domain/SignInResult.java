@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 /**
  * Created by said on 11.02.2019.
  */
-public class SignUpResult {
+public class SignInResult {
 
     private HttpStatus status;
 
@@ -15,7 +15,7 @@ public class SignUpResult {
         return status;
     }
 
-    public SignUpResult setStatus(HttpStatus status) {
+    public SignInResult setStatus(HttpStatus status) {
         this.status = status;
 
         return this;
@@ -25,7 +25,7 @@ public class SignUpResult {
         return user;
     }
 
-    public SignUpResult setUser(User user) {
+    public SignInResult setUser(User user) {
         this.user = user;
 
         return this;

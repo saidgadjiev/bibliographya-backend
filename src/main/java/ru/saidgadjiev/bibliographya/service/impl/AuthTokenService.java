@@ -48,6 +48,7 @@ public class AuthTokenService {
 
     public String createToken(User user) {
         Map<String, Object> payload = new HashMap<String, Object>() {{
+            put("providerId", user.getProviderType().getId());
             put("userId", user.getId());
         }};
 

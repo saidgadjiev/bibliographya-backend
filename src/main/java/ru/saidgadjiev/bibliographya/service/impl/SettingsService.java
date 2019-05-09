@@ -8,6 +8,7 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.UserAccount;
 import ru.saidgadjiev.bibliographya.model.GeneralSettings;
 import ru.saidgadjiev.bibliographya.utils.SecureUtils;
 
@@ -38,17 +39,17 @@ public class SettingsService {
         User loggedInUser = (User) securityService.findLoggedInUser();
 
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
-                User.TABLE,
-                Arrays.asList(User.EMAIL, User.PHONE),
+                UserAccount.TABLE,
+                Arrays.asList(UserAccount.EMAIL, UserAccount.PHONE),
                 new AndCondition() {{
-                    add(new Equals(new ColumnSpec(User.ID), new Param()));
+                    add(new Equals(new ColumnSpec(UserAccount.ID), new Param()));
                 }},
-                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, loggedInUser.getId()))
+                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, loggedInUser.getUserAccount().getId()))
         );
         Map<String, Object> values = fieldsValues.get(0);
 
-        generalSettings.setEmail(SecureUtils.secureEmail((String) values.get(User.EMAIL)));
-        generalSettings.setPhone(SecureUtils.securePhone((String) values.get(User.PHONE)));
+        generalSettings.setEmail(SecureUtils.secureEmail((String) values.get(UserAccount.EMAIL)));
+        generalSettings.setPhone(SecureUtils.securePhone((String) values.get(UserAccount.PHONE)));
 
         return generalSettings;
     }

@@ -8,8 +8,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
+import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.dao.impl.GeneralDao;
-import ru.saidgadjiev.bibliographya.dao.impl.UserDao;
+import ru.saidgadjiev.bibliographya.dao.impl.SocialAccountDao;
+import ru.saidgadjiev.bibliographya.dao.impl.UserAccountDao;
 import ru.saidgadjiev.bibliographya.dao.impl.UserRoleDao;
 import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;
 import ru.saidgadjiev.bibliographya.data.PreparedSetter;
@@ -45,7 +48,7 @@ import java.util.stream.Stream;
 @Service("userDetailsService")
 public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
-    private final UserDao userDao;
+    private final UserAccountDao userAccountDao;
 
     private final GeneralDao generalDao;
 
@@ -63,8 +66,10 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private ApplicationEventPublisher eventPublisher;
 
+    private SocialAccountDao socialAccountDao;
+
     @Autowired
-    public UserDetailsServiceImpl(UserDao userDao,
+    public UserDetailsServiceImpl(UserAccountDao userAccountDao,
                                   GeneralDao generalDao,
                                   UserRoleDao userRoleDao,
                                   BiographyService biographyService,
@@ -72,8 +77,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   @Qualifier("wrapper") VerificationService verificationService,
                                   SecurityService securityService,
                                   @Qualifier("inMemory") VerificationStorage verificationStorage,
-                                  ApplicationEventPublisher eventPublisher) {
-        this.userDao = userDao;
+                                  ApplicationEventPublisher eventPublisher,
+                                  SocialAccountDao socialAccountDao) {
+        this.userAccountDao = userAccountDao;
         this.generalDao = generalDao;
         this.userRoleDao = userRoleDao;
         this.biographyService = biographyService;
@@ -82,6 +88,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         this.securityService = securityService;
         this.verificationStorage = verificationStorage;
         this.eventPublisher = eventPublisher;
+        this.socialAccountDao = socialAccountDao;
     }
 
     @Override
@@ -90,11 +97,11 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         switch (authKey.getType()) {
             case PHONE: {
-                user = userDao.getByPhone(authKey.formattedNumber());
+                user = userAccountDao.getByPhone(authKey.formattedNumber());
                 break;
             }
             case EMAIL: {
-                user = userDao.getByEmail(authKey.getEmail());
+                user = userAccountDao.getByEmail(authKey.getEmail());
                 break;
             }
         }
@@ -109,18 +116,66 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public User save(User saveUser) throws SQLException {
-        Biography saveBiography = saveUser.getBiography();
-        unverifyPhones(saveUser.getPhone());
+    public User loadSocialUserById(int userId) {
+        User user = socialAccountDao.getByUserId(userId);
+
+        if (user != null) {
+            user.setRoles(userRoleDao.getRoles(userId));
+        }
+
+        return user;
+    }
+
+    @Override
+    public User loadUserBySocialAccount(ProviderType providerType, String accountId) {
+        User user = socialAccountDao.getByAccountId(providerType, accountId);
+
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        user.setRoles(userRoleDao.getRoles(user.getId()));
+
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public User saveSocialUser(SocialUserInfo userInfo) throws SQLException {
+        SocialAccount socialAccount = new SocialAccount();
+
+        socialAccount.setAccountId(userInfo.getId());
 
         User user = new User();
 
-        user.setPhone(saveUser.getPhone());
-        user.setPassword(passwordEncoder.encode(saveUser.getPassword()));
+        user.setProviderType(ProviderType.fromId(userInfo.getProviderId()));
+        user.setRoles(Stream.of(new Role(Role.ROLE_SOCIAL_USER)).collect(Collectors.toSet()));
+        user.setSocialAccount(socialAccount);
 
+        user = socialAccountDao.save(user);
+
+        postSave(user, userInfo.getFirstName(), userInfo.getLastName(), userInfo.getMiddleName());
+
+        return user;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public User save(User saveUser) throws SQLException {
+        Biography saveBiography = saveUser.getBiography();
+        unverifyPhones(saveUser.getUserAccount().getPhone());
+
+        User user = new User();
+
+        UserAccount userAccount = new UserAccount();
+
+        userAccount.setPhone(saveUser.getUserAccount().getPhone());
+        userAccount.setPassword(passwordEncoder.encode(saveUser.getPassword()));
+
+        user.setUserAccount(userAccount);
+        user.setProviderType(ProviderType.SIMPLE);
         user.setRoles(Stream.of(new Role(Role.ROLE_USER)).collect(Collectors.toSet()));
-        user = userDao.save(user);
+        user = userAccountDao.save(user);
 
         postSave(user, saveBiography.getFirstName(), saveBiography.getLastName(), saveBiography.getMiddleName());
 
@@ -129,7 +184,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public User loadUserById(int id) {
-        User user = userDao.getUniqueUser(new AndCondition() {{
+        User user = userAccountDao.getUniqueUser(new AndCondition() {{
             add(new Equals(new ColumnSpec(User.ID), new Param()));
         }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, id)));
 
@@ -144,9 +199,9 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     public boolean isExist(AuthKey authKey) {
         switch (authKey.getType()) {
             case PHONE:
-                return userDao.isExistPhone(authKey.formattedNumber());
+                return userAccountDao.isExistPhone(authKey.formattedNumber());
             case EMAIL:
-                return userDao.isExistEmail(authKey.getEmail());
+                return userAccountDao.isExistEmail(authKey.getEmail());
         }
 
         return false;
@@ -189,16 +244,16 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     @Override
     public SendVerificationResult restorePasswordStart(HttpServletRequest request,
-                                           Locale locale,
-                                           AuthKey authKey) throws MessagingException {
+                                                       Locale locale,
+                                                       AuthKey authKey) throws MessagingException {
         User actual = null;
 
         switch (authKey.getType()) {
             case PHONE:
-                actual = userDao.getByPhone(authKey.formattedNumber());
+                actual = userAccountDao.getByPhone(authKey.formattedNumber());
                 break;
             case EMAIL:
-                actual = userDao.getByEmail(authKey.getEmail());
+                actual = userAccountDao.getByEmail(authKey.getEmail());
                 break;
         }
 
@@ -209,7 +264,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         verificationStorage.setAttr(request, VerificationStorage.STATE, SessionState.RESTORE_PASSWORD);
         verificationStorage.setAttr(request, VerificationStorage.FIRST_NAME, actual.getBiography().getFirstName());
 
-        AuthKey phoneKey = AuthKeyArgumentResolver.resolve(actual.getPhone());
+        AuthKey phoneKey = AuthKeyArgumentResolver.resolve(actual.getUserAccount().getPhone());
 
         return verificationService.sendVerification(request, locale, phoneKey);
     }
@@ -278,18 +333,18 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             values.add(
                     new UpdateValue<>(
-                            User.EMAIL,
+                            UserAccount.EMAIL,
                             (preparedStatement, index) -> preparedStatement.setString(index, authKey.getEmail())
                     )
             );
 
-            generalDao.update(User.TABLE, values, new AndCondition() {{
-                add(new Equals(new ColumnSpec(User.ID), new Param()));
-            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, actual.getId())), null);
+            generalDao.update(UserAccount.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(UserAccount.ID), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, actual.getUserAccount().getId())), null);
 
             verificationStorage.expire(request);
 
-            actual.setEmail(authKey.getEmail());
+            actual.getUserAccount().setEmail(authKey.getEmail());
 
             eventPublisher.publishEvent(new ChangeEmailEvent(actual));
 
@@ -355,7 +410,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             verificationStorage.expire(request);
 
-            actual.setPhone(authKey.formattedNumber());
+            actual.getUserAccount().setPhone(authKey.formattedNumber());
 
             eventPublisher.publishEvent(new ChangePhoneEvent(actual));
 
@@ -366,7 +421,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     }
 
     @Override
-    public UserAccount getAccount(TimeZone timeZone, int userId) {
+    public UserProfile getProfile(TimeZone timeZone, int userId) {
         List<PreparedSetter> values = new ArrayList<>();
 
         AndCondition andCondition = new AndCondition() {{
@@ -377,7 +432,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         Biography biography = biographyService.getBiographyByCriteria(timeZone, andCondition, values);
 
-        UserAccount userAccount = new UserAccount();
+        UserProfile userAccount = new UserProfile();
 
         userAccount.setBiography(biography);
 

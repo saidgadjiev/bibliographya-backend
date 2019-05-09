@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
 import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
@@ -15,6 +16,7 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.User;
+import ru.saidgadjiev.bibliographya.domain.UserAccount;
 import ru.saidgadjiev.bibliographya.domain.UsersStats;
 
 import java.sql.PreparedStatement;
@@ -29,12 +31,12 @@ import java.util.Map;
  * Created by said on 22.10.2018.
  */
 @Repository
-public class UserDao {
+public class UserAccountDao {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public UserDao(JdbcTemplate jdbcTemplate) {
+    public UserAccountDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -43,14 +45,9 @@ public class UserDao {
 
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement(
-                            "INSERT INTO \"user\"(email, phone, password) VALUES (?, ?, ?)",
-                            Statement.RETURN_GENERATED_KEYS
-                    );
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO \"user\"(provider_id) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
 
-                    ps.setString(1, user.getUsername());
-                    ps.setString(2, user.getPhone());
-                    ps.setString(3, user.getPassword());
+                    ps.setString(1, user.getProviderType().getId());
 
                     return ps;
                 },
@@ -62,12 +59,38 @@ public class UserDao {
             user.setId(((Number) keys.get("id")).intValue());
         }
 
+        user.getUserAccount().setUserId(user.getId());
+
+        KeyHolder keyHolderUserAccount = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(
+                con -> {
+                    PreparedStatement ps = con.prepareStatement(
+                            "INSERT INTO user_account(email, phone, password, user_id) VALUES(?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS
+                    );
+
+                    ps.setString(1, user.getUserAccount().getEmail());
+                    ps.setString(2, user.getUserAccount().getPhone());
+                    ps.setString(3, user.getPassword());
+                    ps.setInt(4, user.getId());
+
+                    return ps;
+                },
+                keyHolderUserAccount
+        );
+        keys = keyHolderUserAccount.getKeys();
+
+        if (keys != null && keys.containsKey("id")) {
+            user.getUserAccount().setId(((Number) keys.get("id")).intValue());
+        }
+
         return user;
     }
 
     public User getByEmail(String email) {
         return getUniqueUser(new AndCondition() {{
-            add(new Equals(new ColumnSpec(User.EMAIL), new Param()));
+            add(new Equals(new ColumnSpec(UserAccount.EMAIL), new Param()));
         }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, email)));
     }
 
@@ -96,10 +119,10 @@ public class UserDao {
 
         sql
                 .append("SELECT ").append(selectList()).append(" ")
-                .append("FROM \"user\" u INNER JOIN biography b ON u.id = b.user_id WHERE 1 = 1 ");
+                .append(" FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id ");
 
         if (StringUtils.isNotBlank(userClause)) {
-            sql.append("AND ").append(userClause).append(" ");
+            sql.append("WHERE ").append(userClause).append(" ");
         }
 
         return jdbcTemplate.query(
@@ -117,7 +140,7 @@ public class UserDao {
 
     public boolean isExistEmail(String email) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM \"user\" WHERE email = ?",
+                "SELECT COUNT(*) as cnt FROM \"user_account\" WHERE email = ?",
                 preparedStatement -> {
                     preparedStatement.setString(1, email);
                 },
@@ -127,7 +150,7 @@ public class UserDao {
 
     public boolean isExistPhone(String phone) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM \"user\" WHERE phone = ?",
+                "SELECT COUNT(*) as cnt FROM \"user_account\" WHERE phone = ?",
                 preparedStatement -> {
                     preparedStatement.setString(1, phone);
                 },
@@ -165,8 +188,9 @@ public class UserDao {
     public List<User> getUsers(Integer limit, Long offset, AndCondition roleCriteria, List<PreparedSetter> values) {
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT ").append(selectList()).append(" FROM \"user\" u ");
-        sql.append("INNER JOIN biography b ON u.id = b.user_id ");
+        sql
+                .append("SELECT ").append(selectList())
+                .append(" FROM \"user\" u INNER JOIN user_account ua ON ua.user_id = u.id INNER JOIN biography b ON u.id = b.user_id ");
 
         DslVisitor dslVisitor = new DslVisitor(null);
 
@@ -205,9 +229,15 @@ public class UserDao {
 
         user.setId(rs.getInt("u_id"));
 
-        user.setEmail(rs.getString("u_email"));
-        user.setPhone(rs.getString("u_phone"));
-        user.setPassword(rs.getString("u_password"));
+        UserAccount userAccount = new UserAccount();
+
+        userAccount.setEmail(rs.getString("u_email"));
+        userAccount.setPhone(rs.getString("u_phone"));
+        userAccount.setPassword(rs.getString("u_password"));
+
+        user.setUserAccount(userAccount);
+
+        user.setProviderType(ProviderType.fromId(rs.getString("u_provider_id")));
 
         Biography biography = new Biography();
 
@@ -222,9 +252,11 @@ public class UserDao {
 
     private String selectList() {
         return "  u.id AS u_id,\n" +
-                "  u.email AS u_email,\n" +
-                "  u.phone AS u_phone,\n" +
-                "  u.password AS u_password,\n" +
+                "  u.provider_id AS u_provider_id,\n" +
+                "  ua.id AS ua_id,\n" +
+                "  ua.email AS ua_email,\n" +
+                "  ua.phone AS ua_phone,\n" +
+                "  ua.password AS ua_password,\n" +
                 "  b.id AS b_id,\n" +
                 "  b.first_name AS b_first_name,\n" +
                 "  b.last_name AS b_last_name\n";

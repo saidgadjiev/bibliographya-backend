@@ -2,7 +2,11 @@ package ru.saidgadjiev.bibliographya.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.stereotype.Service;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
@@ -45,6 +49,10 @@ public class AuthService {
 
     private BruteForceService bruteForceService;
 
+    private AuthenticationManager authenticationManager;
+
+    private ApplicationEventPublisher eventPublisher;
+
     @Autowired
     public AuthService(SocialServiceFactory socialServiceFactory,
                        BibliographyaUserDetailsService userAccountDetailsService,
@@ -53,7 +61,8 @@ public class AuthService {
                        @Qualifier("wrapper") VerificationService verificationService,
                        @Qualifier("inMemory") VerificationStorage verificationStorage,
                        JwtProperties jwtProperties,
-                       BruteForceService bruteForceService) {
+                       BruteForceService bruteForceService,
+                       ApplicationEventPublisher eventPublisher) {
         this.socialServiceFactory = socialServiceFactory;
         this.userAccountDetailsService = userAccountDetailsService;
         this.tokenService = tokenService;
@@ -62,6 +71,11 @@ public class AuthService {
         this.verificationStorage = verificationStorage;
         this.jwtProperties = jwtProperties;
         this.bruteForceService = bruteForceService;
+        this.eventPublisher = eventPublisher;
+    }
+
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri, ResponseType responseType) {
@@ -74,14 +88,14 @@ public class AuthService {
         return socialService.createOAuth2Url(redirectUri, responseType);
     }
 
-    public HttpStatus signUp(AuthContext authContext, String redirectUri) {
+    public HttpStatus signUp(AuthContext authContext) {
         SignUpRequest signUpRequest = null;
 
         switch (authContext.getProviderType()) {
             case FACEBOOK:
             case VK:
                 SocialService socialService = socialServiceFactory.getService(authContext.getProviderType());
-                AccessGrant accessGrant = socialService.createAccessToken(authContext.getCode(), redirectUri);
+                AccessGrant accessGrant = socialService.createAccessToken(authContext.getCode(), authContext.getRedirectUri());
 
                 SocialUserInfo userInfo = socialService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 
@@ -92,7 +106,7 @@ public class AuthService {
                 signUpRequest.setMiddleName(userInfo.getMiddleName());
 
                 break;
-            case PHONE_PASSWORD:
+            case SIMPLE:
                 signUpRequest = (SignUpRequest) authContext.getBody();
 
                 break;
@@ -105,7 +119,7 @@ public class AuthService {
         return HttpStatus.OK;
     }
 
-    public SignUpResult confirmSignUpFinish(AuthContext authContext) throws SQLException {
+    public SignInResult confirmSignUpFinish(AuthContext authContext) throws SQLException {
         SignUpRequest signUpRequest = (SignUpRequest) verificationStorage.getAttr(authContext.getRequest(), VerificationStorage.SIGN_UP_REQUEST);
         SignUpConfirmation signUpConfirmation = (SignUpConfirmation) authContext.getBody();
 
@@ -120,13 +134,17 @@ public class AuthService {
                 AuthKey authKey = (AuthKey) verificationStorage.getAttr(authContext.getRequest(), VerificationStorage.AUTH_KEY, null);
 
                 if (authKey == null) {
-                    return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
+                    return new SignInResult().setStatus(HttpStatus.BAD_REQUEST);
                 }
 
                 User saveUser = new User();
+                UserAccount userAccount = new UserAccount();
 
-                saveUser.setPhone(authKey.formattedNumber());
-                saveUser.setPassword(signUpConfirmation.getPassword());
+                userAccount.setPhone(authKey.formattedNumber());
+                userAccount.setPassword(signUpConfirmation.getPassword());
+
+                saveUser.setUserAccount(userAccount);
+                saveUser.setProviderType(ProviderType.SIMPLE);
 
                 Biography biography = new Biography();
 
@@ -148,15 +166,23 @@ public class AuthService {
 
                 //CookieUtils.addCookie(authContext.getResponse(), uiProperties.getHost(), jwtProperties.tokenName(), token);
 
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        user,
+                        null,
+                        saveUser.getAuthorities()
+                );
+
+                eventPublisher.publishEvent(new AuthenticationSuccessEvent(authentication));
+
                 authContext.getResponse().addHeader(jwtProperties.tokenName(), token);
 
-                return new SignUpResult().setStatus(HttpStatus.OK).setUser(user);
+                return new SignInResult().setStatus(HttpStatus.OK).setUser(user);
             }
 
-            return new SignUpResult().setStatus(HttpStatus.PRECONDITION_FAILED);
+            return new SignInResult().setStatus(HttpStatus.PRECONDITION_FAILED);
         }
 
-        return new SignUpResult().setStatus(HttpStatus.BAD_REQUEST);
+        return new SignInResult().setStatus(HttpStatus.BAD_REQUEST);
     }
 
     public SendVerificationResult confirmSignUpStart(HttpServletRequest request, Locale locale, AuthKey authKey) throws MessagingException {
