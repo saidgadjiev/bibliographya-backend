@@ -7,6 +7,7 @@ import java.util.Map;
 /**
  * Created by said on 01.01.2019.
  */
+@SuppressWarnings("PMD")
 public class AssignMeOperation {
 
     private final BiographyReportDao reportDao;

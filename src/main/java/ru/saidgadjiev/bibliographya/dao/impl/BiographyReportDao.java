@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
  * Created by said on 31.12.2018.
  */
 @Repository
+@SuppressWarnings("PMD")
 public class BiographyReportDao {
 
     private final JdbcTemplate jdbcTemplate;

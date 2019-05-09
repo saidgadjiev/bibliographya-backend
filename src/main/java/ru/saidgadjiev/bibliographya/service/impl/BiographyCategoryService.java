@@ -18,6 +18,7 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
 import ru.saidgadjiev.bibliographya.model.BiographyCategoryRequest;
+import ru.saidgadjiev.bibliographya.properties.StorageProperties;
 import ru.saidgadjiev.bibliographya.service.api.StorageService;
 import ru.saidgadjiev.bibliographya.utils.FileNameUtils;
 
@@ -68,16 +69,16 @@ public class BiographyCategoryService {
         KeyHolder keyHolder = generalDao.create(BiographyCategory.TABLE, values);
         int id = (int) keyHolder.getKeys().get(BiographyCategory.ID);
 
-        String filePath = FileNameUtils.categoryUploadFileName(id, file);
+        String fileName = FileNameUtils.categoryUploadFileName(id, file);
 
-        storageService.store(filePath, file);
+        storageService.store(StorageProperties.CATEGORY_ROOT + "/" + fileName, file);
 
         Collection<UpdateValue> filePathUpdateValues = new ArrayList<>();
 
         filePathUpdateValues.add(
                 new UpdateValue<>(
                         BiographyCategory.IMAGE_PATH,
-                        (preparedStatement, index) -> preparedStatement.setString(index, filePath)
+                        (preparedStatement, index) -> preparedStatement.setString(index, fileName)
                 )
         );
 
@@ -91,7 +92,7 @@ public class BiographyCategoryService {
 
         category.setId(id);
         category.setName(categoryRequest.getName());
-        category.setImagePath(filePath);
+        category.setImagePath(fileName);
 
         return category;
     }
@@ -123,19 +124,19 @@ public class BiographyCategoryService {
         }
 
         if (file != null) {
-            storageService.deleteResource(actual.getImagePath());
-            String filePath = FileNameUtils.categoryUploadFileName(id, file);
+            storageService.deleteResource(StorageProperties.CATEGORY_ROOT + "/" + actual.getImagePath());
+            String fileName = FileNameUtils.categoryUploadFileName(id, file);
 
-            storageService.store(filePath, file);
+            storageService.store(StorageProperties.CATEGORY_ROOT + "/" + fileName, file);
 
             values.add(
                     new UpdateValue<>(
                             BiographyCategory.IMAGE_PATH,
-                            (preparedStatement, index) -> preparedStatement.setString(index, filePath)
+                            (preparedStatement, index) -> preparedStatement.setString(index, fileName)
                     )
             );
 
-            actual.setImagePath(filePath);
+            actual.setImagePath(fileName);
         }
 
         generalDao.update(BiographyCategory.TABLE, values,  new AndCondition() {{

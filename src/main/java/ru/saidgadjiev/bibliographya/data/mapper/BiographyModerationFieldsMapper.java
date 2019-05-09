@@ -12,7 +12,7 @@ import java.util.Collection;
  */
 public class BiographyModerationFieldsMapper implements FieldsMapper {
 
-    private final Collection<String> fields = Arrays.asList(Biography.MODERATOR_ID, Biography.MODERATION_STATUS);
+    private final Collection<String> fields = Arrays.asList(BiographyModerationResponse.MODERATOR_ID, BiographyModerationResponse.MODERATION_STATUS);
 
     @Override
     public boolean has(String field) {

@@ -44,7 +44,7 @@ public class UserPendingOperation implements BusinessOperation<Biography> {
             add(new Equals(new ColumnSpec(Biography.ID), new Param()));
             add(new Equals(new ColumnSpec(Biography.CREATOR_ID), new Param()));
         }}, Arrays.asList(
-                ((preparedStatement, index) -> preparedStatement.setInt(index, biographyId)),
+                (preparedStatement, index) -> preparedStatement.setInt(index, biographyId),
                 (preparedStatement, index) -> preparedStatement.setInt(index, creatorId),
                 (preparedStatement, index) -> preparedStatement.setInt(index, Biography.ModerationStatus.REJECTED.getCode())
         ));

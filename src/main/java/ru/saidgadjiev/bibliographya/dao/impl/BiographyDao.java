@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliographya.dao.impl.dsl.DslVisitor;
 import ru.saidgadjiev.bibliographya.data.PreparedSetter;
 import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
@@ -118,7 +119,9 @@ public class BiographyDao {
 
         DslVisitor visitor = new DslVisitor("b");
 
-        biographyCriteria.accept(visitor);
+        new Expression() {{
+            add(biographyCriteria);
+        }}.accept(visitor);
 
         String biographyClause = visitor.getClause();
 
@@ -219,7 +222,9 @@ public class BiographyDao {
 
         DslVisitor visitor = new DslVisitor("b");
 
-        criteria.accept(visitor);
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
 
         String clause = visitor.getClause();
 
@@ -282,7 +287,9 @@ public class BiographyDao {
 
         DslVisitor visitor = new DslVisitor("b");
 
-        criteria.accept(visitor);
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
 
         String clause = visitor.getClause();
 
@@ -336,7 +343,9 @@ public class BiographyDao {
     ) {
         DslVisitor visitor = new DslVisitor(null);
 
-        criteria.accept(visitor);
+        new Expression() {{
+            add(criteria);
+        }}.accept(visitor);
 
         String clause = visitor.getClause();
 
@@ -503,7 +512,9 @@ public class BiographyDao {
         if (fields.contains(Biography.IS_LIKED)) {
             DslVisitor visitor = new DslVisitor(null);
 
-            isLikedCriteria.accept(visitor);
+            new Expression() {{
+                add(isLikedCriteria);
+            }}.accept(visitor);
 
             String isLikedClause = visitor.getClause();
 

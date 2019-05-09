@@ -58,7 +58,7 @@ public class RejectOperation {
             add(new Equals(new ColumnSpec(Biography.ID), new Param()));
             add(new Equals(new ColumnSpec(Biography.MODERATOR_ID), new Param()));
         }}, Arrays.asList(
-                ((preparedStatement, index) -> preparedStatement.setInt(index, biographyId)),
+                (preparedStatement, index) -> preparedStatement.setInt(index, biographyId),
                 (preparedStatement, index) -> preparedStatement.setInt(index, moderatorId)
         ));
     }

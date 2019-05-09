@@ -8,11 +8,8 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Equals;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.IsNull;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by said on 04.01.2019.
@@ -56,7 +53,7 @@ public class ClientQueryVisitor<R, A> implements RSQLVisitor<R, A> {
             String argument = arguments.iterator().next();
 
             if (argument.equals("null")) {
-                condition.add(new IsNull(new ColumnSpec(comparisonNode.getSelector())));
+                condition.add(new IsNull(new ColumnSpec(field)));
             } else {
                 switch (fieldsMapper.getType(comparisonNode.getSelector())) {
                     case INTEGER: {
