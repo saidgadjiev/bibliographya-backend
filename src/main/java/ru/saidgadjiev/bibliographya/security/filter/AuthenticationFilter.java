@@ -13,6 +13,7 @@ import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.client.HttpClientErrorException;
 import ru.saidgadjiev.bibliographya.auth.common.AuthContext;
 import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.data.AuthKeyArgumentResolver;

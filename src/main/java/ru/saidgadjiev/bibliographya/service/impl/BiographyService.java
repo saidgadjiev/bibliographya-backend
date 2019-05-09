@@ -14,6 +14,7 @@ import ru.saidgadjiev.bibliographya.data.UpdateValue;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.column.ColumnSpec;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.*;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.function.Lower;
+import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.IntLiteral;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.literals.Param;
 import ru.saidgadjiev.bibliographya.domain.*;
 import ru.saidgadjiev.bibliographya.domain.builder.BiographyBuilder;
@@ -518,9 +519,7 @@ public class BiographyService {
     private Condition isLikedCriteria(List<PreparedSetter> values) {
         User user = (User) securityService.findLoggedInUser();
 
-        values.add((preparedStatement, index) -> preparedStatement.setInt(index, user.getId()));
-
-        return new Equals(new ColumnSpec(Biography.USER_ID), new Param());
+        return new Equals(new ColumnSpec(Biography.USER_ID), new IntLiteral(user.getId()));
     }
 
     private Collection<String> normalizeFields(Collection<String> fields) {

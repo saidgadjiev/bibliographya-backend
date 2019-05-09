@@ -12,6 +12,7 @@ import ru.saidgadjiev.bibliographya.auth.social.AccessGrant;
 import ru.saidgadjiev.bibliographya.auth.social.SocialUserInfo;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.factory.SocialServiceFactory;
+import ru.saidgadjiev.bibliographya.security.token.SocialUserAuthenticationToken;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.SocialService;
 
@@ -48,6 +49,8 @@ public class SocialAuthenticationProvider implements AuthenticationProvider {
 
                     SocialUserInfo userInfo = socialService.getUserInfo(accessGrant.getUserId(), accessGrant.getAccessToken());
 
+                    userInfo.setProviderId(authContext.getProviderType().getId());
+
                     User user = userDetailsService.loadUserBySocialAccount(authContext.getProviderType(), userInfo.getId());
 
                     if (user == null) {
@@ -71,6 +74,6 @@ public class SocialAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+        return SocialUserAuthenticationToken.class.isAssignableFrom(authentication);
     }
 }

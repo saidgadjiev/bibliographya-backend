@@ -32,13 +32,6 @@ public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
     }
 
     @Override
-    public Collection<User> getUsersFromCache(String email) {
-        com.github.benmanes.caffeine.cache.Cache<Integer, User> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Integer, User>) cache.getNativeCache();
-
-        return nativeCache.asMap().values().stream().filter(user -> Objects.equals(user.getEmail(), email)).collect(Collectors.toList());
-    }
-
-    @Override
     public UserDetails getUserFromCache(String username) {
         throw new UnsupportedOperationException();
     }

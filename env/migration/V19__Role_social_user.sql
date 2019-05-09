@@ -1,0 +1,1 @@
+INSERT INTO role(name) VALUES ('ROLE_SOCIAL_USER');

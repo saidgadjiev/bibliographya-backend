@@ -1,6 +1,7 @@
 package ru.saidgadjiev.bibliographya.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,12 +18,6 @@ public class User implements UserDetails, CredentialsContainer {
     public static final String ID = "id";
 
     public static final String TABLE = "user";
-
-    public static final String EMAIL = "email";
-
-    public static final String PHONE = "phone";
-
-    public static final String PASSWORD = "password";
 
     private int id;
 
@@ -61,6 +56,18 @@ public class User implements UserDetails, CredentialsContainer {
     @Override
     @JsonIgnore
     public String getUsername() {
+        switch (providerType) {
+            case FACEBOOK:
+            case VK:
+                return providerType.getId() + "_" + socialAccount.getAccountId();
+            case SIMPLE:
+                if (StringUtils.isBlank(userAccount.getPhone())) {
+                    return userAccount.getEmail();
+                }
+
+                return userAccount.getPhone();
+        }
+
         throw new UnsupportedOperationException();
     }
 
@@ -102,7 +109,11 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public void eraseCredentials() {
-        userAccount.setPassword(null);
+        switch (providerType) {
+            case SIMPLE:
+                userAccount.setPassword(null);
+                break;
+        }
     }
 
     public Boolean getNew() {

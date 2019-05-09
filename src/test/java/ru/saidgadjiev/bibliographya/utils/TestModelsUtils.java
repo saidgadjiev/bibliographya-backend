@@ -65,9 +65,9 @@ public class TestModelsUtils {
 
         User user = new User();
 
-        user.setEmail(TEST_AUTHENTICATION_KEY.getEmail());
+        //user.setEmail(TEST_AUTHENTICATION_KEY.getEmail());
         user.setId(1);
-        user.setPassword("Test");
+        //user.setPassword("Test");
 
         user.setBiography(new Biography());
         user.getBiography().setId(1);

@@ -96,7 +96,7 @@ public class UserAccountDao {
 
     public User getByPhone(String phone) {
         return getUniqueUser(new AndCondition() {{
-            add(new Equals(new ColumnSpec(User.PHONE), new Param()));
+            add(new Equals(new ColumnSpec(UserAccount.PHONE), new Param()));
         }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, phone)));
     }
 
@@ -107,7 +107,7 @@ public class UserAccountDao {
     }
 
     public List<User> getUsers(AndCondition andCondition, List<PreparedSetter> values) {
-        DslVisitor visitor = new DslVisitor("u");
+        DslVisitor visitor = new DslVisitor("ua");
 
         new Expression() {{
             add(andCondition);
@@ -231,10 +231,12 @@ public class UserAccountDao {
 
         UserAccount userAccount = new UserAccount();
 
-        userAccount.setEmail(rs.getString("u_email"));
-        userAccount.setPhone(rs.getString("u_phone"));
-        userAccount.setPassword(rs.getString("u_password"));
+        userAccount.setId(rs.getInt("ua_id"));
+        userAccount.setEmail(rs.getString("ua_email"));
+        userAccount.setPhone(rs.getString("ua_phone"));
+        userAccount.setPassword(rs.getString("ua_password"));
 
+        userAccount.setUserId(user.getId());
         user.setUserAccount(userAccount);
 
         user.setProviderType(ProviderType.fromId(rs.getString("u_provider_id")));

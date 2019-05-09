@@ -6,9 +6,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import ru.saidgadjiev.bibliographya.domain.User;
-import ru.saidgadjiev.bibliographya.security.event.*;
-
-import java.util.Collection;
+import ru.saidgadjiev.bibliographya.security.event.AddRoleEvent;
+import ru.saidgadjiev.bibliographya.security.event.DeleteRoleEvent;
+import ru.saidgadjiev.bibliographya.security.event.SignOutSuccessEvent;
 
 @Component
 public class BibliographyaCacheListener {
@@ -33,22 +33,6 @@ public class BibliographyaCacheListener {
         User userDetails = (User) authentication.getPrincipal();
 
         userCache.removeUserFromCache(userDetails.getId());
-    }
-
-    @EventListener
-    public void handle(UnverifyEmailsEvent unverifyEmailsEvent) {
-        Collection<User> usersFromCache = userCache.getUsersFromCache(unverifyEmailsEvent.getEmail());
-
-        usersFromCache.forEach(user -> user.setEmail(null));
-    }
-
-    @EventListener
-    public void handle(ChangeEmailEvent changeEmailEvent) {
-        User user = userCache.getUserFromCache(changeEmailEvent.getUser().getId());
-
-        if (user != null) {
-            user.setEmail(changeEmailEvent.getUser().getEmail());
-        }
     }
 
     @EventListener

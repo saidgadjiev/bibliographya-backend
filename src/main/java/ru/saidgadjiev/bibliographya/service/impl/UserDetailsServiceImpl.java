@@ -2,7 +2,6 @@ package ru.saidgadjiev.bibliographya.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,10 +25,6 @@ import ru.saidgadjiev.bibliographya.model.BiographyRequest;
 import ru.saidgadjiev.bibliographya.model.RestorePassword;
 import ru.saidgadjiev.bibliographya.model.SavePassword;
 import ru.saidgadjiev.bibliographya.model.SessionState;
-import ru.saidgadjiev.bibliographya.security.event.ChangeEmailEvent;
-import ru.saidgadjiev.bibliographya.security.event.ChangePhoneEvent;
-import ru.saidgadjiev.bibliographya.security.event.UnverifyEmailsEvent;
-import ru.saidgadjiev.bibliographya.security.event.UnverifyPhonesEvent;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationService;
 import ru.saidgadjiev.bibliographya.service.api.VerificationStorage;
@@ -64,8 +59,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
     private final VerificationStorage verificationStorage;
 
-    private ApplicationEventPublisher eventPublisher;
-
     private SocialAccountDao socialAccountDao;
 
     @Autowired
@@ -77,7 +70,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
                                   @Qualifier("wrapper") VerificationService verificationService,
                                   SecurityService securityService,
                                   @Qualifier("inMemory") VerificationStorage verificationStorage,
-                                  ApplicationEventPublisher eventPublisher,
                                   SocialAccountDao socialAccountDao) {
         this.userAccountDao = userAccountDao;
         this.generalDao = generalDao;
@@ -87,7 +79,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         this.verificationService = verificationService;
         this.securityService = securityService;
         this.verificationStorage = verificationStorage;
-        this.eventPublisher = eventPublisher;
         this.socialAccountDao = socialAccountDao;
     }
 
@@ -131,7 +122,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         User user = socialAccountDao.getByAccountId(providerType, accountId);
 
         if (user == null) {
-            throw new UsernameNotFoundException("User not found");
+            return null;
         }
 
         user.setRoles(userRoleDao.getRoles(user.getId()));
@@ -212,29 +203,29 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
         User user = (User) securityService.findLoggedInUser();
 
         List<Map<String, Object>> fieldsValues = generalDao.getFields(
-                User.TABLE,
-                Collections.singletonList(User.PASSWORD),
+                UserAccount.TABLE,
+                Collections.singletonList(UserAccount.PASSWORD),
                 new AndCondition() {{
-                    new Equals(new ColumnSpec(User.ID), new Param());
+                    new Equals(new ColumnSpec(UserAccount.ID), new Param());
                 }},
-                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, user.getId()))
+                Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, user.getUserAccount().getId()))
         );
         Map<String, Object> row = fieldsValues.get(0);
-        String password = (String) row.get(User.PASSWORD);
+        String password = (String) row.get(UserAccount.PASSWORD);
 
         if (passwordEncoder.matches(savePassword.getOldPassword(), password)) {
             List<UpdateValue> values = new ArrayList<>();
 
             values.add(
                     new UpdateValue<>(
-                            User.PASSWORD,
+                            UserAccount.PASSWORD,
                             (preparedStatement, index) -> preparedStatement.setString(index, savePassword.getNewPassword())
                     )
             );
 
-            generalDao.update(User.TABLE, values, new AndCondition() {{
-                add(new Equals(new ColumnSpec(User.ID), new Param()));
-            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, user.getId())), null);
+            generalDao.update(UserAccount.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(UserAccount.ID), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, user.getUserAccount().getId())), null);
 
             return HttpStatus.OK;
         }
@@ -288,12 +279,12 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             values.add(
                     new UpdateValue<>(
-                            User.PASSWORD,
+                            UserAccount.PASSWORD,
                             (preparedStatement, index) -> preparedStatement.setString(index, passwordEncoder.encode(restorePassword.getPassword()))
                     )
             );
-            int updated = generalDao.update(User.TABLE, values, new AndCondition() {{
-                add(new Equals(new ColumnSpec(User.PHONE), new Param()));
+            int updated = generalDao.update(UserAccount.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(UserAccount.PHONE), new Param()));
             }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, authKey.formattedNumber())), null);
 
             if (updated == 0) {
@@ -346,8 +337,6 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             actual.getUserAccount().setEmail(authKey.getEmail());
 
-            eventPublisher.publishEvent(new ChangeEmailEvent(actual));
-
             return HttpStatus.OK;
         }
 
@@ -399,20 +388,18 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
             values.add(
                     new UpdateValue<>(
-                            User.PHONE,
+                            UserAccount.PHONE,
                             (preparedStatement, index) -> preparedStatement.setString(index, authKey.formattedNumber())
                     )
             );
 
-            generalDao.update(User.TABLE, values, new AndCondition() {{
-                add(new Equals(new ColumnSpec(User.ID), new Param()));
-            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, actual.getId())), null);
+            generalDao.update(UserAccount.TABLE, values, new AndCondition() {{
+                add(new Equals(new ColumnSpec(UserAccount.ID), new Param()));
+            }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, actual.getUserAccount().getId())), null);
 
             verificationStorage.expire(request);
 
             actual.getUserAccount().setPhone(authKey.formattedNumber());
-
-            eventPublisher.publishEvent(new ChangePhoneEvent(actual));
 
             return HttpStatus.OK;
         }
@@ -459,16 +446,14 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
-                        User.EMAIL,
+                        UserAccount.EMAIL,
                         (preparedStatement, index) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, new AndCondition() {{
-            add(new Equals(new ColumnSpec(User.EMAIL), new Param()));
+        generalDao.update(UserAccount.TABLE, valuesRemoveEmailsVerification, new AndCondition() {{
+            add(new Equals(new ColumnSpec(UserAccount.EMAIL), new Param()));
         }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, email)), null);
-
-        eventPublisher.publishEvent(new UnverifyEmailsEvent(email));
     }
 
     private void unverifyPhones(String phone) {
@@ -476,15 +461,13 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
 
         valuesRemoveEmailsVerification.add(
                 new UpdateValue<>(
-                        User.PHONE,
+                        UserAccount.PHONE,
                         (preparedStatement, index) -> preparedStatement.setNull(index, Types.VARCHAR)
                 )
         );
 
-        generalDao.update(User.TABLE, valuesRemoveEmailsVerification, new AndCondition() {{
-            add(new Equals(new ColumnSpec(User.PHONE), new Param()));
+        generalDao.update(UserAccount.TABLE, valuesRemoveEmailsVerification, new AndCondition() {{
+            add(new Equals(new ColumnSpec(UserAccount.PHONE), new Param()));
         }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setString(index, phone)), null);
-
-        eventPublisher.publishEvent(new UnverifyPhonesEvent(phone));
     }
 }

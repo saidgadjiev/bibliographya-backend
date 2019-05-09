@@ -22,6 +22,7 @@ import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/settings")
+@PreAuthorize("hasRole('ROLE_USER')")
 public class SettingsController {
 
     private SettingsService settingsService;
@@ -35,7 +36,6 @@ public class SettingsController {
         this.userDetailsService = userDetailsService;
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/general")
     public ResponseEntity<?> getSettings() {
         GeneralSettings generalSettings = settingsService.getGeneralSettings();
@@ -43,7 +43,6 @@ public class SettingsController {
         return ResponseEntity.ok(generalSettings);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/general/email")
     public ResponseEntity<?> getEmail() {
         GeneralSettings generalSettings = settingsService.getGeneralSettings();
@@ -51,7 +50,6 @@ public class SettingsController {
         return ResponseEntity.ok(generalSettings);
     }
 
-    @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email/finish")
     public ResponseEntity<?> saveEmail(HttpServletRequest request,
                                        @Valid @RequestBody AuthenticationKeyConfirmation authenticationKeyConfirmation,
@@ -65,7 +63,6 @@ public class SettingsController {
         return ResponseEntity.status(status).build();
     }
 
-    @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-email/start")
     public ResponseEntity<?> changeEmail(HttpServletRequest request,
                                          Locale locale,
@@ -79,7 +76,6 @@ public class SettingsController {
         return ResponseEntity.status(sendVerificationResult.getStatus()).body(sendVerificationResult);
     }
 
-    @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/save-password")
     public ResponseEntity<?> savePassword(@Valid @RequestBody SavePassword savePassword, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {

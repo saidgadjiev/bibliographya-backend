@@ -11,5 +11,4 @@ public interface BibliographyaUserCache extends UserCache {
 
     void removeUserFromCache(int id);
 
-    Collection<User> getUsersFromCache(String email);
 }
