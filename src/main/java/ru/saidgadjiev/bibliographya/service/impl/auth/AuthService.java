@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.stereotype.Service;
@@ -49,8 +48,6 @@ public class AuthService {
 
     private BruteForceService bruteForceService;
 
-    private AuthenticationManager authenticationManager;
-
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
@@ -72,10 +69,6 @@ public class AuthService {
         this.jwtProperties = jwtProperties;
         this.bruteForceService = bruteForceService;
         this.eventPublisher = eventPublisher;
-    }
-
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
     }
 
     public String getOauthUrl(ProviderType providerType, String redirectUri, ResponseType responseType) {

@@ -141,7 +141,7 @@ public class BiographyService {
         if (user != null) {
             fields.add(Biography.IS_LIKED);
 
-            andCondition.add(isLikedCriteria(values));
+            andCondition.add(isLikedCriteria());
         }
 
         Biography biography = biographyDao.getById(timeZone, id, andCondition, values, fields);
@@ -163,7 +163,7 @@ public class BiographyService {
         if (user != null) {
             fields.add(Biography.IS_LIKED);
 
-            isLikedCondition.add(isLikedCriteria(values));
+            isLikedCondition.add(isLikedCriteria());
         }
 
         Biography biography = biographyDao.getByCriteria(timeZone, andCondition, isLikedCondition, values, fields);
@@ -245,7 +245,7 @@ public class BiographyService {
         if (userDetails != null) {
             fields.add(Biography.IS_LIKED);
 
-            likeCondition.add(isLikedCriteria(values));
+            likeCondition.add(isLikedCriteria());
         }
 
         List<Biography> biographies = biographyDao.getBiographiesList(
@@ -292,7 +292,7 @@ public class BiographyService {
                 null,
                 criteria,
                 new AndCondition() {{
-                    add(isLikedCriteria(values));
+                    add(isLikedCriteria());
                 }},
                 values,
                 Arrays.asList(Biography.CREATOR_ID, Biography.IS_LIKED),
@@ -516,7 +516,7 @@ public class BiographyService {
         return biographyDao.updateValues(timeZone, updateValues, criteria, values).getUpdated();
     }
 
-    private Condition isLikedCriteria(List<PreparedSetter> values) {
+    private Condition isLikedCriteria() {
         User user = (User) securityService.findLoggedInUser();
 
         return new Equals(new ColumnSpec(Biography.USER_ID), new IntLiteral(user.getId()));

@@ -4,10 +4,7 @@ import org.springframework.cache.Cache;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.saidgadjiev.bibliographya.domain.User;
 
-import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
 
