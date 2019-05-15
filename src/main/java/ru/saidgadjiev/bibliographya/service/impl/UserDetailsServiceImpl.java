@@ -176,7 +176,7 @@ public class UserDetailsServiceImpl implements BibliographyaUserDetailsService {
     @Override
     public User loadUserById(int id) {
         User user = userAccountDao.getUniqueUser(new AndCondition() {{
-            add(new Equals(new ColumnSpec(User.ID), new Param()));
+            add(new Equals(new ColumnSpec(UserAccount.USER_ID), new Param()));
         }}, Collections.singletonList((preparedStatement, index) -> preparedStatement.setInt(index, id)));
 
         if (user != null) {
