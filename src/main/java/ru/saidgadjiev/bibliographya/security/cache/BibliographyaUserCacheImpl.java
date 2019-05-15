@@ -18,9 +18,7 @@ public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
     public User getUserFromCache(int id) {
         com.github.benmanes.caffeine.cache.Cache<String, User> nativeCache = (com.github.benmanes.caffeine.cache.Cache<String, User>) cache.getNativeCache();
 
-        Map<String, User> userMap = nativeCache.asMap();
-
-        return userMap.values().stream().filter(user -> user.getId() == id).findAny().orElse(null);
+        return nativeCache.getIfPresent(id);
     }
 
     @Override
