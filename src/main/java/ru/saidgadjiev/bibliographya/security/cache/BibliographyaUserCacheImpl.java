@@ -1,20 +1,20 @@
 package ru.saidgadjiev.bibliographya.security.cache;
 
-import org.springframework.cache.Cache;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.saidgadjiev.bibliographya.domain.User;
 
 public class BibliographyaUserCacheImpl implements BibliographyaUserCache {
 
-    private final Cache cache;
+    private final org.springframework.cache.Cache cache;
 
-    public BibliographyaUserCacheImpl(Cache cache) {
+    public BibliographyaUserCacheImpl(org.springframework.cache.Cache cache) {
         this.cache = cache;
     }
 
     @Override
     public User getUserFromCache(int id) {
-        com.github.benmanes.caffeine.cache.Cache<String, User> nativeCache = (com.github.benmanes.caffeine.cache.Cache<String, User>) cache.getNativeCache();
+        Cache<Integer, User> nativeCache = (Cache<Integer, User>) cache.getNativeCache();
 
         return nativeCache.getIfPresent(id);
     }
