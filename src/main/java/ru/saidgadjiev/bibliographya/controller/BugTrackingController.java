@@ -87,7 +87,6 @@ public class BugTrackingController {
     }
 
     @PostMapping("")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> create(TimeZone timeZone,
                                     @Valid @RequestBody BugRequest bugRequest,
                                     BindingResult bindingResult) {

@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS feedback (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL
+)

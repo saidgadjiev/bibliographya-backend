@@ -153,7 +153,7 @@ public class AuthController {
     @GetMapping("/account")
     public ResponseEntity<?> getAccount(Authentication authentication) {
         if (authentication == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         return ResponseEntity.ok(authentication.getPrincipal());
