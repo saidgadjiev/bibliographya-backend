@@ -46,6 +46,10 @@ public class Biography {
 
     public static final String CREATED_AT = "created_at";
 
+    public static final String COUNTRY_ID = "country_id";
+    
+    public static final String PROFESSION_ID = "profession_id";
+
     private Integer id;
 
     private String firstName;
@@ -101,6 +105,14 @@ public class Biography {
     private boolean disableComments;
 
     private boolean anonymousCreator;
+    
+    private Integer countryId;
+    
+    private Integer professionId;
+    
+    private String country;
+    
+    private String profession;
 
     public Integer getId() {
         return id;
@@ -324,6 +336,38 @@ public class Biography {
 
     public void setViewsCount(long viewsCount) {
         this.viewsCount = viewsCount;
+    }
+
+    public Integer getCountryId() {
+        return countryId;
+    }
+
+    public void setCountryId(Integer countryId) {
+        this.countryId = countryId;
+    }
+
+    public Integer getProfessionId() {
+        return professionId;
+    }
+
+    public void setProfessionId(Integer professionId) {
+        this.professionId = professionId;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
     }
 
     /**

@@ -1,0 +1,6 @@
+CREATE TABLE profession (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(512) NOT NULL
+);
+
+ALTER TABLE biography ADD COLUMN IF NOT EXISTS profession_id INT REFERENCES profession(id) ON DELETE SET NULL;

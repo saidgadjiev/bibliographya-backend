@@ -161,7 +161,7 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (PreparedSetter preparedSetter: values) {
+                    for (PreparedSetter preparedSetter : values) {
                         preparedSetter.set(ps, ++i);
                     }
                 },
@@ -194,7 +194,7 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (PreparedSetter preparedSetter: values) {
+                    for (PreparedSetter preparedSetter : values) {
                         preparedSetter.set(ps, ++i);
                     }
                 },
@@ -209,10 +209,10 @@ public class BiographyDao {
     }
 
     public Biography getByCriteria(TimeZone timeZone,
-                         AndCondition criteria,
-                         AndCondition isLikedCriteria,
-                         List<PreparedSetter> values,
-                         Collection<String> fields) {
+                                   AndCondition criteria,
+                                   AndCondition isLikedCriteria,
+                                   List<PreparedSetter> values,
+                                   Collection<String> fields) {
         StringBuilder sql = new StringBuilder();
 
         sql
@@ -235,7 +235,7 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (PreparedSetter preparedSetter: values) {
+                    for (PreparedSetter preparedSetter : values) {
                         preparedSetter.set(ps, ++i);
                     }
                 },
@@ -302,7 +302,7 @@ public class BiographyDao {
                 ps -> {
                     int i = 0;
 
-                    for (PreparedSetter preparedSetter: values) {
+                    for (PreparedSetter preparedSetter : values) {
                         preparedSetter.set(ps, ++i);
                     }
                 },
@@ -420,6 +420,10 @@ public class BiographyDao {
                 .append("b.anonymous_creator,")
                 .append("b.").append(Biography.BIO).append(",")
                 .append("b.publish_status,")
+                .append("c.name as country,")
+                .append("b.country_id,")
+                .append("b.profession_id,")
+                .append("p.name as profession,")
                 .append("bm.first_name as m_first_name,")
                 .append("bm.last_name as m_last_name,")
                 .append("bm.id as m_id,")
@@ -483,6 +487,12 @@ public class BiographyDao {
         biography.setCommentsCount(rs.getInt("bc_cnt"));
         biography.setViewsCount(rs.getLong("bvc_views_count"));
 
+        biography.setProfessionId(ResultSetUtils.intOrNull(rs, Biography.PROFESSION_ID));
+        biography.setProfession(rs.getString("profession"));
+
+        biography.setCountryId(ResultSetUtils.intOrNull(rs, Biography.COUNTRY_ID));
+        biography.setCountry(rs.getString("country"));
+
         boolean anonymous = rs.getBoolean("anonymous_creator");
 
         biography.setAnonymousCreator(anonymous);
@@ -508,7 +518,10 @@ public class BiographyDao {
         sql.append(" LEFT JOIN biography bm ON b.moderator_id = bm.user_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ")
-                .append(" LEFT JOIN (SELECT biography_id, views_count as cnt FROM biography_view_count) bvc ON b.id = bvc.biography_id ");
+                .append(" LEFT JOIN (SELECT biography_id, views_count as cnt FROM biography_view_count) bvc ON b.id = bvc.biography_id ")
+                .append(" LEFT JOIN profession p ON b.profession_id = p.id ")
+                .append(" LEFT JOIN country c ON b.country_id = c.id ");
+
         if (fields.contains(Biography.IS_LIKED)) {
             DslVisitor visitor = new DslVisitor(null);
 
