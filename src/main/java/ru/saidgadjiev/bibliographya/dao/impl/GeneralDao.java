@@ -133,7 +133,7 @@ public class GeneralDao {
 
         builder.append("SELECT ");
 
-        if (fields.isEmpty()) {
+        if (fields == null || fields.isEmpty()) {
             builder.append("*");
         } else {
             for (Iterator<String> fieldIterator = fields.iterator(); fieldIterator.hasNext(); ) {
@@ -146,25 +146,29 @@ public class GeneralDao {
         }
         builder.append(" ").append("FROM \"").append(table).append("\" ");
 
-        DslVisitor visitor = new DslVisitor(null);
+        if (criteria != null) {
+            DslVisitor visitor = new DslVisitor(null);
 
-        new Expression() {{
-            add(criteria);
-        }}.accept(visitor);
+            new Expression() {{
+                add(criteria);
+            }}.accept(visitor);
 
-        String clause = visitor.getClause();
+            String clause = visitor.getClause();
 
-        if (StringUtils.isNotBlank(clause)) {
-            builder.append("WHERE ").append(clause);
+            if (StringUtils.isNotBlank(clause)) {
+                builder.append("WHERE ").append(clause);
+            }
         }
 
         return jdbcTemplate.query(
                 builder.toString(),
                 ps -> {
-                    int i = 0;
+                    if (values != null) {
+                        int i = 0;
 
-                    for (PreparedSetter preparedSetter: values) {
-                        preparedSetter.set(ps, ++i);
+                        for (PreparedSetter preparedSetter : values) {
+                            preparedSetter.set(ps, ++i);
+                        }
                     }
                 },
                 rs -> {

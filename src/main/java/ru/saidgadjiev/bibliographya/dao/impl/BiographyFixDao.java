@@ -59,7 +59,9 @@ public class BiographyFixDao {
                 .append(" LEFT JOIN biography fb ON bf.fixer_id = fb.user_id ")
                 .append(" LEFT JOIN biography cbb ON cbb.id = b.creator_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON bf.biography_id = l.biography_id ")
-                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ");
+                .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON bf.biography_id = bc.biography_id ")
+                .append(" LEFT JOIN profession p ON b.profession_id = p.id ")
+                .append(" LEFT JOIN country c ON b.country_id = c.id ");
 
         visitor = new DslVisitor(null);
 
@@ -204,6 +206,12 @@ public class BiographyFixDao {
         biography.setMiddleName(rs.getString("b_middle_name"));
         biography.setBio(rs.getString("b_bio"));
 
+        biography.setProfessionId(ResultSetUtils.intOrNull(rs, Biography.PROFESSION_ID));
+        biography.setProfession(rs.getString("profession"));
+
+        biography.setCountryId(ResultSetUtils.intOrNull(rs, Biography.COUNTRY_ID));
+        biography.setCountry(rs.getString("country"));
+
         fix.setBiography(biography);
 
         Biography creatorBiography = new Biography();
@@ -304,6 +312,10 @@ public class BiographyFixDao {
                 .append("b.first_name as b_first_name,")
                 .append("b.last_name as b_last_name,")
                 .append("b.middle_name as b_middle_name,")
+                .append("c.name as country,")
+                .append("b.country_id,")
+                .append("b.profession_id,")
+                .append("p.name as profession,")
                 .append("b.").append(Biography.BIO).append(" as b_bio,")
                 .append("cb.id as cb_id,")
                 .append("cb.first_name as cb_first_name,")
