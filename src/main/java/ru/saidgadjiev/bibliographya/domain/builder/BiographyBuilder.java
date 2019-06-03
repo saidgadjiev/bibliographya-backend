@@ -11,7 +11,9 @@ import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategoryBiography;
 import ru.saidgadjiev.bibliographya.html.Header;
 import ru.saidgadjiev.bibliographya.html.truncate.HtmlTruncate;
+import ru.saidgadjiev.bibliographya.model.BiographyProfession;
 import ru.saidgadjiev.bibliographya.service.impl.BiographyCategoryBiographyService;
+import ru.saidgadjiev.bibliographya.service.impl.ProfessionService;
 import ru.saidgadjiev.bibliographya.utils.NumberUtils;
 
 import javax.script.ScriptException;
@@ -29,9 +31,12 @@ public class BiographyBuilder {
 
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
+    private ProfessionService professionService;
+
     @Autowired
-    public BiographyBuilder(BiographyCategoryBiographyService biographyCategoryBiographyService) {
+    public BiographyBuilder(BiographyCategoryBiographyService biographyCategoryBiographyService, ProfessionService professionService) {
         this.biographyCategoryBiographyService = biographyCategoryBiographyService;
+        this.professionService = professionService;
     }
 
     public SingleBuilder builder(Biography biography) {
@@ -73,8 +78,9 @@ public class BiographyBuilder {
             this.biography = biography;
         }
 
-        public SingleBuilder buildCategories() {
+        public SingleBuilder buildCategoriesAndProfessions() {
             biography.setCategories(biographyCategoryBiographyService.getBiographyCategories(biography.getId()).getCategories());
+            biography.setProfessions(professionService.getBiographyProfessions(biography.getId()).getProfessions());
 
             return this;
         }
@@ -100,12 +106,14 @@ public class BiographyBuilder {
             this.biographies = biographies;
         }
 
-        public MultipleBuilder buildCategories() {
+        public MultipleBuilder buildCategoriesAndProfessions() {
             Collection<Integer> ids = biographies.stream().map(Biography::getId).collect(Collectors.toList());
             Map<Integer, BiographyCategoryBiography> biographiesCategories = biographyCategoryBiographyService.getBiographiesCategories(ids);
+            Map<Integer, BiographyProfession> biographyProfessions = professionService.getBiographiesProfessions(ids);
 
             for (Biography biography : biographies) {
                 biography.setCategories(biographiesCategories.get(biography.getId()).getCategories());
+                biography.setProfessions(biographyProfessions.get(biography.getId()).getProfessions());
             }
 
             return this;

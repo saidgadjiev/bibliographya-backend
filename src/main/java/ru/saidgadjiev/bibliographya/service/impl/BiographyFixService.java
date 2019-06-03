@@ -99,7 +99,7 @@ public class BiographyFixService {
         long total = biographyFixDao.countOff();
 
         biographyBuilder.builder(biographyFixes.stream().map(BiographyFix::getBiography).collect(Collectors.toList()))
-                .buildCategories()
+                .buildCategoriesAndProfessions()
                 .truncateBiography(biographyClampSize);
 
         return new PageImpl<>(biographyFixes, pageRequest, total);

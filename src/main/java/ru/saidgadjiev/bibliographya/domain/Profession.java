@@ -1,6 +1,10 @@
 package ru.saidgadjiev.bibliographya.domain;
 
-public class Profession {
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+
+public class Profession implements Comparable<Profession> {
 
     public static final String TYPE = "profession";
 
@@ -26,5 +30,10 @@ public class Profession {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public int compareTo(@NotNull Profession o) {
+        return Objects.compare(name, o.name, String::compareTo);
     }
 }

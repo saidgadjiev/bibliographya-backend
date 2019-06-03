@@ -15,6 +15,7 @@ import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.AndCondition;
 import ru.saidgadjiev.bibliographya.data.query.dsl.core.condition.Expression;
 import ru.saidgadjiev.bibliographya.domain.Biography;
 import ru.saidgadjiev.bibliographya.domain.BiographyUpdateStatus;
+import ru.saidgadjiev.bibliographya.domain.Country;
 import ru.saidgadjiev.bibliographya.utils.ResultSetUtils;
 import ru.saidgadjiev.bibliographya.utils.SortUtils;
 
@@ -49,7 +50,10 @@ public class BiographyDao {
             insertPart.append(",moderation_status");
             valuesPart.append(",?");
         }
-
+        if (biography.getCountryId() != null) {
+            insertPart.append(",country_id");
+            valuesPart.append(",?");
+        }
         insertPart.append(")");
         valuesPart.append(")");
 
@@ -84,6 +88,10 @@ public class BiographyDao {
 
                     if (biography.getModerationStatus() != null) {
                         ps.setInt(7, biography.getModerationStatus().getCode());
+                    }
+
+                    if (biography.getCountryId() != null) {
+                        ps.setInt(8, biography.getCountryId());
                     }
 
                     return ps;
@@ -422,8 +430,6 @@ public class BiographyDao {
                 .append("b.publish_status,")
                 .append("c.name as country,")
                 .append("b.country_id,")
-                .append("b.profession_id,")
-                .append("p.name as profession,")
                 .append("bm.first_name as m_first_name,")
                 .append("bm.last_name as m_last_name,")
                 .append("bm.id as m_id,")
@@ -487,11 +493,16 @@ public class BiographyDao {
         biography.setCommentsCount(rs.getInt("bc_cnt"));
         biography.setViewsCount(rs.getLong("bvc_views_count"));
 
-        biography.setProfessionId(ResultSetUtils.intOrNull(rs, Biography.PROFESSION_ID));
-        biography.setProfession(rs.getString("profession"));
-
         biography.setCountryId(ResultSetUtils.intOrNull(rs, Biography.COUNTRY_ID));
-        biography.setCountry(rs.getString("country"));
+
+        if (biography.getCountryId() != null) {
+            Country country = new Country();
+
+            country.setId(biography.getCountryId());
+            country.setName(rs.getString("country"));
+
+            biography.setCountry(country);
+        }
 
         boolean anonymous = rs.getBoolean("anonymous_creator");
 
@@ -519,7 +530,6 @@ public class BiographyDao {
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_like GROUP BY biography_id) l ON b.id = l.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, COUNT(id) AS cnt FROM biography_comment GROUP BY biography_id) bc ON b.id = bc.biography_id ")
                 .append(" LEFT JOIN (SELECT biography_id, views_count as cnt FROM biography_view_count) bvc ON b.id = bvc.biography_id ")
-                .append(" LEFT JOIN profession p ON b.profession_id = p.id ")
                 .append(" LEFT JOIN country c ON b.country_id = c.id ");
 
         if (fields.contains(Biography.IS_LIKED)) {

@@ -28,6 +28,7 @@ import javax.script.ScriptException;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -51,15 +52,19 @@ public class BiographyService {
 
     private BiographyCategoryBiographyService biographyCategoryBiographyService;
 
+    private ProfessionService professionService;
+
     @Autowired
     public BiographyService(MediaService mediaService,
                             BiographyDao biographyDao,
                             GeneralDao generalDao,
-                            BiographyBuilder biographyBuilder) {
+                            BiographyBuilder biographyBuilder,
+                            ProfessionService professionService) {
         this.mediaService = mediaService;
         this.biographyDao = biographyDao;
         this.generalDao = generalDao;
         this.biographyBuilder = biographyBuilder;
+        this.professionService = professionService;
     }
 
     @Autowired
@@ -83,12 +88,19 @@ public class BiographyService {
         biography.setMiddleName(biographyRequest.getMiddleName());
         biography.setBio(biographyRequest.getBio());
         biography.setCreatorId(userDetails.getId());
+        biography.setCountryId(biographyRequest.getCountryId());
 
         biographyDao.create(biography);
 
         if (biographyRequest.getAddCategories() != null && !biographyRequest.getAddCategories().isEmpty()) {
             biographyCategoryBiographyService.addCategoriesToBiography(
                     biographyRequest.getAddCategories(),
+                    biography.getId()
+            );
+        }
+        if (biographyRequest.getAddProfessions() != null && !biographyRequest.getAddProfessions().isEmpty()) {
+            professionService.addProfessionsToBiography(
+                    biographyRequest.getAddProfessions(),
                     biography.getId()
             );
         }
@@ -150,7 +162,7 @@ public class BiographyService {
             return null;
         }
 
-        return biographyBuilder.builder(biography).buildCategories().build();
+        return biographyBuilder.builder(biography).buildCategoriesAndProfessions().build();
     }
 
     public Biography getBiographyByCriteria(TimeZone timeZone, AndCondition andCondition, List<PreparedSetter> values) {
@@ -172,7 +184,7 @@ public class BiographyService {
             return null;
         }
 
-        return biographyBuilder.builder(biography).buildCategories().build();
+        return biographyBuilder.builder(biography).buildCategoriesAndProfessions().build();
     }
 
     public Page<Biography> getBiographies(TimeZone timeZone,
@@ -265,7 +277,7 @@ public class BiographyService {
         }
 
         biographies = biographyBuilder.builder(biographies)
-                .buildCategories()
+                .buildCategoriesAndProfessions()
                 .truncateBiography(biographyClampSize)
                 .build();
 
@@ -304,7 +316,7 @@ public class BiographyService {
         }
 
         biographies = biographyBuilder.builder(biographies)
-                .buildCategories()
+                .buildCategoriesAndProfessions()
                 .truncateBiography(biographyClampSize)
                 .build();
 
@@ -316,7 +328,7 @@ public class BiographyService {
     @Transactional
     public BiographyUpdateStatus update(TimeZone timeZone,
                                         Integer id,
-                                        BiographyRequest updateBiographyRequest) throws SQLException, MalformedURLException {
+                                        BiographyRequest updateBiographyRequest) throws MalformedURLException {
         List<UpdateValue> updateValues = new ArrayList<>();
 
         updateValues.add(
@@ -334,9 +346,28 @@ public class BiographyService {
         updateValues.add(
                 new UpdateValue<>(
                         Biography.MIDDLE_NAME,
-                        (preparedStatement, index) -> preparedStatement.setString(index, updateBiographyRequest.getMiddleName())
+                        (preparedStatement, index) -> {
+                            if (StringUtils.isBlank(updateBiographyRequest.getMiddleName())) {
+                                preparedStatement.setNull(index, Types.VARCHAR);
+                            } else {
+                                preparedStatement.setString(index, updateBiographyRequest.getMiddleName());
+                            }
+                        }
                 )
         );
+        updateValues.add(
+                new UpdateValue<>(
+                        Biography.COUNTRY_ID,
+                        (preparedStatement, index) -> {
+                            if (updateBiographyRequest.getCountryId() == null) {
+                                preparedStatement.setNull(index, Types.INTEGER);
+                            } else {
+                                preparedStatement.setInt(index, updateBiographyRequest.getCountryId());
+                            }
+                        }
+                )
+        );
+
         User user = (User) securityService.findLoggedInUser();
 
         if (RoleUtils.hasAnyRole(user.getRoles(), Role.ROLE_MODERATOR)) {
@@ -346,7 +377,13 @@ public class BiographyService {
         updateValues.add(
                 new UpdateValue<>(
                         Biography.BIO,
-                        (preparedStatement, index) -> preparedStatement.setString(index, updateBiographyRequest.getBio())
+                        (preparedStatement, index) -> {
+                            if (StringUtils.isBlank(updateBiographyRequest.getBio())) {
+                                preparedStatement.setNull(index, Types.VARCHAR);
+                            } else {
+                                preparedStatement.setString(index, updateBiographyRequest.getBio());
+                            }
+                        }
                 )
         );
 
@@ -372,8 +409,6 @@ public class BiographyService {
 
             add(new Equals(new ColumnSpec(Biography.ID), new Param()));
             values.add((preparedStatement, index) -> preparedStatement.setInt(index, id));
-
-
         }};
 
         BiographyUpdateStatus status = biographyDao.updateValues(timeZone, updateValues, criteria, values);
@@ -390,6 +425,18 @@ public class BiographyService {
             if (updateBiographyRequest.getDeleteCategories() != null && !updateBiographyRequest.getDeleteCategories().isEmpty()) {
                 biographyCategoryBiographyService.deleteCategoriesFromBiography(
                         updateBiographyRequest.getDeleteCategories(),
+                        id
+                );
+            }
+            if (updateBiographyRequest.getAddProfessions() != null && !updateBiographyRequest.getAddProfessions().isEmpty()) {
+                professionService.addProfessionsToBiography(
+                        updateBiographyRequest.getAddProfessions(),
+                        id
+                );
+            }
+            if (updateBiographyRequest.getDeleteProfessions() != null && !updateBiographyRequest.getDeleteProfessions().isEmpty()) {
+                professionService.deleteProfessionsFromBiography(
+                        updateBiographyRequest.getDeleteProfessions(),
                         id
                 );
             }
@@ -504,13 +551,10 @@ public class BiographyService {
                     new Equals(new ColumnSpec(Biography.MODERATION_STATUS), new Param())
             );
             values.add((preparedStatement, index) -> preparedStatement.setInt(index, Biography.ModerationStatus.APPROVED.getCode()));
+            criteria.add(new NotNull(new ColumnSpec(Biography.BIO)));
+            criteria.add(new NotEquals(new ColumnSpec(Biography.BIO), new Param()));
 
-            if (publishStatus.equals(Biography.PublishStatus.PUBLISHED)) {
-                criteria.add(new NotNull(new ColumnSpec(Biography.BIO)));
-                criteria.add(new NotEquals(new ColumnSpec(Biography.BIO), new Param()));
-
-                values.add((preparedStatement, index) -> preparedStatement.setString(index, ""));
-            }
+            values.add((preparedStatement, index) -> preparedStatement.setString(index, ""));
         }
 
         return biographyDao.updateValues(timeZone, updateValues, criteria, values).getUpdated();

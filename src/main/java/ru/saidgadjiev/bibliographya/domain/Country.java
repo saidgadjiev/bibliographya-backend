@@ -1,6 +1,10 @@
 package ru.saidgadjiev.bibliographya.domain;
 
-public class Country {
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+
+public class Country implements Comparable<Country> {
 
     public static final String TYPE = "country";
 
@@ -27,4 +31,11 @@ public class Country {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public int compareTo(@NotNull Country o) {
+        return Objects.compare(name, o.name, String::compareTo);
+    }
+
+
 }
