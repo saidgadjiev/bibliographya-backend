@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS biography_profession
     profession_id INTEGER REFERENCES profession (id) ON DELETE CASCADE
 );
 
-INSERT INTO profession
+INSERT INTO profession(name)
 VALUES ('Программист'),
        ('Предприниматель'),
        ('Изобретатель'),
