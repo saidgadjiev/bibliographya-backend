@@ -3,6 +3,8 @@ package ru.saidgadjiev.bibliographya.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
 import ru.saidgadjiev.bibliographya.domain.BiographyCategory;
+import ru.saidgadjiev.bibliographya.domain.Country;
+import ru.saidgadjiev.bibliographya.domain.Profession;
 import ru.saidgadjiev.bibliographya.html.Header;
 
 import java.sql.Timestamp;
@@ -50,6 +52,8 @@ public class BiographyBaseResponse {
 
     private Collection<BiographyCategory> categories;
 
+    private Collection<Profession> professions;
+
     private Integer publishStatus;
 
     private Collection<Header> headers;
@@ -62,11 +66,7 @@ public class BiographyBaseResponse {
 
     private Integer countryId;
 
-    private Integer professionId;
-
-    private String country;
-
-    private String profession;
+    private Country country;
 
     public Integer getId() {
         return id;
@@ -236,27 +236,19 @@ public class BiographyBaseResponse {
         this.countryId = countryId;
     }
 
-    public Integer getProfessionId() {
-        return professionId;
-    }
-
-    public void setProfessionId(Integer professionId) {
-        this.professionId = professionId;
-    }
-
-    public String getCountry() {
+    public Country getCountry() {
         return country;
     }
 
-    public void setCountry(String country) {
+    public void setCountry(Country country) {
         this.country = country;
     }
 
-    public String getProfession() {
-        return profession;
+    public Collection<Profession> getProfessions() {
+        return professions;
     }
 
-    public void setProfession(String profession) {
-        this.profession = profession;
+    public void setProfessions(Collection<Profession> professions) {
+        this.professions = professions;
     }
 }

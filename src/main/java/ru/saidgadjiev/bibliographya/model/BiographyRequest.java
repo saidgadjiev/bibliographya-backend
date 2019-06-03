@@ -34,6 +34,13 @@ public class BiographyRequest {
 
     private List<Integer> deleteCategories;
 
+    @NotNull
+    private Integer countryId;
+
+    private List<Integer> addProfessions;
+
+    private List<Integer> deleteProfessions;
+
     public String getFirstName() {
         return firstName;
     }
@@ -96,5 +103,29 @@ public class BiographyRequest {
 
     public void setDeleteCategories(List<Integer> deleteCategories) {
         this.deleteCategories = deleteCategories;
+    }
+
+    public Integer getCountryId() {
+        return countryId;
+    }
+
+    public void setCountryId(Integer countryId) {
+        this.countryId = countryId;
+    }
+
+    public List<Integer> getAddProfessions() {
+        return addProfessions;
+    }
+
+    public void setAddProfessions(List<Integer> addProfessions) {
+        this.addProfessions = addProfessions;
+    }
+
+    public List<Integer> getDeleteProfessions() {
+        return deleteProfessions;
+    }
+
+    public void setDeleteProfessions(List<Integer> deleteProfessions) {
+        this.deleteProfessions = deleteProfessions;
     }
 }

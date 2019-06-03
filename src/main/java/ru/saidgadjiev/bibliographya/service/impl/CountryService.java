@@ -40,6 +40,6 @@ public class CountryService {
             country.setName((String) stringObjectMap.get(Country.NAME));
 
             return country;
-        }).collect(Collectors.toList());
+        }).sorted().collect(Collectors.toList());
     }
 }
