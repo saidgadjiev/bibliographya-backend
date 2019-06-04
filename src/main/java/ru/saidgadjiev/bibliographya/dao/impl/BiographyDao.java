@@ -86,12 +86,14 @@ public class BiographyDao {
                         ps.setInt(6, biography.getUserId());
                     }
 
+                    long valuesCount = valuesPart.toString().chars().filter(ch -> ch == '?').count();
+
                     if (biography.getModerationStatus() != null) {
-                        ps.setInt(7, biography.getModerationStatus().getCode());
+                        ps.setInt((int) (valuesCount - 1), biography.getModerationStatus().getCode());
                     }
 
                     if (biography.getCountryId() != null) {
-                        ps.setInt(8, biography.getCountryId());
+                        ps.setInt((int) valuesCount, biography.getCountryId());
                     }
 
                     return ps;
