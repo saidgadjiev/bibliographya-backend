@@ -1,7 +1,9 @@
 package ru.saidgadjiev.bibliographya.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import ru.saidgadjiev.bibliographya.configuration.BibliographyaConfiguration;
+import ru.saidgadjiev.bibliographya.domain.jackson.TrimDeserializer;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -15,14 +17,18 @@ public class BiographyRequest {
 
     @NotNull
     @Size(min = 1)
+    @JsonDeserialize(using = TrimDeserializer.class)
     private String firstName;
 
     @NotNull
     @Size(min = 1)
+    @JsonDeserialize(using = TrimDeserializer.class)
     private String lastName;
 
+    @JsonDeserialize(using = TrimDeserializer.class)
     private String middleName;
 
+    @JsonDeserialize(using = TrimDeserializer.class)
     private String bio;
 
     private Integer userId;

@@ -5,6 +5,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import ru.saidgadjiev.bibliographya.auth.common.ProviderType;
 import ru.saidgadjiev.bibliographya.domain.User;
 import ru.saidgadjiev.bibliographya.security.cache.BibliographyaUserCache;
 import ru.saidgadjiev.bibliographya.service.api.BibliographyaUserDetailsService;
@@ -22,12 +23,24 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
         if (userId == null) {
             throw new BadCredentialsException("Bad credentials");
         }
+        ProviderType providerType = ProviderType.fromId((String) authentication.getCredentials());
+
+        if (providerType == null) {
+            throw new BadCredentialsException("Bad credentials");
+        }
 
         User user = bibliographyaUserCache.getUserFromCache(userId);
 
         if (user == null) {
-            user = userDetailsService.loadUserById(userId);
-
+            switch (providerType) {
+                case FACEBOOK:
+                case VK:
+                    user = userDetailsService.loadSocialUserById(userId);
+                    break;
+                case SIMPLE:
+                    user = userDetailsService.loadUserById(userId);
+                    break;
+            }
             if (user == null) {
                 throw new BadCredentialsException("Bad credentials");
             }

@@ -16,7 +16,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getCredentials() {
-        return null;
+        return claims == null ? null : claims.get("providerId");
     }
 
     @Override
