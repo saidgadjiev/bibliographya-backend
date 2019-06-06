@@ -45,14 +45,19 @@ public class BiographyDao {
         valuesPart.append("VALUES(?, ?, ?, ?, ?, ?");
 
         insertPart.append("INSERT INTO biography(first_name, last_name, middle_name, bio, creator_id, user_id");
+        List<PreparedSetter> values = new ArrayList<>();
 
         if (biography.getModerationStatus() != null) {
             insertPart.append(",moderation_status");
             valuesPart.append(",?");
+            values.add((preparedStatement, index) -> {
+                preparedStatement.setInt(index, biography.getModerationStatus().getCode());
+            });
         }
         if (biography.getCountryId() != null) {
             insertPart.append(",country_id");
             valuesPart.append(",?");
+            values.add((preparedStatement, index) -> preparedStatement.setInt(index, biography.getCountryId()));
         }
         insertPart.append(")");
         valuesPart.append(")");
@@ -85,15 +90,10 @@ public class BiographyDao {
                     } else {
                         ps.setInt(6, biography.getUserId());
                     }
+                    int i = 7;
 
-                    long valuesCount = valuesPart.toString().chars().filter(ch -> ch == '?').count();
-
-                    if (biography.getModerationStatus() != null) {
-                        ps.setInt((int) (valuesCount - 1), biography.getModerationStatus().getCode());
-                    }
-
-                    if (biography.getCountryId() != null) {
-                        ps.setInt((int) valuesCount, biography.getCountryId());
+                    for (PreparedSetter value: values) {
+                        value.set(ps, i++);
                     }
 
                     return ps;

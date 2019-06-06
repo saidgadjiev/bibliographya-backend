@@ -1,5 +1,8 @@
 package ru.saidgadjiev.bibliographya.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import ru.saidgadjiev.bibliographya.domain.jackson.TrimDeserializer;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -10,6 +13,7 @@ public class BiographyCommentRequest {
 
     @NotNull
     @Size(min = 1)
+    @JsonDeserialize(using = TrimDeserializer.class)
     private String content;
 
     private Integer parentId;

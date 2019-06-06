@@ -43,6 +43,7 @@ public class UserPendingOperation implements BusinessOperation<Biography> {
         return biographyModerationDao.update(values, new AndCondition() {{
             add(new Equals(new ColumnSpec(Biography.ID), new Param()));
             add(new Equals(new ColumnSpec(Biography.CREATOR_ID), new Param()));
+            add(new Equals(new ColumnSpec(Biography.MODERATION_STATUS), new Param()));
         }}, Arrays.asList(
                 (preparedStatement, index) -> preparedStatement.setInt(index, biographyId),
                 (preparedStatement, index) -> preparedStatement.setInt(index, creatorId),
